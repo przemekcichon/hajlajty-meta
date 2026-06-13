@@ -68,14 +68,15 @@ modelu i znikłyby razem z nim.
 - **CPT `mecz`**: `show_in_graphql => true`, `graphql_single_name`/`graphql_plural_name`,
   `show_in_rest => true`, `has_archive => true`, `supports` = `title`, `editor`
   (post content = ręczne opisy/zapowiedzi, decyzja #5), `thumbnail`.
-- **Taksonomie** (wszystkie `show_in_graphql => true`, `show_in_rest => true`,
-  `hierarchical` wg sensu):
+- **Taksonomie** (4 publiczne; wszystkie `show_in_graphql => true`,
+  `show_in_rest => true`, `hierarchical` wg sensu):
   - `druzyna` (nie-hierarchiczna funkcjonalnie, ale dajemy hierarchical=true dla
     czytelnego UI checkboxów) — term meta: `fifa_code`, `api_id`.
   - `rozgrywki` — term meta: `league_id`.
   - `sezon` — termy „2026", „2025/26".
-  - `status_wideo` — patrz decyzja D1.4 (taksonomia vs pochodne).
   - `kanal` — nadawca skrótu (decyzja #12: elastyczna taksonomia).
+  - **NIE ma taksonomii `status_wideo`** — „ma wideo" to pochodna obecności
+    `skrot_url` (CLAUDE.md decyzja #9), nie taksonomia. Patrz D1.4.
 - **Term meta + UI**: pola edytowalne na ekranie terminu (add/edit form hooks
   `{tax}_add_form_fields`, `{tax}_edit_form_fields`, zapis na `created_{tax}`/
   `edited_{tax}`). `register_term_meta` z `show_in_rest`/`show_in_graphql`.
@@ -97,14 +98,14 @@ modelu i znikłyby razem z nim.
 - **D1.3 — Term meta drużyny: `fifa_code` 3-literowy.** Wielkość liter w slugu
   permalinku (lower) vs w `data-team` designu (UPPER, np. `POL`). Proponuję
   przechowywać UPPER, w slugu lowercasować. OK?
-- **D1.4 — `status_wideo`: taksonomia czy pole pochodne?** KONFLIKT w źródłach:
-  CLAUDE.md #4 mówi „status wideo jako taksonomia", a data-inventory #14 mówi
-  „pole boolowskie pochodne od `field_skrot_url`". Propozycja godząca: taksonomia
-  `status_wideo` z dwoma stałymi termami (`z-wideo` / `bez-wideo`),
-  **automatycznie przypisywanymi** przy zapisie posta na podstawie obecności
-  `skrot_url` (hook `save_post`/`acf/save_post`). Redaktor nie ustawia ręcznie.
-  Dzięki temu filtrowanie idzie po taksonomii (spójne z resztą), a wartość jest
-  zawsze zgodna z rzeczywistością. **Akceptujesz auto-przypisanie?**
+- **D1.4 — `status_wideo`: ROZSTRZYGNIĘTE — pochodna, nie taksonomia.**
+  Konflikt w źródłach (CLAUDE.md mówił „taksonomia", data-inventory #14 „pole
+  pochodne") rozstrzygnięty na korzyść pochodnej (CLAUDE.md decyzja #9):
+  `status_wideo` NIE jest osobnym polem ani taksonomią — to pochodna obecności
+  `skrot_url` (mecz ma skrót ⟺ pole wypełnione). Publicznie NIM nie filtrujemy.
+  Kryterium „ma wideo" istnieje wyłącznie w adminie, w narzędziu Algolii (Faza 4,
+  slice synchronizacji indeksu). W Fazie 1 nie ma więc nic do zrobienia poza
+  NIE rejestrowaniem tej taksonomii.
 - **D1.5 — `skrot_duration`: ręcznie czy z YouTube API?** (A2 „DO USTALENIA").
   Na MVP proponuję pole ręczne MM:SS (zero abstrakcji na zapas). YouTube API →
   ewentualnie później. OK?
