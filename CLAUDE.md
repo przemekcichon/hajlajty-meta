@@ -42,6 +42,12 @@ WordPress, ACF PRO, klasyczny motyw PHP, frontend przeniesiony z Claude Design.
 7. Nigdy: force push na współdzielone branche, `git add .` bez sprawdzenia
    co wchodzi, commitowanie sekretów (klucz api-football → .env / wp-config,
    plik w .gitignore).
+8. Po merge'u PR-a (moja decyzja) — sprzątanie lokalne, stały krok:
+   `git checkout main` → `git pull --ff-only` → `git branch -d <branch>`
+   (bezpieczny wariant, odmówi jeśli niezmergowany) → `git fetch --prune`.
+   Jeśli zdalny branch nie zniknął przy merge'u: `git push origin --delete
+   <branch>` i ponowny `git fetch --prune`. Na końcu `git status` ma pokazać
+   czysty main zsynchronizowany z origin.
 
 ## Wtyczka hajlajty-user (ulubione / obserwowane / powiadomienia)
 1. Osobny plugin, niezależny od hajlajty-core i od motywu.
