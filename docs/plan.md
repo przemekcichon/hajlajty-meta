@@ -400,6 +400,17 @@ ciążyło na MVP. Każde to przyszły osobny slice + PR.
   pole ręczne ACF. Decyzja przy realizacji.
 - **Ostatnie mecze / forma** (§10) — ten sam `/fixtures`, inne zapytanie (po
   drużynie). Razem z profilem drużyny.
+- **Czas trwania wideo z YouTube Data API** (D1.5) — slice fazy danych
+  zewnętrznych: pobiera `skrot_duration` po Video ID z `skrot_url`. Klucz YT
+  w `.env`. Do tego czasu pole ręczne.
+- **Dedykowana rola „Redaktor Hajlajty"** — własna rola WP z OGRANICZONYMI
+  uprawnieniami: dostęp do meczów i wpisów (tworzenie/edycja), BEZ pełnego
+  admina — bez kodu, wtyczek i ustawień. Wprost pod charakter projektu
+  (redaktorzy-nastolatkowie pracują bezpiecznie, bez ryzyka rozbicia instalacji).
+- **Auto-ingest wideo z kanałów YouTube + dopasowanie LLM** (przyszła osobna
+  faza) — automatyczne wciąganie nowych filmów z obserwowanych kanałów YouTube
+  i dopasowywanie skrótu do właściwego meczu po TYTULE przez LLM. Nadbudowa nad
+  ręcznym dodawaniem `skrot_url` (ścieżka „najpierw ręcznie, potem z AI").
 
 ---
 
