@@ -241,7 +241,8 @@ Cel: `match_data` ma nie puchnąć (decyzja CLAUDE.md #3). Wycinamy podczas impo
 (herb mamy z term meta), URL-e `…logo`.
 
 **events:** `team.name`, `team.logo` (zostaje samo `team.id` do przypisania strony),
-`assist.id`, `comments`. `player.id` — zostawić **tylko** jeśli łączymy ze składami.
+`assist.id`, `comments`. `player.id` — **zostaje** (łączenie ze składami: eventy
+zawodnika na karcie składu).
 
 **lineups:** `team.colors` (kolory koszulek), `coach` (cały blok), `team.name`/`team.logo`.
 `player.id` zostaje (łączenie z events).
@@ -312,8 +313,9 @@ składy, statystyki. Struktura blisko API (przycięta), z dwoma świadomymi odst
 - `status.short` jest tu, bo live potrzebuje surowego kodu i minuty; enum PL i tak
   liczymy w PHP. Status wideo (filtr) to osobna taksonomia.
 - `events[].side` = "home"/"away" wyliczone z `team.id` przy imporcie (mniej danych
-  niż powtarzać `team.id`); `player_id` zostaje tylko jeśli realnie łączymy z eventami
-  na karcie zawodnika — jeśli nie, wyciąć (prostota > elastyczność).
+  niż powtarzać `team.id`). `player_id` **zostaje** — design pokazuje eventy zawodnika
+  na karcie składu, więc agregacja eventów per `player.id` (łącznik events↔lineups)
+  jest realnie używana.
 - `statistics` — tylko typy z listy używanej w UI; reszta wycięta. Wartości `%`/xG
   zostają stringami (format w PHP).
 - Sekcje opcjonalne: dla meczu-zapowiedzi `events`/`lineups`/`statistics` mogą nie
