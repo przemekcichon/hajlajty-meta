@@ -85,3 +85,17 @@ GRANICE I REALIA WORDPRESSA (przestrzegaj):
 
 Zasada rozstrzygająca wątpliwość: "czy ten kod zniknie razem z tą funkcją?"
 Jeśli tak — należy do jej slice'a. Jeśli służy wszystkim — dopiero wtedy shared.
+
+## Lokalizacja nazw (EN z API → PL) — decyzja
+api-football zwraca nazwy po angielsku. NIE budujemy słownika EN→PL po stringach.
+- DRUŻYNY (reprezentacje, docelowo kluby): drużyna = term taksonomii "drużyna".
+  PL nazwa = nazwa termu. Kod FIFA + api team.id = term meta. Import łączy mecz
+  z drużyną po team.id → term (NIGDY po nazwie EN). Roster tworzony raz (seed
+  CSV w docs/); EN nazwa to tylko ściągawka przy seedowaniu, nigdzie niezapisywana.
+- ROZGRYWKI: analogicznie — term taksonomii "rozgrywki", PL nazwa = nazwa termu,
+  league.id = term meta. Garść pozycji — można utworzyć ręcznie w WP admin.
+- FAZY/RUNDY (league.round) + małe słowniki strukturalne (status, pozycje
+  G/D/M/F): mały stały lookup string→PL w PHP. Jedyne miejsce na dosłowną mapę —
+  bo round nie ma stabilnego ID, jest tylko stringiem.
+Zasada: encje (drużyna, rozgrywki) tłumaczy się przez resolucję po stabilnym ID
+do termu o polskiej nazwie; małe słowniki — przez lookup w kodzie.
