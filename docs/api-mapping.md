@@ -219,9 +219,9 @@ Drużyny, rozgrywki, sezon, status wideo, (kanał). Status meczu enum — pochod
 ### A5. Z INNYCH endpointów api-football (poza zakresem tego mapowania)
 | Obszar frontendu (data-inventory) | Endpoint | Status |
 |---|---|---|
-| Tabele grupowe (sekcja 9, TG) | `/standings` | niezmapowane — osobne zadanie |
-| Litera grupy A–L (decyzja #6) | `/standings` (lub ręcznie) | **DO USTALENIA** źródło |
-| Profil drużyny: statystyki (sekcja 10, PB) | `/teams/statistics` | próbka `teams-statistics.jsonl` istnieje, ale poza tym zadaniem |
+| Tabele grupowe (sekcja 9, TG) | `/standings` | osobne, późniejsze zadanie |
+| Litera grupy A–L (decyzja #6) | `/standings` (lub ręcznie) | osobne, późniejsze zadanie — źródło (`/standings` vs ręcznie) rozstrzygniemy tam |
+| Profil drużyny: statystyki (sekcja 10, PB) | `/teams/statistics` | osobne, późniejsze zadanie; próbka `teams-statistics.jsonl` już jest |
 | Status nieobecności: Kontuzja/Zawieszenie (sekcja 6) | `/injuries` | niezmapowane; alternatywnie pole ręczne |
 | Ostatnie mecze / forma drużyny (sekcja 10) | `/fixtures` (po drużynie) | ten sam endpoint, inne zapytanie |
 
