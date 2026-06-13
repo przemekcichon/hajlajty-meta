@@ -176,15 +176,24 @@ jest opcjonalna — domyślnie wycinamy te, których design nie pokazuje (patrz 
 Te pola nie wynikają z czterech zmapowanych endpointów. Pogrupowane wg źródła.
 
 ### A1. Mapowanie ręczne na encjach WordPressa (nie per mecz!)
-Przypisane do **termów taksonomii drużyny / rozgrywek** (term meta), żeby nie powtarzać
-ich w każdym `match_data`:
+Tłumaczenie encji (drużyny, rozgrywki) to **resolucja po stabilnym ID do termu o polskiej
+nazwie** — NIE słownik EN→PL po stringach. PL nazwa = **nazwa termu** taksonomii; `team.id`
+/ `league.id` oraz kod FIFA żyją w **term meta**. Import łączy mecz z encją po
+`team.id` / `league.id` (NIGDY po nazwie EN). Roster drużyn tworzymy **raz** (seed CSV
+w [docs/](.)); nazwa EN to tylko ściągawka przy seedowaniu — nigdzie nie zapisywana.
+Małe słowniki strukturalne (faza z `league.round`, status, pozycje G/D/M/F) → mały stały
+lookup string→PL w PHP (round nie ma stabilnego ID, jest tylko stringiem).
+Pełna decyzja: sekcja „Lokalizacja nazw" w CLAUDE.md.
+
 | Pole | Gdzie trzymać | Uwagi |
 |---|---|---|
-| Nazwa drużyny (PL) | term meta taksonomii „drużyna" | API daje EN; klucz łączący: `team.id` |
+| Nazwa drużyny (PL) | **nazwa termu** taksonomii „drużyna" | API daje EN; resolucja po `team.id` |
+| `team.id` (klucz łączący) | term meta taksonomii „drużyna" | jedyny stabilny łącznik mecz→drużyna |
 | Kod kraju/FIFA 3-lit. (POL, BRA…) | term meta taksonomii „drużyna" | brak w API; potrzebny do `data-team` i do flagi |
 | Flaga (flagcdn.com) | pochodna kodu kraju | URL budowany z kodu; API daje tylko herb `teams.*.logo` |
-| Nazwa rozgrywek (PL, „Mundial 2026") | term meta taksonomii „rozgrywki" | API daje EN „World Cup"; klucz: `league.id` |
-| Nazwa fazy (PL) | mapowanie z `league.round` | EN „Group Stage - 1" → PL |
+| Nazwa rozgrywek (PL, „Mundial 2026") | **nazwa termu** taksonomii „rozgrywki" | API daje EN „World Cup"; resolucja po `league.id` |
+| `league.id` (klucz łączący) | term meta taksonomii „rozgrywki" | stabilny łącznik mecz→rozgrywki |
+| Nazwa fazy (PL) | lookup string→PL w PHP | z `league.round` „Group Stage - 1"; round = string bez stabilnego ID |
 
 ### A2. Pola ACF (per mecz, ręczne)
 | Pole | ACF | Uwagi |
