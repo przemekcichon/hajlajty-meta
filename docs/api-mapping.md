@@ -102,3 +102,32 @@ posortowane wg czasu. Frontend renderuje je po stronie drużyny wg `team.id`.
 `team.name`, `team.logo` (redundancja z fixtures — przypisanie po `team.id`),
 `player.id`, `assist.id` (chyba że potrzebne do łączenia z lineups → patrz niżej),
 `comments` (np. "Tripping" — powód kartki; możliwy bonus, ale nie ma go w designie).
+
+---
+
+## Endpoint: lineups
+`GET /fixtures/lineups?fixture={id}` — próbka: [fixteres-lineups.jsonl](api-samples/fixteres-lineups.jsonl)
+
+Składy obu drużyn (widoki ML, ZM). `response[]` ma **2 elementy** (po jednym na drużynę).
+Każdy zawiera `team`, `formation`, `startXI[]`, `substitutes[]`, `coach`.
+
+### 6. Składy
+| Pole frontendu (data-inventory) | Ścieżka w API | Uwagi |
+|---|---|---|
+| Numer zawodnika (koszulka) | `startXI[].player.number` / `substitutes[].player.number` | int |
+| Imię i nazwisko zawodnika | `startXI[].player.name` | tu PEŁNE imię ("Maxime Crépeau"); w events skrócone ("A. Johnston") → łączyć po `player.id` |
+| Pozycja zawodnika | `…player.pos` | G/D/M/F → Br/O/P/N (decyzja #3): G=Bramkarz, D=Obrońca, M=Pomocnik, F=Napastnik |
+| Czy w pierwszym składzie / rezerwowy | (która tablica) | element `startXI[]` = pierwszy skład; `substitutes[]` = ławka |
+| Eventy zawodnika w meczu | (z events) | brak w lineups; agregować eventy po `player.id` z `/fixtures/events` |
+| Minuta zmiany | (z events) | brak w lineups; z eventu `type=subst` w `/fixtures/events` |
+| Status nieobecności (Kontuzja/Zawieszenie) | **brak w lineups** | osobny endpoint `/injuries` lub pole ręczne → patrz „Pola ręczne" |
+
+**Wsparcie diagramu boiska** (data-inventory: „Diagram boiska vs. ławka"):
+- `formation` — np. "4-4-2" (układ).
+- `startXI[].player.grid` — pozycja na siatce "rząd:kolumna" (np. "2:4"); `null` dla rezerwowych.
+
+### Dane lineups obecne w API, a NIEUŻYWANE przez frontend
+`team.colors` (kolory koszulek bramkarz/gracz — design nie używa kolorów drużyn),
+`coach` (id/name/photo — brak trenera w designie; ewentualny bonus),
+`team.name`/`team.logo` (redundancja z fixtures), `player.id` (potrzebny tylko do
+łączenia z events, nie do wyświetlenia).
