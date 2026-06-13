@@ -1,0 +1,213 @@
+/* ============================================================
+   HAJLAJTY — components/match-row.css
+   ------------------------------------------------------------
+   KOMPONENT: POZIOMY PASEK MECZU PULPITU REDAKTORA (.match-row)
+
+   Dwa stany sterowane klasą .is-editing (logika:
+   components/match-row.js, wzorzec pod data-wp-class--is-editing):
+     • PODGLĄD: miniaturka 16:9 (60px) | drużyny + wynik + zdarzenia
+       | metadane | źródło (kanał lub „Brak wideo") | [Edytuj]
+     • EDYCJA INLINE: prawa część paska zamienia się w kompaktowy
+       formularz (URL + selektor kanału .csel + Zapisz + [X]).
+
+   Izolacja: plik stylizuje WYŁĄCZNIE pasek i jego formularz.
+   Selektor .csel pochodzi z components/editor-form.css (single
+   source of truth) — tu tylko kompaktowa gęstość (--ef-field-h).
+============================================================ */
+
+/* ============ 1. LOKALNE ZMIENNE KOMPONENTU ============ */
+.match-row {
+  --row-thumb-h:   60px;
+  --row-pad:       10px 14px;
+  --row-radius:    var(--r-md);
+  --row-bg:        var(--surface);
+  --row-gap:       var(--space-sm);
+  --row-flag-h:    14px;
+}
+
+/* ============ 2. BLOK ============ */
+.match-row {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto minmax(150px, auto) auto;
+  align-items: center;
+  gap: var(--row-gap);
+  padding: var(--row-pad);
+  border-radius: var(--row-radius);
+  background: var(--row-bg);
+  border: 1px solid var(--border);
+  transition: border-color var(--t-fast), background var(--t-fast);
+}
+.match-row:hover { border-color: var(--border-strong); }
+.match-row.is-editing { border-color: var(--accent); }
+
+/* ============ 3. ELEMENTY — STAN PODGLĄDU ============ */
+
+/* ---- 3a. Miniaturka / placeholder 16:9 ---- */
+.match-row__thumb {
+  flex: 0 0 auto;
+  height: var(--row-thumb-h);
+  aspect-ratio: 16 / 9;
+  display: grid; place-items: center;
+  border-radius: var(--r-sm);
+  background: var(--surface-2);
+  border: 1px dashed var(--border-strong);
+  color: var(--text-faint);
+}
+.match-row__thumb svg { width: 20px; height: 20px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.match-row__thumb.has-video {
+  border: none;
+  background: repeating-linear-gradient(135deg, var(--thumb-a) 0 10px, var(--thumb-b) 10px 20px);
+  color: #fff;
+}
+.match-row__thumb.has-video svg { fill: oklch(0 0 0 / 0.55); stroke: #fff; stroke-width: 1.6; }
+
+/* ---- 3b. Drużyny + wynik + zdarzenia ---- */
+.match-row__main { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.match-row__match { display: flex; align-items: center; gap: 10px; font-size: 14px; font-weight: 800; letter-spacing: -0.01em; }
+.match-row__team { display: inline-flex; align-items: center; gap: 7px; white-space: nowrap; }
+.match-row__team--away { flex-direction: row-reverse; }
+.match-row__match .country-flag { height: var(--row-flag-h); }
+.match-row__score {
+  display: inline-flex; align-items: center;
+  padding: 1px 9px;
+  border-radius: var(--r-pill);
+  background: var(--surface-2);
+  font-size: 13px; font-weight: 800;
+  font-variant-numeric: tabular-nums; letter-spacing: 0.04em;
+  white-space: nowrap;
+}
+/* Monogram klubu (rozgrywki ligowe — brak flagi państwa) */
+.match-row__team .crest {
+  flex: 0 0 auto;
+  width: 20px; height: 20px;
+  display: grid; place-items: center;
+  border-radius: 50%;
+  background: var(--surface-2);
+  border: 1px solid var(--border-strong);
+  font-size: 8.5px; font-weight: 800; letter-spacing: 0.02em;
+  color: var(--text-muted);
+}
+/* Strzelcy / kartki — zgaszona linia pod wynikiem */
+.match-row__events {
+  font-size: 12px; font-weight: 600;
+  color: var(--text-faint);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+
+/* ---- 3c. Metadane: data + rozgrywki ---- */
+.match-row__meta { display: flex; flex-direction: column; gap: 2px; text-align: right; }
+.match-row__date { font-size: 12.5px; font-weight: 700; color: var(--text-muted); white-space: nowrap; font-variant-numeric: tabular-nums; }
+.match-row__comp { font-size: 11.5px; font-weight: 600; color: var(--text-faint); white-space: nowrap; }
+
+/* ---- 3d. Źródło: kanał lub „Brak wideo" ---- */
+.match-row__source { display: flex; justify-content: flex-end; }
+.match-row__channel {
+  display: inline-flex; align-items: center;
+  padding: 3px 10px;
+  border-radius: var(--r-pill);
+  background: var(--surface-2);
+  color: var(--text-muted);
+  font-size: 12px; font-weight: 700;
+  white-space: nowrap;
+}
+.match-row__nochannel {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-size: 12px; font-weight: 600;
+  color: var(--text-faint);
+  white-space: nowrap;
+}
+.match-row__nochannel::before {
+  content: "";
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--text-faint);
+  opacity: 0.6;
+}
+
+/* ---- 3e. Przycisk [Edytuj] ---- */
+.match-row__edit {
+  display: inline-flex; align-items: center; gap: 6px;
+  height: 36px; padding: 0 14px;
+  border-radius: var(--r-pill);
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+  font-size: 13px; font-weight: 700;
+  white-space: nowrap;
+  transition: background var(--t-fast), color var(--t-fast), border-color var(--t-fast);
+}
+.match-row__edit:hover { background: var(--surface-hover); color: var(--text); border-color: var(--border-strong); }
+.match-row__edit svg { width: 14px; height: 14px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+
+/* ============ 4. STAN EDYCJI INLINE ============ */
+/* Metadane, źródło i [Edytuj] znikają; formularz przejmuje ich kolumny */
+.match-row.is-editing .match-row__meta,
+.match-row.is-editing .match-row__source,
+.match-row.is-editing .match-row__edit { display: none; }
+
+/* Kompaktowy .csel w pasku — zmienna nadpisana na samym .csel,
+   bo deklaracja własna elementu wygrywa z dziedziczoną */
+.match-row__form .csel { --ef-field-h: 40px; flex: 0 1 180px; min-width: 130px; }
+.match-row__form[hidden] { display: none; }
+.match-row.is-editing .match-row__form {
+  grid-column: 3 / 6;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2xs);
+  min-width: 0;
+}
+.match-row__url {
+  flex: 1 1 240px;
+  min-width: 140px;
+  height: 40px;
+  padding: 0 14px;
+  border-radius: var(--r-sm);
+  background: var(--bg);
+  border: 1px solid var(--border-strong);
+  color: var(--text);
+  font-size: 13px; font-weight: 600;
+  transition: border-color var(--t-fast);
+}
+.match-row__url::placeholder { color: var(--text-faint); font-weight: 500; }
+.match-row__url:focus { outline: none; border-color: var(--accent); }
+.match-row__url.is-invalid { border-color: var(--live); }
+
+.match-row__form .csel__trigger { border-radius: var(--r-sm); padding: 0 12px; font-size: 13px; background: var(--bg); }
+.match-row__form .csel__panel { min-width: 220px; }
+
+.match-row__save {
+  flex: 0 0 auto;
+  height: 40px; padding: 0 18px;
+  border-radius: var(--r-pill);
+  background: var(--accent);
+  color: var(--accent-ink);
+  font-size: 13.5px; font-weight: 800;
+  transition: filter var(--t-fast), transform var(--t-fast);
+}
+.match-row__save:hover { filter: brightness(1.05); }
+.match-row__save:active { transform: scale(0.96); }
+
+.match-row__cancel {
+  flex: 0 0 auto;
+  width: 40px; height: 40px;
+  display: grid; place-items: center;
+  border-radius: var(--r-pill);
+  color: var(--text-muted);
+  transition: background var(--t-fast), color var(--t-fast);
+}
+.match-row__cancel:hover { background: var(--surface-2); color: var(--text); }
+.match-row__cancel svg { width: 16px; height: 16px; stroke: currentColor; fill: none; stroke-width: 2.4; stroke-linecap: round; }
+
+/* ============ 5. RESPONSYWNOŚĆ ============ */
+@media (max-width: 900px) {
+  .match-row { grid-template-columns: auto minmax(0, 1fr) auto; }
+  .match-row__meta { display: none; }
+  .match-row__source { grid-column: 2; grid-row: 2; justify-content: flex-start; }
+  .match-row__thumb { align-self: start; }
+  .match-row.is-editing .match-row__form {
+    grid-column: 1 / -1;
+    grid-row: 2;
+    flex-wrap: wrap;
+  }
+  .match-row__edit .match-row__edit-txt { display: none; }
+  .match-row__edit { width: 36px; padding: 0; justify-content: center; }
+}

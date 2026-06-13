@@ -1,0 +1,2828 @@
+<!DOCTYPE html>
+<html lang="pl" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Hajlajty — Reprezentacje · Mundial 2026</title>
+  <meta name="description" content="Hajlajty.pl — wszystkie 48 reprezentacji Mundialu 2026 w jednym miejscu. Karty drużyn z selekcjonerami, uporządkowane według grup A–L. Obserwuj swoją drużynę." />
+
+  <!-- ==========================================================
+       FONTY — Manrope (neutralny groteskowy)
+  =========================================================== -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+
+  <style>
+  /* ============================================================
+     1. TOKENY / ZMIENNE — wspólne
+  ============================================================ */
+  :root {
+    /* Akcent „Mundial 2026" — boiskowa zieleń (identyczny w obu motywach) */
+    --accent:        oklch(0.72 0.17 160);
+    --accent-strong: oklch(0.66 0.18 160);
+    --accent-soft:   oklch(0.72 0.17 160 / 0.14);
+    --accent-ink:    oklch(0.22 0.06 160);   /* tekst na zielonym tle */
+
+    /* Kolor LIVE */
+    --live:          oklch(0.63 0.22 25);
+    --live-soft:     oklch(0.63 0.22 25 / 0.16);
+
+    /* Kontener — JEDNA spójna szerokość dla całej strony */
+    --container: 1320px;
+    --gutter: clamp(16px, 3vw, 40px);
+    --topbar-h: 72px;
+    --sidebar-w: 288px;
+
+    /* Skala odstępów (oddech) */
+    --space-3xs: 4px;
+    --space-2xs: 8px;
+    --space-xs:  12px;
+    --space-sm:  16px;
+    --space-md:  24px;
+    --space-lg:  40px;
+    --space-xl:  64px;
+    --space-2xl: 96px;
+    /* Pionowy oddech wiersza chipsów — wspólne źródło prawdy: ten sam offset
+       stosuje sidebar, by górna krawędź 1. pozycji menu licowała z chipsami. */
+    --chips-pad-y: 14px;
+
+    /* Promienie */
+    --r-sm: 10px;
+    --r-md: 16px;
+    --r-lg: 22px;
+    --r-pill: 999px;
+
+    /* Typografia */
+    --font: "Manrope", system-ui, -apple-system, "Segoe UI", sans-serif;
+    /* Stos emoji: webfont kolorowy najpierw → spójne flagi na wszystkich OS-ach */
+    --font-emoji: "Noto Color Emoji", "Apple Color Emoji", "Segoe UI Emoji", "Twemoji Mozilla", sans-serif;
+
+    /* Przejścia */
+    --ease: cubic-bezier(0.22, 1, 0.36, 1);
+    --t-fast: 140ms var(--ease);
+    --t-med:  240ms var(--ease);
+  }
+
+  /* ---- MOTYW CIEMNY (domyślny) ---- */
+  [data-theme="dark"] {
+    --bg:          oklch(0.17 0.008 250);
+    --bg-elev:     oklch(0.205 0.009 250);
+    --surface:     oklch(0.225 0.01 250);
+    --surface-2:   oklch(0.27 0.011 250);
+    --surface-hover: oklch(0.30 0.012 250);
+    --border:      oklch(1 0 0 / 0.09);
+    --border-strong: oklch(1 0 0 / 0.16);
+    --text:        oklch(0.96 0.003 250);
+    --text-muted:  oklch(0.72 0.006 250);
+    --text-faint:  oklch(0.56 0.006 250);
+    --shadow: 0 1px 2px oklch(0 0 0 / 0.4), 0 12px 32px -12px oklch(0 0 0 / 0.55);
+    --thumb-a: oklch(0.26 0.012 250);
+    --thumb-b: oklch(0.235 0.01 250);
+    --scrim: oklch(0 0 0 / 0.62);
+    --scrollthumb: oklch(1 0 0 / 0.22);
+  }
+
+  /* ---- MOTYW JASNY ---- */
+  [data-theme="light"] {
+    --bg:          oklch(0.985 0.003 250);
+    --bg-elev:     oklch(1 0 0);
+    --surface:     oklch(1 0 0);
+    --surface-2:   oklch(0.975 0.004 250);
+    --surface-hover: oklch(0.955 0.005 250);
+    --border:      oklch(0.2 0.01 250 / 0.1);
+    --border-strong: oklch(0.2 0.01 250 / 0.2);
+    --text:        oklch(0.24 0.012 250);
+    --text-muted:  oklch(0.46 0.01 250);
+    --text-faint:  oklch(0.6 0.008 250);
+    --shadow: 0 1px 2px oklch(0.2 0.02 250 / 0.06), 0 14px 34px -16px oklch(0.2 0.04 250 / 0.18);
+    --thumb-a: oklch(0.93 0.006 250);
+    --thumb-b: oklch(0.96 0.004 250);
+    --scrim: oklch(0.2 0.02 250 / 0.4);
+    --scrollthumb: oklch(0.3 0.02 250 / 0.32);
+  }
+
+  /* ============================================================
+     2. RESET / BAZA
+  ============================================================ */
+  *, *::before, *::after { box-sizing: border-box; }
+  * { margin: 0; }
+
+  html { -webkit-text-size-adjust: 100%; scroll-behavior: smooth; }
+
+  body {
+    font-family: var(--font);
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.6;
+    font-weight: 500;
+    letter-spacing: -0.005em;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+    min-height: 100vh;
+    transition: background var(--t-med), color var(--t-med);
+  }
+
+  img, svg { display: block; }
+  button { font: inherit; color: inherit; cursor: pointer; border: none; background: none; }
+  input { font: inherit; }
+  a { color: inherit; text-decoration: none; }
+  ul { list-style: none; padding: 0; }
+
+  :focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+
+  /* ---- KONTENER (spójna szerokość: nagłówek = main = stopka) ---- */
+  .container {
+    width: 100%;
+    max-width: var(--container);
+    margin-inline: auto;
+    padding-inline: var(--gutter);
+  }
+
+  /* ============================================================
+     3. TOP BAR
+  ============================================================ */
+  .topbar {
+    position: sticky;
+    top: 0;
+    z-index: 60;
+    height: var(--topbar-h);
+    display: flex;
+    align-items: center;
+    background: var(--bg);
+  }
+  /* Header w 3 strefach: [logo+menu] [wyszukiwarka — wyśrodkowana] [akcje].
+     Grid 1fr auto 1fr gwarantuje, że środkowa strefa jest idealnie
+     wyśrodkowana względem okna, niezależnie od szerokości stref bocznych. */
+  .topbar__inner {
+    display: grid;
+    grid-template-columns: 1fr minmax(0, 640px) 1fr;
+    align-items: center;
+    gap: var(--space-md);
+    height: 100%;
+    max-width: none;            /* header edge-to-edge */
+    /* Padding ciasno przy krawędziach — i tak dobrany, by GLIF hamburgera
+       (btn 44 / ikona 22 → wcięcie 11px) licował się w pionie z ikonami
+       nawigacji w sidebarze: sidebar pad-left 8 + nav-link pad 16 = 24px,
+       a tu 12 + 11 = 23px → ta sama oś. Po prawej ten sam dystans = czysta
+       domykająca linia. */
+    padding-inline: var(--space-xs);
+  }
+
+  .topbar__left  { display: flex; align-items: center; gap: var(--space-sm); justify-self: start; }
+  .topbar__right { display: flex; align-items: center; gap: var(--space-2xs); justify-self: end; }
+
+  /* ---- MOBILNY NAGŁÓWEK: flex space-between + licowanie do krawędzi ----
+     Lewa strona: logo tuż przy hamburgerze. Prawa: ikony dosunięte tak,
+     by GLIF skrajnych ikon (btn 44 / ikona 22 → wcięcie 11px) licował się
+     z krawędziami treści poniżej (pigułka filtra, karty). Ujemne marginesy
+     kompensują wewnętrzne wcięcie okrągłych przycisków — działa też na
+     stronach bez lupy: flex space-between rozpycha grupy bez dziur. */
+  @media (max-width: 768px) {
+    .topbar__inner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0;
+      padding-inline: var(--gutter);
+    }
+    .topbar__left  { gap: var(--space-3xs); }
+    .topbar__left > .icon-btn:first-child { margin-left: -11px; }
+    .topbar__right { gap: var(--space-3xs); }
+    .topbar__right > .icon-btn:last-child { margin-right: -11px; }
+  }
+
+  /* Okrągłe przyciski ikon */
+  .icon-btn {
+    width: 44px; height: 44px;
+    display: grid; place-items: center;
+    border-radius: var(--r-pill);
+    color: var(--text);
+    transition: background var(--t-fast), color var(--t-fast), transform var(--t-fast);
+  }
+  .icon-btn:hover  { background: var(--surface-2); }
+  .icon-btn:active { transform: scale(0.92); }
+  .icon-btn svg { width: 22px; height: 22px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+
+  /* ---- LOGO: play OBOK tekstu (po „y"), „y" + play w akcencie ---- */
+  .logo {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-3xs);
+    padding-inline: 6px;
+    font-weight: 800;
+    font-size: 25px;
+    letter-spacing: -0.04em;
+    line-height: 1;
+    color: var(--text);
+  }
+  .logo__text { display: inline-flex; }
+  .logo__y { color: var(--accent); }
+  /* play stoi tuż za „y" jako czyste domknięcie logotypu — żadnego overlapu */
+  .logo__play {
+    flex: 0 0 auto;
+    width: 20px; height: 20px;
+    color: var(--accent);
+    transition: transform var(--t-med);
+  }
+  .logo:hover .logo__play { transform: scale(1.12); }
+
+  /* ---- WYSZUKIWARKA ---- */
+  .search {
+    justify-self: center;
+    width: 100%;
+    max-width: 640px;
+    display: flex;
+    align-items: center;
+    gap: var(--space-2xs);
+    height: 46px;
+    padding-inline: var(--space-sm) 5px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--r-pill);
+    transition: border-color var(--t-fast), background var(--t-fast);
+  }
+  .search:focus-within { border-color: var(--accent); background: var(--bg-elev); }
+  .search svg { width: 20px; height: 20px; stroke: var(--text-muted); fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; flex: 0 0 auto; }
+  .search input {
+    flex: 1 1 auto;
+    min-width: 0;
+    border: none;
+    background: none;
+    color: var(--text);
+    font-size: 15px;
+    font-weight: 500;
+  }
+  .search input::placeholder { color: var(--text-faint); }
+  .search input:focus { outline: none; }
+
+  /* Chips-włącznik „Obserwowane” (on/off) wewnątrz wyszukiwarki.
+     Off = wszystkie reprezentacje; on = akcent + filtr obserwowanych. */
+  .search__obs {
+    flex: 0 0 auto;
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    height: 36px;
+    padding: 0 14px;
+    border-radius: var(--r-pill);
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    color: var(--text-muted);
+    font-size: 13px;
+    font-weight: 700;
+    white-space: nowrap;
+    transition: background var(--t-fast), color var(--t-fast), border-color var(--t-fast), transform var(--t-fast);
+  }
+  .search__obs svg { width: 16px; height: 16px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; flex: 0 0 auto; }
+  .search__obs:hover { background: var(--surface-hover); color: var(--text); }
+  .search__obs:active { transform: scale(0.95); }
+  .search__obs.is-on {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: var(--accent-ink);
+  }
+  .search__obs.is-on:hover { background: var(--accent); color: var(--accent-ink); filter: brightness(1.05); }
+  /* Wariant ikonowy (modal mobile) — samo oko, bez etykiety */
+  .search__obs--icon { width: 36px; padding: 0; justify-content: center; }
+  .search__obs--icon .search__obs-txt { display: none; }
+
+  /* [X] czyszczenia tekstu wewnątrz inputu — widoczny tylko gdy jest tekst */
+  .search__clear {
+    flex: 0 0 auto;
+    width: 30px; height: 30px;
+    display: grid; place-items: center;
+    border-radius: var(--r-pill);
+    color: var(--text-muted);
+    transition: background var(--t-fast), color var(--t-fast);
+  }
+  .search__clear:hover { background: var(--surface-2); color: var(--text); }
+  .search__clear svg { width: 15px; height: 15px; stroke: currentColor; fill: none; stroke-width: 2.4; stroke-linecap: round; }
+  .search__clear[hidden] { display: none; }
+
+  /* Theme toggle — ikona zmienia się wg motywu */
+  [data-theme="dark"]  .theme-toggle .sun  { display: block; }
+  [data-theme="dark"]  .theme-toggle .moon { display: none; }
+  [data-theme="light"] .theme-toggle .sun  { display: none; }
+  [data-theme="light"] .theme-toggle .moon { display: block; }
+
+  /* ============================================================
+     4. SIDEBAR (off-canvas) + SCRIM
+  ============================================================ */
+  .scrim {
+    position: fixed; inset: 0;
+    z-index: 70;
+    background: var(--scrim);
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity var(--t-med), visibility var(--t-med);
+  }
+  .scrim.is-open { opacity: 1; visibility: visible; }
+
+  .sidebar {
+    position: fixed;
+    top: 0; left: 0;
+    z-index: 80;
+    width: var(--sidebar-w);
+    max-width: 84vw;
+    height: 100dvh;
+    background: var(--bg);
+    box-shadow: var(--shadow);
+    transform: translateX(-100%);
+    transition: transform var(--t-med);
+    display: flex;
+    flex-direction: column;
+    padding: var(--space-sm) var(--space-sm) var(--space-lg);
+    overflow-y: auto;
+  }
+  .sidebar.is-open { transform: translateX(0); }
+
+  .sidebar__head {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    height: calc(var(--topbar-h) - 16px);
+    padding-inline: var(--space-2xs);
+    margin-bottom: var(--space-sm);
+  }
+
+  .sidebar__group { padding: var(--space-sm) 0; border-top: 1px solid var(--border); }
+  .sidebar__group:first-of-type { border-top: none; padding-top: 0; }
+  .sidebar__label {
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-faint);
+    padding: var(--space-2xs) var(--space-sm);
+  }
+
+  .nav-link {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    padding: var(--space-xs) var(--space-sm);
+    border-radius: var(--r-sm);
+    color: var(--text);
+    font-weight: 600;
+    font-size: 15px;
+    transition: background var(--t-fast), color var(--t-fast);
+  }
+  .nav-link svg { width: 21px; height: 21px; stroke: currentColor; fill: none; stroke-width: 1.9; stroke-linecap: round; stroke-linejoin: round; flex: 0 0 auto; }
+  .nav-link:hover { background: var(--surface-2); }
+  .nav-link.is-active { background: var(--accent-soft); color: var(--accent-strong); }
+  [data-theme="dark"] .nav-link.is-active { color: var(--accent); }
+  .nav-link .badge-live {
+    margin-left: auto;
+    font-size: 11px; font-weight: 800; letter-spacing: 0.06em;
+    color: var(--live);
+  }
+
+  /* ============================================================
+     5. PASEK CHIPSÓW (reprezentacje)
+  ============================================================ */
+  .chipsbar {
+    position: sticky;
+    top: var(--topbar-h);
+    z-index: 50;
+    background: var(--bg);
+  }
+  .chipsbar__inner { position: relative; }
+
+  .chips-scroll {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2xs);
+    overflow-x: auto;
+    scroll-behavior: smooth;
+    padding-block: var(--chips-pad-y);
+    /* miękkie wygaszenie krawędzi */
+    -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 28px, #000 calc(100% - 28px), transparent 100%);
+            mask-image: linear-gradient(90deg, transparent 0, #000 28px, #000 calc(100% - 28px), transparent 100%);
+  }
+
+  /* ---- Dyskretne scrollbary: niewidoczne w spoczynku, cienka linia
+     podczas scrollowania, bez strzałek (górnej/dolnej). ---- */
+  .sidebar, .content, .chips-scroll {
+    scrollbar-width: thin;
+    scrollbar-color: transparent transparent;      /* Firefox: ukryty w spoczynku */
+    transition: scrollbar-color var(--t-med);
+  }
+  .sidebar.is-scrolling, .content.is-scrolling, .chips-scroll.is-scrolling {
+    scrollbar-color: var(--scrollthumb) transparent;
+  }
+  .sidebar::-webkit-scrollbar,
+  .content::-webkit-scrollbar,
+  .chips-scroll::-webkit-scrollbar { width: 8px; height: 8px; }
+  .sidebar::-webkit-scrollbar-track,
+  .content::-webkit-scrollbar-track,
+  .chips-scroll::-webkit-scrollbar-track { background: transparent; }
+  .sidebar::-webkit-scrollbar-thumb,
+  .content::-webkit-scrollbar-thumb,
+  .chips-scroll::-webkit-scrollbar-thumb {
+    background: transparent;
+    border-radius: var(--r-pill);
+    border: 2px solid transparent;
+    background-clip: padding-box;
+    transition: background var(--t-med);
+  }
+  .sidebar.is-scrolling::-webkit-scrollbar-thumb,
+  .content.is-scrolling::-webkit-scrollbar-thumb,
+  .chips-scroll.is-scrolling::-webkit-scrollbar-thumb {
+    background: var(--scrollthumb);
+    background-clip: padding-box;
+  }
+  /* Brak strzałek (przyciski scrollbara) — czysta linia */
+  .sidebar::-webkit-scrollbar-button,
+  .content::-webkit-scrollbar-button,
+  .chips-scroll::-webkit-scrollbar-button { display: none; width: 0; height: 0; }
+
+  .chip {
+    flex: 0 0 auto;
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-xs);
+    height: 40px;
+    padding: 0 16px;
+    border-radius: var(--r-pill);
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--text);
+    font-size: 14px;
+    font-weight: 600;
+    white-space: nowrap;
+    transition: background var(--t-fast), border-color var(--t-fast), color var(--t-fast), transform var(--t-fast);
+  }
+  .chip:hover { background: var(--surface-hover); border-color: var(--border-strong); }
+  .chip:active { transform: scale(0.96); }
+  /* ---- FLAGI: jednolite obrazy SVG (flagcdn) zamiast emoji ----
+     Renderują się PIKSEL W PIKSEL identycznie na Windows / macOS / iOS /
+     Android, bo to zwykłe <img>. Stała wysokość + szerokość auto = poprawne
+     proporcje każdego kraju; delikatny radius i cień dają premium look. */
+  /* ---- FLAGI: błyszczące, „falujące" ikony (FlagsAPI shiny / GoSquared) ----
+     Glossy, lekko wypukłe flagi z delikatną animacją powiewu. To zwykłe <img>,
+     więc renderują się identycznie na Windows / macOS / iOS / Android. */
+  /* ---- FLAGI: jednolite, płaskie obrazy SVG (flagcdn) ----
+     Zwykłe <img> → identyczne na każdym systemie. Bez animacji. */
+  .country-flag {
+    flex: 0 0 auto;
+    width: auto;
+    border-radius: 2px;
+    box-shadow: 0 0 0 0.5px rgba(0,0,0,0.10), 0 1px 2px rgba(0,0,0,0.22);
+    object-fit: cover;
+    -webkit-user-select: none;
+    user-select: none;
+  }
+  .chip .country-flag { height: 18px; }
+  .chip__check {
+    width: 0; height: 16px; overflow: hidden;
+    display: inline-flex; align-items: center;
+    opacity: 0;
+    transition: width var(--t-fast), opacity var(--t-fast);
+  }
+  .chip__check svg { width: 16px; height: 16px; stroke: var(--accent-ink); fill: none; stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; }
+
+  .chip.is-active {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: var(--accent-ink);
+  }
+  .chip.is-active .chip__check { width: 16px; opacity: 1; }
+
+  /* ---- CHIP PRZEŁĄCZNIK: Wszystkie / Obserwowane ----
+     Bazuje na .chip (te same zmienne: wysokość, promień, obramowanie, tło),
+     a wewnątrz renderuje dwa segmenty w stylu segmented control. Nie zmienia
+     reguł istniejących chipsów — to wyłącznie nowe klasy. */
+  .chip--toggle {
+    padding: 3px;
+    gap: 3px;
+    align-items: stretch;
+    cursor: default;
+  }
+  .chip--toggle:hover { background: var(--surface); border-color: var(--border); }
+  .chip--toggle:active { transform: none; }
+  .chip-seg {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 0 13px;
+    border-radius: var(--r-pill);
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-muted);
+    white-space: nowrap;
+    transition: background var(--t-fast), color var(--t-fast);
+  }
+  .chip-seg svg { width: 15px; height: 15px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+  .chip-seg:hover { color: var(--text); }
+  .chip-seg.is-on { background: var(--accent); color: var(--accent-ink); }
+  .chip-seg.is-on:hover { color: var(--accent-ink); }
+
+  /* Zawężanie paska przez wyszukiwarkę w nagłówku */
+  .chip.is-hidden { display: none !important; }
+
+  /* Strzałki przewijania */
+  .chips-arrow {
+    position: absolute;
+    /* 43% (nie 50%): optyczne centrum względem samych chipsów,
+       z pominięciem dolnego paddingu paska */
+    top: 43%; transform: translateY(-50%);
+    width: 38px; height: 38px;
+    display: grid; place-items: center;
+    border-radius: var(--r-pill);
+    background: var(--bg-elev);
+    border: 1px solid var(--border);
+    box-shadow: var(--shadow);
+    color: var(--text);
+    z-index: 2;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity var(--t-fast);
+  }
+  .chips-arrow.is-visible { opacity: 1; pointer-events: auto; }
+  .chips-arrow:hover { background: var(--surface-2); }
+  .chips-arrow.prev { left: 0; }
+  .chips-arrow.next { right: 0; }
+  .chips-arrow svg { width: 18px; height: 18px; stroke: currentColor; fill: none; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
+
+  /* ============================================================
+     6. MAIN / SEKCJE
+  ============================================================ */
+  main { padding-block: var(--space-xl) var(--space-2xl); }
+
+  .section { margin-bottom: var(--space-2xl); }
+  .section:last-child { margin-bottom: 0; }
+
+  .section__head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 0;
+    margin-bottom: var(--space-sm);
+  }
+  /* Mobile: nagłówek sekcji w kolumnie — tytuł, pod nim link „więcej" */
+  @media (max-width: 768px) {
+    .section__head {
+      flex-direction: column;
+      justify-content: space-evenly;
+      margin-bottom: var(--space-xs);
+    }
+  }
+  .section__title {
+    display: flex;
+    align-items: center;
+    gap: var(--space-xs);
+    font-size: clamp(20px, 3vw, 26px);
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    line-height: 1.1;
+  }
+  .section__title .kicker-dot {
+    width: 10px; height: 10px; border-radius: 50%;
+    background: var(--accent);
+    flex: 0 0 auto;
+  }
+  .section__title.live .kicker-dot { background: var(--live); animation: pulse 1.6s var(--ease) infinite; }
+  .section__more {
+    flex: 0 0 auto;
+    display: inline-flex; align-items: center; gap: 6px;
+    font-size: 14px; font-weight: 700;
+    color: var(--text-muted);
+    padding: 8px 22px;
+    border-radius: var(--r-sm);
+    transition: color var(--t-fast);
+  }
+  .section__more:hover { color: var(--accent); }
+  .section__more svg { width: 16px; height: 16px; stroke: currentColor; fill: none; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
+  /* Mobile override PO regule bazowej (ta sama specyficzność — wygrywa kolejność) */
+  @media (max-width: 768px) { .section__more { font-size: 13px; } }
+
+  @keyframes pulse {
+    0%, 100% { box-shadow: 0 0 0 0 var(--live-soft); }
+    50%      { box-shadow: 0 0 0 7px transparent; }
+  }
+
+  /* ---- Wiersz przewijany poziomo (LIVE + Zapowiedzi) ---- */
+  .row-scroll {
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: min(86vw, 408px);
+    gap: var(--space-md);
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    padding-bottom: var(--space-2xs);
+    scrollbar-width: none;
+    margin-inline: calc(-1 * var(--gutter));
+    padding-inline: var(--gutter);
+  }
+  .row-scroll::-webkit-scrollbar { display: none; }
+  .row-scroll > * { scroll-snap-align: start; }
+
+  /* ============================================================
+     7. KARTY — wspólne / miniatury
+  ============================================================ */
+  .thumb {
+    position: relative;
+    aspect-ratio: 16 / 9;
+    border-radius: var(--r-md);
+    overflow: hidden;
+    background:
+      repeating-linear-gradient(135deg, var(--thumb-a) 0 14px, var(--thumb-b) 14px 28px);
+  }
+  .thumb__dur {
+    position: absolute;
+    right: 10px; bottom: 10px;
+    padding: 3px 8px;
+    border-radius: 6px;
+    background: oklch(0 0 0 / 0.72);
+    color: #fff;
+    font-size: 12px; font-weight: 700;
+    letter-spacing: 0.02em;
+  }
+  .thumb__play {
+    position: absolute;
+    inset: 0;
+    margin: auto;
+    width: 60px; height: 60px;
+    display: grid; place-items: center;
+    border-radius: 50%;
+    background: oklch(0 0 0 / 0.45);
+    backdrop-filter: blur(2px);
+    border: 1.5px solid oklch(1 0 0 / 0.5);
+    transition: transform var(--t-med), background var(--t-med);
+  }
+  .thumb__play svg { width: 24px; height: 24px; fill: #fff; transform: translateX(1px); }
+
+  .card-video { display: block; }
+  .card-video:hover .thumb__play { transform: scale(1.08); background: var(--accent); }
+  .card-video:hover .thumb__play svg { fill: var(--accent-ink); }
+
+  /* ---- KARTA LIVE ---- */
+  .live-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--r-lg);
+    padding: var(--space-sm);
+    transition: transform var(--t-med), border-color var(--t-med), box-shadow var(--t-med);
+  }
+  .live-card:hover { transform: translateY(-4px); border-color: var(--border-strong); box-shadow: var(--shadow); }
+
+  .live-card .thumb {
+    background:
+      radial-gradient(120% 120% at 50% -10%, var(--accent-soft), transparent 55%),
+      repeating-linear-gradient(135deg, var(--thumb-a) 0 14px, var(--thumb-b) 14px 28px);
+  }
+  .live-badge {
+    position: absolute;
+    left: 12px; top: 12px;
+    display: inline-flex; align-items: center; gap: 7px;
+    padding: 5px 11px 5px 9px;
+    border-radius: var(--r-pill);
+    background: var(--live);
+    color: #fff;
+    font-size: 12px; font-weight: 800; letter-spacing: 0.08em;
+  }
+  .live-badge .dot { width: 7px; height: 7px; border-radius: 50%; background: #fff; animation: pulse-live 1.4s ease-in-out infinite; }
+  @keyframes pulse-live { 0%,100%{opacity:1;} 50%{opacity:0.35;} }
+
+  .live-minute {
+    position: absolute;
+    right: 12px; top: 12px;
+    padding: 5px 10px;
+    border-radius: var(--r-pill);
+    background: oklch(0 0 0 / 0.62);
+    color: #fff;
+    font-size: 12px; font-weight: 800;
+  }
+  .live-score {
+    position: absolute;
+    inset: auto 0 0 0;
+    display: flex; align-items: center; justify-content: center; gap: 14px;
+    padding: 16px;
+    background: linear-gradient(0deg, oklch(0 0 0 / 0.78), transparent);
+    color: #fff;
+  }
+  .live-score .team { display: flex; align-items: center; gap: 8px; font-weight: 700; font-size: 15px; }
+  .live-score .team.away { flex-direction: row-reverse; }
+  .live-score .country-flag { height: 18px; vertical-align: -0.18em; }
+  .live-score .num {
+    font-size: 26px; font-weight: 800; letter-spacing: 0.02em;
+    min-width: 26px; text-align: center;
+  }
+  .live-score .sep { opacity: 0.6; font-weight: 700; }
+
+  .live-events {
+    list-style: none;
+    margin-top: var(--space-sm);
+    display: flex; flex-direction: column; gap: 8px;
+  }
+  .live-events li {
+    display: flex; align-items: center; gap: 10px;
+    font-size: 14px; color: var(--text-muted); font-weight: 600;
+  }
+  .live-events .min {
+    flex: 0 0 auto;
+    min-width: 34px;
+    font-variant-numeric: tabular-nums;
+    font-weight: 800; color: var(--text);
+  }
+  .live-events .ball { font-size: 14px; }
+  .live-events .who { color: var(--text); }
+
+  /* ---- KARTA ZAPOWIEDZI (countdown) ---- */
+  .up-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--r-lg);
+    padding: var(--space-md);
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-md);
+    transition: transform var(--t-med), border-color var(--t-med), box-shadow var(--t-med);
+  }
+  .up-card:hover { transform: translateY(-4px); border-color: var(--border-strong); box-shadow: var(--shadow); }
+
+  .up-card__phase {
+    align-self: flex-start;
+    display: inline-flex; align-items: center; gap: 7px;
+    padding: 6px 12px;
+    border-radius: var(--r-pill);
+    background: var(--accent-soft);
+    color: var(--accent-strong);
+    font-size: 12px; font-weight: 800; letter-spacing: 0.03em;
+    white-space: nowrap;
+    max-width: 100%;
+  }
+  [data-theme="dark"] .up-card__phase { color: var(--accent); }
+
+  .up-card__teams {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    align-items: center;
+    gap: var(--space-sm);
+  }
+  .up-team { display: flex; flex-direction: column; align-items: center; gap: 8px; text-align: center; }
+  .up-team .country-flag { height: 30px; border-radius: 3px; }
+  .up-team .name { font-weight: 700; font-size: 15px; }
+  .up-vs { font-size: 13px; font-weight: 800; color: var(--text-faint); letter-spacing: 0.1em; }
+
+  .up-card__when { font-size: 13px; color: var(--text-muted); font-weight: 600; text-align: center; }
+
+  .countdown {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: var(--space-2xs);
+    text-align: center;
+  }
+  .countdown .unit {
+    background: var(--surface-2);
+    border-radius: var(--r-sm);
+    padding: 12px 6px 9px;
+  }
+  .countdown .val {
+    display: block;
+    font-size: 26px; font-weight: 800;
+    font-variant-numeric: tabular-nums;
+    line-height: 1;
+    letter-spacing: 0.01em;
+  }
+  .countdown .lab {
+    display: block;
+    margin-top: 6px;
+    font-size: 10px; font-weight: 700; letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-faint);
+  }
+  .countdown.is-soon .val { color: var(--live); }
+
+  .up-card__btn {
+    margin-top: auto;
+    display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+    height: 46px;
+    border-radius: var(--r-pill);
+    background: var(--surface-2);
+    color: var(--text);
+    font-weight: 700; font-size: 14px;
+    transition: background var(--t-fast), color var(--t-fast);
+  }
+  .up-card__btn svg { width: 18px; height: 18px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+  .up-card__btn:hover { background: var(--accent); color: var(--accent-ink); }
+
+  /* ---- GRID SKRÓTÓW ---- */
+  .grid-videos {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: var(--space-lg) var(--space-md);
+  }
+  .vcard { display: flex; flex-direction: column; gap: var(--space-sm); }
+  .vcard .thumb { transition: transform var(--t-med); }
+  .vcard:hover .thumb { transform: translateY(-3px); }
+  .vcard__body { display: flex; flex-direction: column; gap: 8px; }
+  .vcard__title {
+    font-size: 16px; font-weight: 700;
+    letter-spacing: -0.01em;
+    line-height: 1.35;
+    text-wrap: pretty;
+  }
+  .vcard__meta {
+    display: flex; align-items: center; gap: 8px;
+    flex-wrap: wrap;
+    font-size: 13px; color: var(--text-muted); font-weight: 600;
+  }
+  .vcard__comp {
+    display: inline-flex; align-items: center;
+    padding: 3px 10px;
+    border-radius: var(--r-pill);
+    background: var(--surface-2);
+    color: var(--text-muted);
+    font-size: 12px; font-weight: 700;
+  }
+  .vcard__meta .dot-sep { width: 3px; height: 3px; border-radius: 50%; background: var(--text-faint); }
+
+  /* Aktywny player (po kliknięciu facade) */
+  .thumb.is-playing { background: #000; }
+  .thumb iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
+
+  /* ---- Stan filtra ---- */
+  .filter-note {
+    display: none;
+    align-items: center;
+    gap: var(--space-sm);
+    margin-bottom: var(--space-lg);
+    padding: var(--space-sm) var(--space-md);
+    background: var(--accent-soft);
+    border: 1px solid color-mix(in oklab, var(--accent) 35%, transparent);
+    border-radius: var(--r-md);
+    font-size: 14px; font-weight: 600;
+  }
+  .filter-note.is-visible { display: flex; }
+  .filter-note__txt { color: var(--text); }
+  .filter-note__txt b { color: var(--accent-strong); }
+  [data-theme="dark"] .filter-note__txt b { color: var(--accent); }
+  .filter-note__clear {
+    margin-left: auto;
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 7px 14px;
+    border-radius: var(--r-pill);
+    background: var(--bg-elev);
+    border: 1px solid var(--border);
+    font-weight: 700; font-size: 13px;
+    transition: background var(--t-fast);
+  }
+  .filter-note__clear:hover { background: var(--surface-2); }
+
+  /* ---- Pigułka aktywnego filtru (tylko mobile) ----
+     Minimalistyczna kapsułka pod nagłówkiem: „Filtrujesz: …” + [X].
+     Pozwala zresetować filtr bez otwierania modalu wyszukiwania. */
+  .filter-pill {
+    display: none;
+    align-items: center;
+    gap: var(--space-2xs);
+    width: max-content;
+    max-width: 100%;
+    margin-bottom: var(--space-md);
+    padding: 6px 8px 6px 16px;
+    border-radius: var(--r-pill);
+    background: var(--surface);
+    border: 1px solid var(--border);
+    font-size: 13.5px;
+    font-weight: 600;
+    color: var(--text);
+  }
+  .filter-pill__txt { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .filter-pill__txt b { color: var(--accent-strong); }
+  [data-theme="dark"] .filter-pill__txt b { color: var(--accent); }
+  .filter-pill__clear {
+    flex: 0 0 auto;
+    width: 28px; height: 28px;
+    display: grid; place-items: center;
+    border-radius: var(--r-pill);
+    background: var(--surface-2);
+    color: var(--text-muted);
+    transition: background var(--t-fast), color var(--t-fast), transform var(--t-fast);
+  }
+  .filter-pill__clear:hover { background: var(--surface-hover); color: var(--text); }
+  .filter-pill__clear:active { transform: scale(0.92); }
+  .filter-pill__clear svg { width: 14px; height: 14px; stroke: currentColor; fill: none; stroke-width: 2.4; stroke-linecap: round; }
+
+  /* ---- PEŁNOEKRANOWY MODAL WYSZUKIWANIA (mobile) ---- */
+  .search-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 110;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-sm);
+    padding: var(--space-xs) var(--gutter) 0;
+    background: var(--bg);
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(14px);
+    transition: opacity var(--t-med), visibility var(--t-med), transform var(--t-med);
+  }
+  .search-overlay.is-open { opacity: 1; visibility: visible; transform: none; }
+  .search-overlay__head {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2xs);
+    min-height: var(--topbar-h);
+  }
+  .search-overlay__back { flex: 0 0 auto; }
+  .search-overlay__head .search { display: flex; max-width: none; }
+  /* Przewijany obszar listy — sticky foot nakłada się na jego dół */
+  .search-overlay__body {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+  }
+  .search-overlay__grid {
+    flex: 1 0 auto;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--space-2xs);
+    align-content: start;
+    padding-block: var(--space-3xs) var(--space-2xs);
+  }
+  @media (min-width: 480px) { .search-overlay__grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+  .search-overlay__grid .chip {
+    width: 100%;
+    height: 48px;
+    justify-content: flex-start;
+  }
+  .search-overlay__grid .chip .chip__check { margin-left: auto; }
+  /* Sticky bar z przyciskiem akcji: tło modalu + miękkie wygaszenie nad krawędzią */
+  .search-overlay__foot {
+    position: sticky;
+    bottom: 0;
+    margin-top: auto;
+    padding: var(--space-2xs) 0 max(var(--space-xs), env(safe-area-inset-bottom));
+    background: var(--bg);
+  }
+  .search-overlay__foot::before {
+    content: "";
+    position: absolute;
+    left: 0; right: 0;
+    bottom: 100%;
+    height: 28px;
+    background: linear-gradient(180deg, transparent, var(--bg));
+    pointer-events: none;
+  }
+  .search-overlay__apply {
+    width: 100%;
+    height: 52px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--r-pill);
+    background: var(--accent);
+    color: var(--accent-ink);
+    font-size: 15.5px;
+    font-weight: 800;
+    letter-spacing: -0.01em;
+    transition: filter var(--t-fast), transform var(--t-fast);
+  }
+  .search-overlay__apply:hover { filter: brightness(1.05); }
+  .search-overlay__apply:active { transform: scale(0.985); }
+  @media (min-width: 769px) { .search-overlay { display: none; } }
+  @media (prefers-reduced-motion: reduce) { .search-overlay { transform: none; } }
+
+  .is-hidden-by-filter { display: none !important; }
+
+  .empty-state {
+    display: none;
+    text-align: center;
+    padding: var(--space-xl) var(--space-md);
+    color: var(--text-muted);
+  }
+  .empty-state.is-visible { display: block; }
+  .empty-state h3 { font-size: 18px; font-weight: 800; color: var(--text); margin-bottom: 8px; }
+
+  /* ============================================================
+     8. STOPKA (ten sam kontener)
+  ============================================================ */
+  .footer {
+    border-top: 1px solid var(--border);
+    background: var(--bg);
+    padding-block: var(--space-xl);
+  }
+  .footer__grid {
+    display: grid;
+    grid-template-columns: 1.4fr repeat(3, 1fr);
+    gap: var(--space-lg);
+  }
+  .footer__brand { display: flex; flex-direction: column; gap: var(--space-sm); max-width: 320px; }
+  .footer__tag { color: var(--text-muted); font-size: 14px; }
+  .footer__col h4 { font-size: 13px; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; color: var(--text-faint); margin-bottom: var(--space-sm); }
+  .footer__col a { display: block; padding: 6px 0; color: var(--text-muted); font-weight: 600; font-size: 14px; transition: color var(--t-fast); }
+  .footer__col a:hover { color: var(--accent); }
+  .footer__bottom {
+    display: flex; align-items: center; justify-content: space-between; gap: var(--space-md);
+    flex-wrap: wrap;
+    margin-top: var(--space-xl);
+    padding-top: var(--space-lg);
+    border-top: 1px solid var(--border);
+    color: var(--text-faint);
+    font-size: 13px; font-weight: 600;
+  }
+
+  /* ============================================================
+     9. RESPONSYWNOŚĆ
+  ============================================================ */
+  @media (max-width: 860px) {
+    .search { max-width: none; }
+    .footer__grid { grid-template-columns: 1fr 1fr; gap: var(--space-lg) var(--space-md); }
+    .footer__brand { grid-column: 1 / -1; }
+  }
+  @media (max-width: 620px) {
+    :root { --topbar-h: 64px; }
+    .logo { font-size: 22px; }
+    .footer__grid { grid-template-columns: 1fr; }
+    main { padding-block: var(--space-lg) var(--space-xl); }
+    .section { margin-bottom: var(--space-xl); }
+  }
+  /* ---- Próg mobile dla wyszukiwania i filtrów: 768px ----
+     Pole wyszukiwarki i pasek chipsów znikają; zostaje lupa otwierająca
+     pełnoekranowy modal, a aktywny filtr sygnalizuje pigułka. */
+  @media (max-width: 768px) {
+    .topbar .search { display: none; }
+    .search-mobile-btn { display: grid; }
+    .chipsbar { display: none; }
+    .filter-note { display: none !important; }
+    .filter-pill.is-visible { display: inline-flex; }
+  }
+  @media (min-width: 769px) { .search-mobile-btn { display: none; } }
+
+  /* ============================================================
+     APP SHELL (desktop ≥1100px)
+     Header na górze (pełna szerokość, treść do max-width).
+     Poniżej CSS Grid: [sidebar] [content] — dwa NIEZALEŻNE panele
+     scrolla. body nie scrolluje (overflow:hidden) → menu i treść
+     przewijają się osobno, a sidebar zaczyna się pod headerem.
+  ============================================================ */
+  .shell { display: block; }            /* mobile: zwykły blok */
+  .content { display: block; }
+
+  @media (min-width: 1100px) {
+    html, body { height: 100%; }
+    body {
+      height: 100dvh;
+      overflow: hidden;                 /* scroll przejmują panele */
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Header: w potoku, pełna szerokość (edge-to-edge) */
+    .topbar { position: static; flex: 0 0 auto; }
+
+    /* Dwie kolumny pod headerem — FLUID, pełna szerokość ekranu.
+       Sidebar przylega do lewej krawędzi, treść wypełnia resztę. */
+    .shell {
+      flex: 1 1 auto;
+      min-height: 0;
+      width: 100%;
+      display: grid;
+      grid-template-columns: var(--sidebar-w) minmax(0, 1fr);
+      transition: grid-template-columns var(--t-med);
+    }
+    /* Zwinięte menu (hamburger) — kolumna sidebara chowa się do 0 */
+    body.nav-collapsed .shell { grid-template-columns: 0px minmax(0, 1fr); }
+    body.nav-collapsed .sidebar { opacity: 0; pointer-events: none; }
+
+    /* SIDEBAR: statyczna kolumna z własnym scrollem (zaczyna się pod headerem),
+       przylega do lewej krawędzi okna. */
+    .sidebar {
+      position: static;
+      transform: none;
+      width: auto;
+      max-width: none;
+      height: 100%;
+      box-shadow: none;
+      overflow-y: auto;
+      /* Góra = dokładnie offset wiersza chipsów (var) → 1. pozycja menu licuje
+         z paskiem chipsów. Boki/dół bez zmian. Brak magic numbers. */
+      padding: var(--chips-pad-y) var(--space-2xs) var(--space-xl);
+      transition: opacity var(--t-med);
+    }
+    .sidebar__head { display: none; }   /* logo żyje w headerze nad sidebarem */
+
+    /* CONTENT: prawa kolumna z własnym scrollem */
+    .content {
+      height: 100%;
+      overflow-y: auto;
+      overflow-x: hidden;
+    }
+
+    /* W kolumnie .content nie nakładamy drugi raz max-width/centrowania */
+    .content .chipsbar__inner,
+    .content main.container,
+    .content .footer > .container {
+      max-width: none;
+      margin-inline: 0;
+      padding-inline: var(--gutter);
+    }
+
+    /* Chipsy: sticky w obrębie scrolla treści */
+    .chipsbar { top: 0; }
+
+    .scrim { display: none !important; }
+
+    main { padding-block: var(--space-lg) var(--space-2xl); }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation-duration: 0.001ms !important; transition-duration: 0.001ms !important; scroll-behavior: auto !important; }
+  }
+
+  /* Delikatne wejście sekcji — czysto CSS, odpalane raz po załadowaniu.
+     Stan spoczynkowy elementu jest WIDOCZNY (opacity:1), animacja jedynie
+     „domalowuje” wejście. Bez JS / przy druku / reduced-motion treść jest
+     zawsze widoczna — bezpieczne dla produkcji (WordPress, SEO, no-JS). */
+  @media (prefers-reduced-motion: no-preference) {
+    html.js-anim .reveal { animation: revealIn 560ms var(--ease) backwards; }
+    html.js-anim .reveal:nth-of-type(2) { animation-delay: 70ms; }
+    html.js-anim .reveal:nth-of-type(3) { animation-delay: 140ms; }
+  }
+  @keyframes revealIn {
+    from { transform: translateY(16px); }
+    to   { transform: none; }
+  }
+
+  /* ============================================================
+     10. TERMINARZ — nagłówek strony + chronologiczne sekcje dni
+     Buduje na istniejących tokenach (:root) i kartach. Zero nowych
+     kolorów/fontów — wyłącznie layout kalendarza.
+  ============================================================ */
+  .page-head { margin-bottom: var(--space-xl); }
+  .page-head__eyebrow {
+    display: inline-flex; align-items: center; gap: 8px;
+    font-size: 13px; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase;
+    color: var(--accent-strong);
+  }
+  [data-theme="dark"] .page-head__eyebrow { color: var(--accent); }
+  .page-head__eyebrow .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); }
+  .page-head__title {
+    margin-top: var(--space-xs);
+    font-size: clamp(30px, 5vw, 46px);
+    font-weight: 800; letter-spacing: -0.035em; line-height: 1.05;
+  }
+  .page-head__sub { margin-top: var(--space-sm); color: var(--text-muted); font-size: 16px; max-width: 58ch; text-wrap: pretty; }
+
+  /* Legenda stanów meczu (skrót / live / zapowiedź) */
+  .legend { display: flex; flex-wrap: wrap; gap: var(--space-md); margin-top: var(--space-lg); }
+  .legend__item { display: inline-flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 700; color: var(--text-muted); }
+  .legend__dot { width: 9px; height: 9px; border-radius: 50%; flex: 0 0 auto; }
+  .legend__dot.skrot { background: var(--text-faint); }
+  .legend__dot.live  { background: var(--live); animation: pulse-live 1.4s ease-in-out infinite; }
+  .legend__dot.soon  { background: var(--accent); }
+
+  /* ============================================================
+     11. REPREZENTACJE — sekcje grup + karty drużyn
+     Buduje wyłącznie na istniejących tokenach (:root). Zero nowych
+     kolorów/fontów — wyłącznie layout katalogu drużyn.
+  ============================================================ */
+  /* Odznaka grupy (reużyta w nagłówku sekcji) */
+  .group-badge {
+    width: 34px; height: 34px; flex: 0 0 auto;
+    display: grid; place-items: center;
+    border-radius: 11px;
+    background: var(--accent-soft); color: var(--accent-strong);
+    font-weight: 800; font-size: 16px; letter-spacing: -0.02em;
+  }
+  [data-theme="dark"] .group-badge { color: var(--accent); }
+  /* Ukrycie chipsa poza bieżącym trybem paska (Wszystkie / Obserwowane) */
+  .chip.is-mode-hidden { display: none !important; }
+
+  .team-section { margin-bottom: var(--space-xl); scroll-margin-top: 96px; }
+  .team-section:last-of-type { margin-bottom: 0; }
+  .team-section.is-hidden-by-filter { display: none !important; }
+
+  .team-section__head {
+    display: flex; align-items: center; gap: var(--space-sm);
+    margin-bottom: var(--space-md);
+  }
+  .team-section__title {
+    display: flex; align-items: center; gap: var(--space-xs);
+    font-size: clamp(20px, 2.4vw, 26px); font-weight: 800; letter-spacing: -0.03em; line-height: 1.1;
+  }
+  .team-section__meta {
+    margin-left: auto;
+    font-size: 11px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase;
+    color: var(--text-faint);
+  }
+
+  .teams-grid {
+    display: grid; gap: var(--space-md);
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+  @media (max-width: 1400px) { .teams-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+  @media (max-width: 1100px) { .teams-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+  @media (max-width: 620px)  { .teams-grid { grid-template-columns: 1fr; } }
+
+  .team-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--r-lg);
+    padding: var(--space-md);
+    display: flex; flex-direction: column; gap: var(--space-md);
+    transition: transform var(--t-med), border-color var(--t-med), box-shadow var(--t-med);
+  }
+  .team-card:hover { transform: translateY(-4px); border-color: var(--border-strong); box-shadow: var(--shadow); }
+  .team-card.is-hidden-by-filter { display: none !important; }
+
+  .team-card__head { display: flex; align-items: center; gap: var(--space-sm); }
+  .team-card__flag { height: 34px; border-radius: 4px; }
+  .team-card__id { min-width: 0; flex: 1 1 auto; }
+  .team-card__name {
+    display: block; min-width: 0;
+    font-size: 17px; font-weight: 800; letter-spacing: -0.02em; line-height: 1.15;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .team-seed {
+    flex: 0 0 auto;
+    display: inline-grid; place-items: center;
+    min-width: 36px; height: 26px; padding: 0 9px;
+    border-radius: var(--r-pill);
+    background: var(--accent-soft); color: var(--accent-strong);
+    font-size: 12px; font-weight: 800; letter-spacing: 0.02em;
+  }
+  [data-theme="dark"] .team-seed { color: var(--accent); }
+
+  .team-card__body { padding-top: var(--space-sm); border-top: 1px solid var(--border); }
+  .team-coach { display: flex; align-items: center; gap: 12px; }
+  .team-coach__ic {
+    width: 38px; height: 38px; flex: 0 0 auto;
+    display: grid; place-items: center;
+    border-radius: 11px;
+    background: var(--surface-2); color: var(--text-muted);
+  }
+  .team-coach__ic svg { width: 19px; height: 19px; stroke: currentColor; fill: none; stroke-width: 1.9; stroke-linecap: round; stroke-linejoin: round; }
+  .team-coach__txt { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
+  .team-coach__txt .lab { font-size: 11px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--text-faint); }
+  .team-coach__txt .nm { font-size: 14px; font-weight: 700; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+  .team-card__foot { margin-top: auto; display: flex; gap: var(--space-2xs); }
+  .team-btn {
+    flex: 1 1 auto;
+    display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+    height: 44px; border-radius: var(--r-pill);
+    background: var(--surface-2); color: var(--text);
+    font-weight: 700; font-size: 14px;
+    transition: background var(--t-fast), color var(--t-fast);
+  }
+  .team-btn svg { width: 17px; height: 17px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; transition: transform var(--t-fast); }
+  .team-btn:hover { background: var(--accent); color: var(--accent-ink); }
+  .team-btn:hover svg { transform: translateX(2px); }
+
+  .team-fav {
+    flex: 0 0 auto; width: 44px; height: 44px;
+    display: grid; place-items: center;
+    border-radius: var(--r-pill);
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--text-muted);
+    transition: background var(--t-fast), color var(--t-fast), border-color var(--t-fast), transform var(--t-fast);
+  }
+  .team-fav svg { width: 20px; height: 20px; stroke: currentColor; fill: none; stroke-width: 1.9; stroke-linecap: round; stroke-linejoin: round; }
+  .team-fav:hover { border-color: var(--border-strong); color: var(--text); }
+  .team-fav:active { transform: scale(0.92); }
+  .team-fav.is-active { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+  .team-fav.is-active:hover { color: var(--accent-ink); }
+
+  </style>
+  <!-- MODUŁ: wskaźnik obserwowania na chipsach (stan .is-followed) -->
+  <link rel="stylesheet" href="components/chip-follow.css" />
+</head>
+
+<body>
+
+  <!-- ============================ TOP BAR (header na górze, pełna szerokość) ============================ -->
+  <header class="topbar">
+    <div class="topbar__inner container">
+      <div class="topbar__left">
+        <button class="icon-btn" id="menuBtn" aria-label="Otwórz menu" aria-expanded="false" aria-controls="sidebar">
+          <svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+        </button>
+        <a class="logo" href="Hajlajty - Strona Główna.html" aria-label="Hajlajty — strona główna">
+          <span class="logo__text">hajlajt<span class="logo__y">y</span></span>
+          <svg class="logo__play" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" stroke="currentColor" stroke-width="3" stroke-linejoin="round" stroke-linecap="round" d="M7 5.8 18 12 7 18.2Z"/></svg>
+        </a>
+      </div>
+
+      <!-- WYSZUKIWARKA z wbudowanym chipsem-włącznikiem „Obserwowane” (on/off).
+           Stan domyślny (off) = wszystkie reprezentacje; włączony = filtr obserwowanych. -->
+      <form class="search" role="search" onsubmit="return false">
+        <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.2-3.2"/></svg>
+        <input type="search" placeholder="Szukaj reprezentacji…" aria-label="Szukaj" />
+        <button type="button" class="search__obs" data-action="toggle-observed" aria-pressed="false" title="Pokaż tylko obserwowane">
+          <svg viewBox="0 0 24 24"><path d="M2 12s3.6-6.5 10-6.5S22 12 22 12s-3.6 6.5-10 6.5S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>
+          <span class="search__obs-txt">Obserwowane</span>
+        </button>
+      </form>
+
+      <div class="topbar__right">
+        <button class="icon-btn search-mobile-btn" data-action="open-search" aria-label="Szukaj" aria-haspopup="dialog" aria-controls="searchOverlay">
+          <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.2-3.2"/></svg>
+        </button>
+        <button class="icon-btn theme-toggle" id="themeBtn" aria-label="Przełącz motyw jasny/ciemny">
+          <svg class="sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4.2"/><path d="M12 2v2.5M12 19.5V22M2 12h2.5M19.5 12H22M4.9 4.9l1.8 1.8M17.3 17.3l1.8 1.8M19.1 4.9l-1.8 1.8M6.7 17.3l-1.8 1.8"/></svg>
+          <svg class="moon" viewBox="0 0 24 24"><path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z"/></svg>
+        </button>
+        <button class="icon-btn" aria-label="Profil">
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="8.5" r="3.8"/><path d="M4.5 20a7.5 7.5 0 0 1 15 0"/></svg>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- ============== PEŁNOEKRANOWY MODAL WYSZUKIWANIA (mobile) ==============
+       Otwierany lupą w nagłówku; blokuje przewijanie tła. Chipsy reprezentacji
+       są klonowane z paska #chips przez JS (jedno źródło prawdy). -->
+  <div class="search-overlay" id="searchOverlay" role="dialog" aria-modal="true" aria-label="Wyszukiwanie reprezentacji">
+    <div class="search-overlay__head">
+      <!-- Strzałka powrotu = anuluj i zamknij -->
+      <button class="icon-btn search-overlay__back" data-action="close-search" aria-label="Wróć (anuluj wyszukiwanie)">
+        <svg viewBox="0 0 24 24"><path d="m15 5-7 7 7 7"/></svg>
+      </button>
+      <form class="search" role="search" onsubmit="return false">
+        <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.2-3.2"/></svg>
+        <input type="search" id="overlayInput" placeholder="Szukaj reprezentacji…" aria-label="Szukaj" />
+        <!-- [X] czyści wyłącznie tekst; widoczny tylko podczas wpisywania -->
+        <button type="button" class="search__clear" data-action="clear-query" hidden aria-label="Wyczyść tekst">
+          <svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg>
+        </button>
+        <!-- Chips „Obserwowane” skurczony do ikony oka -->
+        <button type="button" class="search__obs search__obs--icon" data-action="toggle-observed" aria-pressed="false" aria-label="Pokaż tylko obserwowane" title="Pokaż tylko obserwowane">
+          <svg viewBox="0 0 24 24"><path d="M2 12s3.6-6.5 10-6.5S22 12 22 12s-3.6 6.5-10 6.5S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>
+          <span class="search__obs-txt">Obserwowane</span>
+        </button>
+      </form>
+    </div>
+    <div class="search-overlay__body">
+      <div class="search-overlay__grid" id="overlayChips" aria-label="Reprezentacje"></div>
+      <!-- STICKY BAR: zatwierdza wybór i zamyka modal -->
+      <div class="search-overlay__foot">
+        <button type="button" class="search-overlay__apply" data-action="apply-search">Zatwierdź i pokaż mecze</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="scrim" id="scrim" hidden></div>
+
+  <!-- ===================== APP SHELL: sidebar + treść (poniżej headera) ===================== -->
+  <div class="shell">
+
+  <!-- ============================ SIDEBAR ============================ -->
+  <aside class="sidebar" id="sidebar" aria-label="Menu główne">
+    <div class="sidebar__head">
+      <button class="icon-btn" id="sidebarClose" aria-label="Zamknij menu">
+        <svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+      </button>
+      <a class="logo" href="Hajlajty - Strona Główna.html" aria-label="Hajlajty — strona główna">
+        <span class="logo__text">hajlajt<span class="logo__y">y</span></span>
+        <svg class="logo__play" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" stroke="currentColor" stroke-width="3" stroke-linejoin="round" stroke-linecap="round" d="M7 5.8 18 12 7 18.2Z"/></svg>
+      </a>
+    </div>
+
+    <nav class="sidebar__group">
+      <a class="nav-link" href="Hajlajty - Strona Główna.html"><svg viewBox="0 0 24 24"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V21h14V9.5"/></svg> Strona główna</a>
+      <a class="nav-link" href="Hajlajty - Na Żywo.html"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M5.6 5.6a9 9 0 0 0 0 12.8M18.4 5.6a9 9 0 0 1 0 12.8"/></svg> Na żywo <span class="badge-live">● LIVE</span></a>
+      <a class="nav-link" href="Hajlajty - Zapowiedzi.html"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg> Zapowiedzi</a>
+      <a class="nav-link" href="Hajlajty - Skróty.html"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="3"/><path d="M10 9.5v5l4-2.5z"/></svg> Skróty</a>
+    </nav>
+
+    <nav class="sidebar__group">
+      <p class="sidebar__label">Mundial 2026</p>
+      <a class="nav-link" href="Hajlajty - Terminarz Turnieju.html"><svg viewBox="0 0 24 24"><path d="M6 4h12v3a6 6 0 0 1-12 0z"/><path d="M9 14h6M10 14v4M14 14v4M8 21h8"/></svg> Terminarz turnieju</a>
+      <a class="nav-link" href="Hajlajty - Tabele Grup.html"><svg viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h10"/></svg> Tabele grup</a>
+      <a class="nav-link is-active" href="#"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 3a14 14 0 0 0 0 18M12 3a14 14 0 0 1 0 18M3 12h18"/></svg> Reprezentacje</a>
+    </nav>
+
+    <nav class="sidebar__group">
+      <p class="sidebar__label">Twoje</p>
+      <a class="nav-link" href="Hajlajty - Obserwowane.html"><svg viewBox="0 0 24 24"><path d="M2 12s3.6-6.5 10-6.5S22 12 22 12s-3.6 6.5-10 6.5S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg> Obserwowane</a>
+      <a class="nav-link" href="Hajlajty - Ulubione.html"><svg viewBox="0 0 24 24"><path d="M12 20.5 4.2 12.7a4.7 4.7 0 0 1 6.6-6.6l1.2 1.2 1.2-1.2a4.7 4.7 0 0 1 6.6 6.6z"/></svg> Ulubione</a>
+      <a class="nav-link" href="Hajlajty - Ustawienia.html"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 12a7.4 7.4 0 0 0-.1-1.2l2-1.5-2-3.4-2.3 1a7.3 7.3 0 0 0-2-1.2L16.6 2h-4l-.4 2.5a7.3 7.3 0 0 0-2 1.2l-2.3-1-2 3.4 2 1.5a7.4 7.4 0 0 0 0 2.4l-2 1.5 2 3.4 2.3-1a7.3 7.3 0 0 0 2 1.2l.4 2.5h4l.4-2.5a7.3 7.3 0 0 0 2-1.2l2.3 1 2-3.4-2-1.5c.07-.4.1-.8.1-1.2z"/></svg> Ustawienia</a>
+    </nav>
+  </aside>
+
+  <!-- ============================ TREŚĆ (prawa kolumna) ============================ -->
+  <div class="content" id="content">
+
+  <!-- ========================= PASEK CHIPSÓW ========================= -->
+  <div class="chipsbar">
+    <div class="chipsbar__inner container">
+      <button class="chips-arrow prev" id="chipsPrev" aria-label="Przewiń w lewo">
+        <svg viewBox="0 0 24 24"><path d="m15 5-7 7 7 7"/></svg>
+      </button>
+
+      <div class="chips-scroll" id="chips">
+        <!-- chip: data-team = kod reprezentacji -->
+        <button class="chip" data-team="POL"><img class="country-flag" src="https://flagcdn.com/pl.svg" alt="Polska" /> Polska <span class="chip__eye-indicator" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M2 12s3.6-6.5 10-6.5S22 12 22 12s-3.6 6.5-10 6.5S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></span> <span class="chip__check"><svg viewBox="0 0 24 24"><path d="m5 12 5 5 9-11"/></svg></span></button>
+        <button class="chip" data-team="BRA"><img class="country-flag" src="https://flagcdn.com/br.svg" alt="Brazylia" /> Brazylia <span class="chip__eye-indicator" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M2 12s3.6-6.5 10-6.5S22 12 22 12s-3.6 6.5-10 6.5S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></span> <span class="chip__check"><svg viewBox="0 0 24 24"><path d="m5 12 5 5 9-11"/></svg></span></button>
+        <button class="chip" data-team="ARG"><img class="country-flag" src="https://flagcdn.com/ar.svg" alt="Argentyna" /> Argentyna <span class="chip__eye-indicator" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M2 12s3.6-6.5 10-6.5S22 12 22 12s-3.6 6.5-10 6.5S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></span> <span class="chip__check"><svg viewBox="0 0 24 24"><path d="m5 12 5 5 9-11"/></svg></span></button>
+        <button class="chip" data-team="FRA"><img class="country-flag" src="https://flagcdn.com/fr.svg" alt="Francja" /> Francja <span class="chip__eye-indicator" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M2 12s3.6-6.5 10-6.5S22 12 22 12s-3.6 6.5-10 6.5S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></span> <span class="chip__check"><svg viewBox="0 0 24 24"><path d="m5 12 5 5 9-11"/></svg></span></button>
+        <button class="chip" data-team="ESP"><img class="country-flag" src="https://flagcdn.com/es.svg" alt="Hiszpania" /> Hiszpania <span class="chip__eye-indicator" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M2 12s3.6-6.5 10-6.5S22 12 22 12s-3.6 6.5-10 6.5S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></span> <span class="chip__check"><svg viewBox="0 0 24 24"><path d="m5 12 5 5 9-11"/></svg></span></button>
+        <button class="chip" data-team="GER"><img class="country-flag" src="https://flagcdn.com/de.svg" alt="Niemcy" /> Niemcy <span class="chip__eye-indicator" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M2 12s3.6-6.5 10-6.5S22 12 22 12s-3.6 6.5-10 6.5S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></span> <span class="chip__check"><svg viewBox="0 0 24 24"><path d="m5 12 5 5 9-11"/></svg></span></button>
+        <button class="chip" data-team="POR"><img class="country-flag" src="https://flagcdn.com/pt.svg" alt="Portugalia" /> Portugalia <span class="chip__eye-indicator" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M2 12s3.6-6.5 10-6.5S22 12 22 12s-3.6 6.5-10 6.5S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></span> <span class="chip__check"><svg viewBox="0 0 24 24"><path d="m5 12 5 5 9-11"/></svg></span></button>
+        <button class="chip" data-team="NED"><img class="country-flag" src="https://flagcdn.com/nl.svg" alt="Holandia" /> Holandia <span class="chip__eye-indicator" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M2 12s3.6-6.5 10-6.5S22 12 22 12s-3.6 6.5-10 6.5S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></span> <span class="chip__check"><svg viewBox="0 0 24 24"><path d="m5 12 5 5 9-11"/></svg></span></button>
+        <button class="chip" data-team="MAR"><img class="country-flag" src="https://flagcdn.com/ma.svg" alt="Maroko" /> Maroko <span class="chip__eye-indicator" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M2 12s3.6-6.5 10-6.5S22 12 22 12s-3.6 6.5-10 6.5S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></span> <span class="chip__check"><svg viewBox="0 0 24 24"><path d="m5 12 5 5 9-11"/></svg></span></button>
+        <button class="chip" data-team="MEX"><img class="country-flag" src="https://flagcdn.com/mx.svg" alt="Meksyk" /> Meksyk <span class="chip__eye-indicator" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M2 12s3.6-6.5 10-6.5S22 12 22 12s-3.6 6.5-10 6.5S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></span> <span class="chip__check"><svg viewBox="0 0 24 24"><path d="m5 12 5 5 9-11"/></svg></span></button>
+        <button class="chip" data-team="USA"><img class="country-flag" src="https://flagcdn.com/us.svg" alt="USA" /> USA <span class="chip__eye-indicator" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M2 12s3.6-6.5 10-6.5S22 12 22 12s-3.6 6.5-10 6.5S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></span> <span class="chip__check"><svg viewBox="0 0 24 24"><path d="m5 12 5 5 9-11"/></svg></span></button>
+        <button class="chip" data-team="JPN"><img class="country-flag" src="https://flagcdn.com/jp.svg" alt="Japonia" /> Japonia <span class="chip__eye-indicator" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M2 12s3.6-6.5 10-6.5S22 12 22 12s-3.6 6.5-10 6.5S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></span> <span class="chip__check"><svg viewBox="0 0 24 24"><path d="m5 12 5 5 9-11"/></svg></span></button>
+        <button class="chip" data-team="CRO"><img class="country-flag" src="https://flagcdn.com/hr.svg" alt="Chorwacja" /> Chorwacja <span class="chip__eye-indicator" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M2 12s3.6-6.5 10-6.5S22 12 22 12s-3.6 6.5-10 6.5S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></span> <span class="chip__check"><svg viewBox="0 0 24 24"><path d="m5 12 5 5 9-11"/></svg></span></button>
+        <button class="chip" data-team="URU"><img class="country-flag" src="https://flagcdn.com/uy.svg" alt="Urugwaj" /> Urugwaj <span class="chip__eye-indicator" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M2 12s3.6-6.5 10-6.5S22 12 22 12s-3.6 6.5-10 6.5S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></span> <span class="chip__check"><svg viewBox="0 0 24 24"><path d="m5 12 5 5 9-11"/></svg></span></button>
+        <button class="chip" data-team="BEL"><img class="country-flag" src="https://flagcdn.com/be.svg" alt="Belgia" /> Belgia <span class="chip__eye-indicator" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M2 12s3.6-6.5 10-6.5S22 12 22 12s-3.6 6.5-10 6.5S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></span> <span class="chip__check"><svg viewBox="0 0 24 24"><path d="m5 12 5 5 9-11"/></svg></span></button>
+        <button class="chip" data-team="KOR"><img class="country-flag" src="https://flagcdn.com/kr.svg" alt="Korea Płd." /> Korea Płd. <span class="chip__eye-indicator" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M2 12s3.6-6.5 10-6.5S22 12 22 12s-3.6 6.5-10 6.5S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></span> <span class="chip__check"><svg viewBox="0 0 24 24"><path d="m5 12 5 5 9-11"/></svg></span></button>
+      </div>
+
+      <button class="chips-arrow next" id="chipsNext" aria-label="Przewiń w prawo">
+        <svg viewBox="0 0 24 24"><path d="m9 5 7 7-7 7"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- ============================== MAIN ============================== -->
+  <main class="container">
+
+    <!-- ===== NAGŁÓWEK STRONY ===== -->
+    <div class="page-head reveal">
+      <span class="page-head__eyebrow"><span class="dot"></span> Mundial 2026 · 48 reprezentacji</span>
+      <h1 class="page-head__title">Reprezentacje</h1>
+      <p class="page-head__sub">Wszystkie drużyny turnieju — uporządkowane według grup od A do L. Kliknij reprezentację na pasku u góry albo wpisz kraj w wyszukiwarkę, a pokażemy tylko pasujące karty. Lornetką oznaczysz swoją drużynę w całym serwisie.</p>
+    </div>
+
+    <!-- Komunikat filtra (reużycie komponentu z poprzednich widoków) -->
+    <!-- Pigułka aktywnego filtru (mobile) — wyjście z przefiltrowanego widoku
+         bez otwierania modalu wyszukiwania. -->
+    <div class="filter-pill" id="filterPill">
+      <span class="filter-pill__txt">Filtrujesz: <b id="filterPillTeams"></b></span>
+      <button class="filter-pill__clear" id="filterPillClear" data-action="clear-filter" aria-label="Wyczyść filtr">
+        <svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg>
+      </button>
+    </div>
+
+    <div class="filter-note" id="filterNote">
+      <span class="filter-note__txt">Pokazuję reprezentacje: <b id="filterTeams"></b></span>
+      <button class="filter-note__clear" id="filterClear">
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>
+        Pokaż wszystkie
+      </button>
+    </div>
+
+    <section class="team-section reveal" data-group="A" id="grupa-A">
+      <div class="team-section__head">
+        <h2 class="team-section__title"><span class="group-badge">A</span> Grupa A</h2>
+        <span class="team-section__meta">4 reprezentacje</span>
+      </div>
+      <div class="teams-grid">
+        <article class="team-card" data-team="MEX" data-group="A" data-search="meksyk mex javier aguirre">
+          <div class="team-card__head">
+            <img class="country-flag team-card__flag" src="https://flagcdn.com/mx.svg" alt="Meksyk" />
+            <div class="team-card__id">
+              <span class="team-card__name">Meksyk</span>
+            </div>
+            <span class="team-seed" title="Pozycja w grupie A">A1</span>
+          </div>
+          <div class="team-card__body">
+            <div class="team-coach">
+              <span class="team-coach__ic"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.4"/><path d="M5.5 20a6.5 6.5 0 0 1 13 0"/></svg></span>
+              <span class="team-coach__txt"><span class="lab">Selekcjoner</span><span class="nm">Javier Aguirre</span></span>
+            </div>
+          </div>
+          <div class="team-card__foot">
+            <a class="team-btn" href="#" aria-label="Zobacz profil reprezentacji Meksyk">Zobacz profil <svg viewBox="0 0 24 24"><path d="m9 5 7 7-7 7"/></svg></a>
+            <button class="team-fav" data-team="MEX" aria-pressed="false" aria-label="Obserwuj reprezentację Meksyk" title="Obserwuj"><svg viewBox="0 0 24 24"><path d="M2 12s3.6-6.5 10-6.5S22 12 22 12s-3.6 6.5-10 6.5S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></button>
+          </div>
+        </article>
+        <article class="team-card" data-team="KOR" data-group="A" data-search="korea pld. kor hong myung-bo">
+          <div class="team-card__head">
+            <img class="country-flag team-card__flag" src="https://flagcdn.com/kr.svg" alt="Korea Płd." />
+            <div class="team-card__id">
+              <span class="team-card__name">Korea Płd.</span>
+            </div>
+            <span class="team-seed" title="Pozycja w grupie A">A2</span>
+          </div>
+          <div class="team-card__body">
+            <div class="team-coach">
+              <span class="team-coach__ic"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.4"/><path d="M5.5 20a6.5 6.5 0 0 1 13 0"/></svg></span>
+              <span class="team-coach__txt"><span class="lab">Selekcjoner</span><span class="nm">Hong Myung-bo</span></span>
+            </div>
+          </div>
+          <div class="team-card__foot">
+            <a class="team-btn" href="#" aria-label="Zobacz profil reprezentacji Korea Płd.">Zobacz profil <svg viewBox="0 0 24 24"><path d="m9 5 7 7-7 7"/></svg></a>
+            <button class="team-fav" data-team="KOR" aria-pressed="false" aria-label="Obserwuj reprezentację Korea Płd." title="Obserwuj"><svg viewBox="0 0 24 24"><path d="M2 12s3.6-6.5 10-6.5S22 12 22 12s-3.6 6.5-10 6.5S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></button>
+          </div>
+        </article>
+        <article class="team-card" data-team="NOR" data-group="A" data-search="norwegia nor stale solbakken">
+          <div class="team-card__head">
+            <img class="country-flag team-card__flag" src="https://flagcdn.com/no.svg" alt="Norwegia" />
+            <div class="team-card__id">
+              <span class="team-card__name">Norwegia</span>
+            </div>
+            <span class="team-seed" title="Pozycja w grupie A">A3</span>
+          </div>
+          <div class="team-card__body">
+            <div class="team-coach">
+              <span class="team-coach__ic"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.4"/><path d="M5.5 20a6.5 6.5 0 0 1 13 0"/></svg></span>
+              <span class="team-coach__txt"><span class="lab">Selekcjoner</span><span class="nm">Ståle Solbakken</span></span>
+            </div>
+          </div>
+          <div class="team-card__foot">
+            <a class="team-btn" href="#" aria-label="Zobacz profil reprezentacji Norwegia">Zobacz profil <svg viewBox="0 0 24 24"><path d="m9 5 7 7-7 7"/></svg></a>
+            <button class="team-fav" data-team="NOR" aria-pressed="false" aria-label="Obserwuj reprezentację Norwegia" title="Obserwuj"><svg viewBox="0 0 24 24"><path d="M2 12s3.6-6.5 10-6.5S22 12 22 12s-3.6 6.5-10 6.5S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></button>
+          </div>
+        </article>
+        <article class="team-card" data-team="QAT" data-group="A" data-search="katar qat bartolome marquez">
+          <div class="team-card__head">
+            <img class="country-flag team-card__flag" src="https://flagcdn.com/qa.svg" alt="Katar" />
+            <div class="team-card__id">
+              <span class="team-card__name">Katar</span>
+            </div>
+            <span class="team-seed" title="Pozycja w grupie A">A4</span>
+          </div>
+          <div class="team-card__body">
+            <div class="team-coach">
+              <span class="team-coach__ic"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.4"/><path d="M5.5 20a6.5 6.5 0 0 1 13 0"/></svg></span>
+              <span class="team-coach__txt"><span class="lab">Selekcjoner</span><span class="nm">Bartolomé Márquez</span></span>
+            </div>
+          </div>
+          <div class="team-card__foot">
+            <a class="team-btn" href="#" aria-label="Zobacz profil reprezentacji Katar">Zobacz profil <svg viewBox="0 0 24 24"><path d="m9 5 7 7-7 7"/></svg></a>
+            <button class="team-fav" data-team="QAT" aria-pressed="false" aria-label="Obserwuj reprezentację Katar" title="Obserwuj"><svg viewBox="0 0 24 24"><path d="M2 12s3.6-6.5 10-6.5S22 12 22 12s-3.6 6.5-10 6.5S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></button>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <section class="team-section reveal" data-group="B" id="grupa-B">
+      <div class="team-section__head">
+        <h2 class="team-section__title"><span class="group-badge">B</span> Grupa B</h2>
+        <span class="team-section__meta">4 reprezentacje</span>
+      </div>
+      <div class="teams-grid">
+        <article class="team-card" data-team="USA" data-group="B" data-search="usa usa mauricio pochettino">
+          <div class="team-card__head">
+            <img class="country-flag team-card__flag" src="https://flagcdn.com/us.svg" alt="USA" />
+            <div class="team-card__id">
+              <span class="team-card__name">USA</span>
+            </div>
+            <span class="team-seed" title="Pozycja w grupie B">B1</span>
+          </div>
+          <div class="team-card__body">
+            <div class="team-coach">
+              <span class="team-coach__ic"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.4"/><path d="M5.5 20a6.5 6.5 0 0 1 13 0"/></svg></span>
+              <span class="team-coach__txt"><span class="lab">Selekcjoner</span><span class="nm">Mauricio Pochettino</span></span>
+            </div>
+          </div>
+          <div class="team-card__foot">
+            <a class="team-btn" href="#" aria-label="Zobacz profil reprezentacji USA">Zobacz profil <svg viewBox="0 0 24 24"><path d="m9 5 7 7-7 7"/></svg></a>
+            <button class="team-fav" data-team="USA" aria-pressed="false" aria-label="Obserwuj reprezentację USA" title="Obserwuj"><svg viewBox="0 0 24 24"><path d="M2 12s3.6-6.5 10-6.5S22 12 22 12s-3.6 6.5-10 6.5S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></button>
+          </div>
+        </article>
+        <article class="team-card" data-team="SUI" data-group="B" data-search="szwajcaria sui murat yakin">
+          <div class="team-card__head">
+            <img class="country-flag team-card__flag" src="https://flagcdn.com/ch.svg" alt="Szwajcaria" />
+            <div class="team-card__id">
+              <span class="team-card__name">Szwajcaria</span>
+            </div>
+            <span class="team-seed" title="Pozycja w grupie B">B2</span>
+          </div>
+          <div class="team-card__body">
+            <div class="team-coach">
+              <span class="team-coach__ic"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.4"/><path d="M5.5 20a6.5 6.5 0 0 1 13 0"/></svg></span>
+              <span class="team-coach__txt"><span class="lab">Selekcjoner</span><span class="nm">Murat Yakin</span></span>
+            </div>
+          </div>
+          <div class="team-card__foot">
+            <a class="team-btn" href="#" aria-label="Zobacz profil reprezentacji Szwajcaria">Zobacz profil <svg viewBox="0 0 24 24"><path d="m9 5 7 7-7 7"/></svg></a>
+            <button class="team-fav" data-team="SUI" aria-pressed="false" aria-label="Obserwuj reprezentację Szwajcaria" title="Obserwuj"><svg viewBox="0 0 24 24"><path d="M2 12s3.6-6.5 10-6.5S22 12 22 12s-3.6 6.5-10 6.5S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></button>
+          </div>
+        </article>
+        <article class="team-card" data-team="EGY" data-group="B" data-search="egipt egy hossam hassan">
+          <div class="team-card__head">
+            <img class="country-flag team-card__flag" src="https://flagcdn.com/eg.svg" alt="Egipt" />
+            <div class="team-card__id">
+              <span class="team-card__name">Egipt</span>
+            </div>
+            <span class="team-seed" title="Pozycja w grupie B">B3</span>
+          </div>
+          <div class="team-card__body">
+            <div class="team-coach">
+              <span class="team-coach__ic"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.4"/><path d="M5.5 20a6.5 6.5 0 0 1 13 0"/></svg></span>
+              <span class="team-coach__txt"><span class="lab">Selekcjoner</span><span class="nm">Hossam Hassan</span></span>
+            </div>
+          </div>
+          <div class="team-card__foot">
+            <a class="team-btn" href="#" aria-label="Zobacz profil reprezentacji Egipt">Zobacz profil <svg viewBox="0 0 24 24"><path d="m9 5 7 7-7 7"/></svg></a>
+            <button class="team-fav" data-team="EGY" aria-pressed="false" aria-label="Obserwuj reprezentację Egipt" title="Obserwuj"><svg viewBox="0 0 24 24"><path d="M2 12s3.6-6.5 10-6.5S22 12 22 12s-3.6 6.5-10 6.5S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></button>
+          </div>
+        </article>
+        <article class="team-card" data-team="NZL" data-group="B" data-search="nowa zelandia nzl darren bazeley">
+          <div class="team-card__head">
+            <img class="country-flag team-card__flag" src="https://flagcdn.com/nz.svg" alt="Nowa Zelandia" />
+            <div class="team-card__id">
+              <span class="team-card__name">Nowa Zelandia</span>
+            </div>
+            <span class="team-seed" title="Pozycja w grupie B">B4</span>
+          </div>
+          <div class="team-card__body">
+            <div class="team-coach">
+              <span class="team-coach__ic"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.4"/><path d="M5.5 20a6.5 6.5 0 0 1 13 0"/></svg></span>
+              <span class="team-coach__txt"><span class="lab">Selekcjoner</span><span class="nm">Darren Bazeley</span></span>
+            </div>
+          </div>
+          <div class="team-card__foot">
+            <a class="team-btn" href="#" aria-label="Zobacz profil reprezentacji Nowa Zelandia">Zobacz profil <svg viewBox="0 0 24 24"><path d="m9 5 7 7-7 7"/></svg></a>
+            <button class="team-fav" data-team="NZL" aria-pressed="false" aria-label="Obserwuj reprezentację Nowa Zelandia" title="Obserwuj"><svg viewBox="0 0 24 24"><path d="M2 12s3.6-6.5 10-6.5S22 12 22 12s-3.6 6.5-10 6.5S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></button>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <section class="team-section reveal" data-group="C" id="grupa-C">
+      <div class="team-section__head">
+        <h2 class="team-section__title"><span class="group-badge">C</span> Grupa C</h2>
+        <span class="team-section__meta">4 reprezentacje</span>
+      </div>
+      <div class="teams-grid">
+        <article class="team-card" data-team="CRO" data-group="C" data-search="chorwacja cro zlatko dalic">
+          <div class="team-card__head">
+            <img class="country-flag team-card__flag" src="https://flagcdn.com/hr.svg" alt="Chorwacja" />
+            <div class="team-card__id">
+              <span class="team-card__name">Chorwacja</span>
+            </div>
+            <span class="team-seed" title="Pozycja w grupie C">C1</span>
+          </div>
+          <div class="team-card__body">
+            <div class="team-coach">
+              <span class="team-coach__ic"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.4"/><path d="M5.5 20a6.5 6.5 0 0 1 13 0"/></svg></span>
+              <span class="team-coach__txt"><span class="lab">Selekcjoner</span><span class="nm">Zlatko Dalić</span></span>
+            </div>
+          </div>
+          <div class="team-card__foot">
+            <a class="team-btn" href="#" aria-label="Zobacz profil reprezentacji Chorwacja">Zobacz profil <svg viewBox="0 0 24 24"><path d="m9 5 7 7-7 7"/></svg></a>
+            <button class="team-fav" data-team="CRO" aria-pressed="false" aria-label="Obserwuj reprezentację Chorwacja" title="Obserwuj"><svg viewBox="0 0 24 24"><path d="M2 12s3.6-6.5 10-6.5S22 12 22 12s-3.6 6.5-10 6.5S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></button>
+          </div>
+        </article>
+        <article class="team-card" data-team="NGA" data-group="C" data-search="nigeria nga eric chelle">
+          <div class="team-card__head">
+            <img class="country-flag team-card__flag" src="https://flagcdn.com/ng.svg" alt="Nigeria" />
+            <div class="team-card__id">
+              <span class="team-card__name">Nigeria</span>
+            </div>
+            <span class="team-seed" title="Pozycja w grupie C">C2</span>
+          </div>
+          <div class="team-card__body">
+            <div class="team-coach">
+              <span class="team-coach__ic"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.4"/><path d="M5.5 20a6.5 6.5 0 0 1 13 0"/></svg></span>
+              <span class="team-coach__txt"><span class="lab">Selekcjoner</span><span class="nm">Éric Chelle</span></span>
+            </div>
+          </div>
+          <div class="team-card__foot">
+            <a class="team-btn" href="#" aria-label="Zobacz profil reprezentacji Nigeria">Zobacz profil <svg viewBox="0 0 24 24"><path d="m9 5 7 7-7 7"/></svg></a>
+            <button class="team-fav" data-team="NGA" aria-pressed="false" aria-label="Obserwuj reprezentację Nigeria" title="Obserwuj"><svg viewBox="0 0 24 24"><path d="M2 12s3.6-6.5 10-6.5S22 12 22 12s-3.6 6.5-10 6.5S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></button>
+          </div>
+        </article>
+        <article class="team-card" data-team="ECU" data-group="C" data-search="ekwador ecu sebastian beccacece">
+          <div class="team-card__head">
+            <img class="country-flag team-card__flag" src="https://flagcdn.com/ec.svg" alt="Ekwador" />
+            <div class="team-card__id">
+              <span class="team-card__name">Ekwador</span>
+            </div>
+            <span class="team-seed" title="Pozycja w grupie C">C3</span>
+          </div>
+          <div class="team-card__body">
+            <div class="team-coach">
+              <span class="team-coach__ic"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.4"/><path d="M5.5 20a6.5 6.5 0 0 1 13 0"/></svg></span>
+              <span class="team-coach__txt"><span class="lab">Selekcjoner</span><span class="nm">Sebastián Beccacece</span></span>
+            </div>
+          </div>
+          <div class="team-card__foot">
+            <a class="team-btn" href="#" aria-label="Zobacz profil reprezentacji Ekwador">Zobacz profil <svg viewBox="0 0 24 24"><path d="m9 5 7 7-7 7"/></svg></a>
+            <button class="team-fav" data-team="ECU" aria-pressed="false" aria-label="Obserwuj reprezentację Ekwador" title="Obserwuj"><svg viewBox="0 0 24 24"><path d="M2 12s3.6-6.5 10-6.5S22 12 22 12s-3.6 6.5-10 6.5S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></button>
+          </div>
+        </article>
+        <article class="team-card" data-team="KSA" data-group="C" data-search="arabia saud. ksa herve renard">
+          <div class="team-card__head">
+            <img class="country-flag team-card__flag" src="https://flagcdn.com/sa.svg" alt="Arabia Saud." />
+            <div class="team-card__id">
+              <span class="team-card__name">Arabia Saud.</span>
+            </div>
+            <span class="team-seed" title="Pozycja w grupie C">C4</span>
+          </div>
+          <div class="team-card__body">
+            <div class="team-coach">
+              <span class="team-coach__ic"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.4"/><path d="M5.5 20a6.5 6.5 0 0 1 13 0"/></svg></span>
+              <span class="team-coach__txt"><span class="lab">Selekcjoner</span><span class="nm">Hervé Renard</span></span>
+            </div>
+          </div>
+          <div class="team-card__foot">
+            <a class="team-btn" href="#" aria-label="Zobacz profil reprezentacji Arabia Saud.">Zobacz profil <svg viewBox="0 0 24 24"><path d="m9 5 7 7-7 7"/></svg></a>
+            <button class="team-fav" data-team="KSA" aria-pressed="false" aria-label="Obserwuj reprezentację Arabia Saud." title="Obserwuj"><svg viewBox="0 0 24 24"><path d="M2 12s3.6-6.5 10-6.5S22 12 22 12s-3.6 6.5-10 6.5S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></button>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <section class="team-section reveal" data-group="D" id="grupa-D">
+      <div class="team-section__head">
+        <h2 class="team-section__title"><span class="group-badge">D</span> Grupa D</h2>
+        <span class="team-section__meta">4 reprezentacje</span>
+      </div>
+      <div class="teams-grid">
+        <article class="team-card" data-team="POL" data-group="D" data-search="polska pol michal probierz">
+          <div class="team-card__head">
+            <img class="country-flag team-card__flag" src="https://flagcdn.com/pl.svg" alt="Polska" />
+            <div class="team-card__id">
+              <span class="team-card__name">Polska</span>
+            </div>
+            <span class="team-seed" title="Pozycja w grupie D">D1</span>
+          </div>
+          <div class="team-card__body">
+            <div class="team-coach">
+              <span class="team-coach__ic"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.4"/><path d="M5.5 20a6.5 6.5 0 0 1 13 0"/></svg></span>
+              <span class="team-coach__txt"><span class="lab">Selekcjoner</span><span class="nm">Michał Probierz</span></span>
+            </div>
+          </div>
+          <div class="team-card__foot">
+            <a class="team-btn" href="#" aria-label="Zobacz profil reprezentacji Polska">Zobacz profil <svg viewBox="0 0 24 24"><path d="m9 5 7 7-7 7"/></svg></a>
+            <button class="team-fav" data-team="POL" aria-pressed="false" aria-label="Obserwuj reprezentację Polska" title="Obserwuj"><svg viewBox="0 0 24 24"><path d="M2 12s3.6-6.5 10-6.5S22 12 22 12s-3.6 6.5-10 6.5S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></button>
+          </div>
+        </article>
+        <article class="team-card" data-team="URU" data-group="D" data-search="urugwaj uru marcelo bielsa">
+          <div class="team-card__head">
+            <img class="country-flag team-card__flag" src="https://flagcdn.com/uy.svg" alt="Urugwaj" />
+            <div class="team-card__id">
+              <span class="team-card__name">Urugwaj</span>
+            </div>
+            <span class="team-seed" title="Pozycja w grupie D">D2</span>
+          </div>
+          <div class="team-card__body">
+            <div class="team-coach">
+              <span class="team-coach__ic"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.4"/><path d="M5.5 20a6.5 6.5 0 0 1 13 0"/></svg></span>
+              <span class="team-coach__txt"><span class="lab">Selekcjoner</span><span class="nm">Marcelo Bielsa</span></span>
+            </div>
+          </div>
+          <div class="team-card__foot">
+            <a class="team-btn" href="#" aria-label="Zobacz profil reprezentacji Urugwaj">Zobacz profil <svg viewBox="0 0 24 24"><path d="m9 5 7 7-7 7"/></svg></a>
+            <button class="team-fav" data-team="URU" aria-pressed="false" aria-label="Obserwuj reprezentację Urugwaj" title="Obserwuj"><svg viewBox="0 0 24 24"><path d="M2 12s3.6-6.5 10-6.5S22 12 22 12s-3.6 6.5-10 6.5S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></button>
+          </div>
+        </article>
+        <article class="team-card" data-team="SEN" data-group="D" data-search="senegal sen pape thiaw">
+          <div class="team-card__head">
+            <img class="country-flag team-card__flag" src="https://flagcdn.com/sn.svg" alt="Senegal" />
+            <div class="team-card__id">
+              <span class="team-card__name">Senegal</span>
+            </div>
+            <span class="team-seed" title="Pozycja w grupie D">D3</span>
+          </div>
+          <div class="team-card__body">
+            <div class="team-coach">
+              <span class="team-coach__ic"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.4"/><path d="M5.5 20a6.5 6.5 0 0 1 13 0"/></svg></span>
+              <span class="team-coach__txt"><span class="lab">Selekcjoner</span><span class="nm">Pape Thiaw</span></span>
+            </div>
+          </div>
+          <div class="team-card__foot">
+            <a class="team-btn" href="#" aria-label="Zobacz profil reprezentacji Senegal">Zobacz profil <svg viewBox="0 0 24 24"><path d="m9 5 7 7-7 7"/></svg></a>
+            <button class="team-fav" data-team="SEN" aria-pressed="false" aria-label="Obserwuj reprezentację Senegal" title="Obserwuj"><svg viewBox="0 0 24 24"><path d="M2 12s3.6-6.5 10-6.5S22 12 22 12s-3.6 6.5-10 6.5S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></button>
+          </div>
+        </article>
+        <article class="team-card" data-team="IRN" data-group="D" data-search="iran irn amir ghalenoei">
+          <div class="team-card__head">
+            <img class="country-flag team-card__flag" src="https://flagcdn.com/ir.svg" alt="Iran" />
+            <div class="team-card__id">
+              <span class="team-card__name">Iran</span>
+            </div>
+            <span class="team-seed" title="Pozycja w grupie D">D4</span>
+          </div>
+          <div class="team-card__body">
+            <div class="team-coach">
+              <span class="team-coach__ic"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.4"/><path d="M5.5 20a6.5 6.5 0 0 1 13 0"/></svg></span>
+              <span class="team-coach__txt"><span class="lab">Selekcjoner</span><span class="nm">Amir Ghalenoei</span></span>
+            </div>
+          </div>
+          <div class="team-card__foot">
+            <a class="team-btn" href="#" aria-label="Zobacz profil reprezentacji Iran">Zobacz profil <svg viewBox="0 0 24 24"><path d="m9 5 7 7-7 7"/></svg></a>
+            <button class="team-fav" data-team="IRN" aria-pressed="false" aria-label="Obserwuj reprezentację Iran" title="Obserwuj"><svg viewBox="0 0 24 24"><path d="M2 12s3.6-6.5 10-6.5S22 12 22 12s-3.6 6.5-10 6.5S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></button>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <section class="team-section reveal" data-group="E" id="grupa-E">
+      <div class="team-section__head">
+        <h2 class="team-section__title"><span class="group-badge">E</span> Grupa E</h2>
+        <span class="team-section__meta">4 reprezentacje</span>
+      </div>
+      <div class="teams-grid">
+        <article class="team-card" data-team="BRA" data-group="E" data-search="brazylia bra carlo ancelotti">
+          <div class="team-card__head">
+            <img class="country-flag team-card__flag" src="https://flagcdn.com/br.svg" alt="Brazylia" />
+            <div class="team-card__id">
+              <span class="team-card__name">Brazylia</span>
+            </div>
+            <span class="team-seed" title="Pozycja w grupie E">E1</span>
+          </div>
+          <div class="team-card__body">
+            <div class="team-coach">
+              <span class="team-coach__ic"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.4"/><path d="M5.5 20a6.5 6.5 0 0 1 13 0"/></svg></span>
+              <span class="team-coach__txt"><span class="lab">Selekcjoner</span><span class="nm">Carlo Ancelotti</span></span>
+            </div>
+          </div>
+          <div class="team-card__foot">
+            <a class="team-btn" href="#" aria-label="Zobacz profil reprezentacji Brazylia">Zobacz profil <svg viewBox="0 0 24 24"><path d="m9 5 7 7-7 7"/></svg></a>
+            <button class="team-fav" data-team="BRA" aria-pressed="false" aria-label="Obserwuj reprezentację Brazylia" title="Obserwuj"><svg viewBox="0 0 24 24"><path d="M2 12s3.6-6.5 10-6.5S22 12 22 12s-3.6 6.5-10 6.5S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></button>
+          </div>
+        </article>
+        <article class="team-card" data-team="SWE" data-group="E" data-search="szwecja swe jon dahl tomasson">
+          <div class="team-card__head">
+            <img class="country-flag team-card__flag" src="https://flagcdn.com/se.svg" alt="Szwecja" />
+            <div class="team-card__id">
+              <span class="team-card__name">Szwecja</span>
+            </div>
+            <span class="team-seed" title="Pozycja w grupie E">E2</span>
+          </div>
+          <div class="team-card__body">
+            <div class="team-coach">
+              <span class="team-coach__ic"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.4"/><path d="M5.5 20a6.5 6.5 0 0 1 13 0"/></svg></span>
+              <span class="team-coach__txt"><span class="lab">Selekcjoner</span><span class="nm">Jon Dahl Tomasson</span></span>
+            </div>
+          </div>
+          <div class="team-card__foot">
+            <a class="team-btn" href="#" aria-label="Zobacz profil reprezentacji Szwecja">Zobacz profil <svg viewBox="0 0 24 24"><path d="m9 5 7 7-7 7"/></svg></a>
+            <button class="team-fav" data-team="SWE" aria-pressed="false" aria-label="Obserwuj reprezentację Szwecja" title="Obserwuj"><svg viewBox="0 0 24 24"><path d="M2 12s3.6-6.5 10-6.5S22 12 22 12s-3.6 6.5-10 6.5S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></button>
+          </div>
+        </article>
+        <article class="team-card" data-team="GHA" data-group="E" data-search="ghana gha otto addo">
+          <div class="team-card__head">
+            <img class="country-flag team-card__flag" src="https://flagcdn.com/gh.svg" alt="Ghana" />
+            <div class="team-card__id">
+              <span class="team-card__name">Ghana</span>
+            </div>
+            <span class="team-seed" title="Pozycja w grupie E">E3</span>
+          </div>
+          <div class="team-card__body">
+            <div class="team-coach">
+              <span class="team-coach__ic"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.4"/><path d="M5.5 20a6.5 6.5 0 0 1 13 0"/></svg></span>
+              <span class="team-coach__txt"><span class="lab">Selekcjoner</span><span class="nm">Otto Addo</span></span>
+            </div>
+          </div>
+          <div class="team-card__foot">
+            <a class="team-btn" href="#" aria-label="Zobacz profil reprezentacji Ghana">Zobacz profil <svg viewBox="0 0 24 24"><path d="m9 5 7 7-7 7"/></svg></a>
+            <button class="team-fav" data-team="GHA" aria-pressed="false" aria-label="Obserwuj reprezentację Ghana" title="Obserwuj"><svg viewBox="0 0 24 24"><path d="M2 12s3.6-6.5 10-6.5S22 12 22 12s-3.6 6.5-10 6.5S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></button>
+          </div>
+        </article>
+        <article class="team-card" data-team="PAN" data-group="E" data-search="panama pan thomas christiansen">
+          <div class="team-card__head">
+            <img class="country-flag team-card__flag" src="https://flagcdn.com/pa.svg" alt="Panama" />
+            <div class="team-card__id">
+              <span class="team-card__name">Panama</span>
+            </div>
+            <span class="team-seed" title="Pozycja w grupie E">E4</span>
+          </div>
+          <div class="team-card__body">
+            <div class="team-coach">
+              <span class="team-coach__ic"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.4"/><path d="M5.5 20a6.5 6.5 0 0 1 13 0"/></svg></span>
+              <span class="team-coach__txt"><span class="lab">Selekcjoner</span><span class="nm">Thomas Christiansen</span></span>
+            </div>
+          </div>
+          <div class="team-card__foot">
+            <a class="team-btn" href="#" aria-label="Zobacz profil reprezentacji Panama">Zobacz profil <svg viewBox="0 0 24 24"><path d="m9 5 7 7-7 7"/></svg></a>
+            <button class="team-fav" data-team="PAN" aria-pressed="false" aria-label="Obserwuj reprezentację Panama" title="Obserwuj"><svg viewBox="0 0 24 24"><path d="M2 12s3.6-6.5 10-6.5S22 12 22 12s-3.6 6.5-10 6.5S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></button>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <section class="team-section reveal" data-group="F" id="grupa-F">
+      <div class="team-section__head">
+        <h2 class="team-section__title"><span class="group-badge">F</span> Grupa F</h2>
+        <span class="team-section__meta">4 reprezentacje</span>
+      </div>
+      <div class="teams-grid">
+        <article class="team-card" data-team="ARG" data-group="F" data-search="argentyna arg lionel scaloni">
+          <div class="team-card__head">
+            <img class="country-flag team-card__flag" src="https://flagcdn.com/ar.svg" alt="Argentyna" />
+            <div class="team-card__id">
+              <span class="team-card__name">Argentyna</span>
+            </div>
+            <span class="team-seed" title="Pozycja w grupie F">F1</span>
+          </div>
+          <div class="team-card__body">
+            <div class="team-coach">
+              <span class="team-coach__ic"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.4"/><path d="M5.5 20a6.5 6.5 0 0 1 13 0"/></svg></span>
+              <span class="team-coach__txt"><span class="lab">Selekcjoner</span><span class="nm">Lionel Scaloni</span></span>
+            </div>
+          </div>
+          <div class="team-card__foot">
+            <a class="team-btn" href="#" aria-label="Zobacz profil reprezentacji Argentyna">Zobacz profil <svg viewBox="0 0 24 24"><path d="m9 5 7 7-7 7"/></svg></a>
+            <button class="team-fav" data-team="ARG" aria-pressed="false" aria-label="Obserwuj reprezentację Argentyna" title="Obserwuj"><svg viewBox="0 0 24 24"><path d="M2 12s3.6-6.5 10-6.5S22 12 22 12s-3.6 6.5-10 6.5S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></button>
+          </div>
+        </article>
+        <article class="team-card" data-team="JPN" data-group="F" data-search="japonia jpn hajime moriyasu">
+          <div class="team-card__head">
+            <img class="country-flag team-card__flag" src="https://flagcdn.com/jp.svg" alt="Japonia" />
+            <div class="team-card__id">
+              <span class="team-card__name">Japonia</span>
+            </div>
+            <span class="team-seed" title="Pozycja w grupie F">F2</span>
+          </div>
+          <div class="team-card__body">
+            <div class="team-coach">
+              <span class="team-coach__ic"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.4"/><path d="M5.5 20a6.5 6.5 0 0 1 13 0"/></svg></span>
+              <span class="team-coach__txt"><span class="lab">Selekcjoner</span><span class="nm">Hajime Moriyasu</span></span>
+            </div>
+          </div>
+          <div class="team-card__foot">
+            <a class="team-btn" href="#" aria-label="Zobacz profil reprezentacji Japonia">Zobacz profil <svg viewBox="0 0 24 24"><path d="m9 5 7 7-7 7"/></svg></a>
+            <button class="team-fav" data-team="JPN" aria-pressed="false" aria-label="Obserwuj reprezentację Japonia" title="Obserwuj"><svg viewBox="0 0 24 24"><path d="M2 12s3.6-6.5 10-6.5S22 12 22 12s-3.6 6.5-10 6.5S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></button>
+          </div>
+        </article>
+        <article class="team-card" data-team="ALG" data-group="F" data-search="algieria alg vladimir petkovic">
+          <div class="team-card__head">
+            <img class="country-flag team-card__flag" src="https://flagcdn.com/dz.svg" alt="Algieria" />
+            <div class="team-card__id">
+              <span class="team-card__name">Algieria</span>
+            </div>
+            <span class="team-seed" title="Pozycja w grupie F">F3</span>
+          </div>
+          <div class="team-card__body">
+            <div class="team-coach">
+              <span class="team-coach__ic"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.4"/><path d="M5.5 20a6.5 6.5 0 0 1 13 0"/></svg></span>
+              <span class="team-coach__txt"><span class="lab">Selekcjoner</span><span class="nm">Vladimir Petković</span></span>
+            </div>
+          </div>
+          <div class="team-card__foot">
+            <a class="team-btn" href="#" aria-label="Zobacz profil reprezentacji Algieria">Zobacz profil <svg viewBox="0 0 24 24"><path d="m9 5 7 7-7 7"/></svg></a>
+            <button class="team-fav" data-team="ALG" aria-pressed="false" aria-label="Obserwuj reprezentację Algieria" title="Obserwuj"><svg viewBox="0 0 24 24"><path d="M2 12s3.6-6.5 10-6.5S22 12 22 12s-3.6 6.5-10 6.5S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></button>
+          </div>
+        </article>
+        <article class="team-card" data-team="CRC" data-group="F" data-search="kostaryka crc miguel herrera">
+          <div class="team-card__head">
+            <img class="country-flag team-card__flag" src="https://flagcdn.com/cr.svg" alt="Kostaryka" />
+            <div class="team-card__id">
+              <span class="team-card__name">Kostaryka</span>
+            </div>
+            <span class="team-seed" title="Pozycja w grupie F">F4</span>
+          </div>
+          <div class="team-card__body">
+            <div class="team-coach">
+              <span class="team-coach__ic"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.4"/><path d="M5.5 20a6.5 6.5 0 0 1 13 0"/></svg></span>
+              <span class="team-coach__txt"><span class="lab">Selekcjoner</span><span class="nm">Miguel Herrera</span></span>
+            </div>
+          </div>
+          <div class="team-card__foot">
+            <a class="team-btn" href="#" aria-label="Zobacz profil reprezentacji Kostaryka">Zobacz profil <svg viewBox="0 0 24 24"><path d="m9 5 7 7-7 7"/></svg></a>
+            <button class="team-fav" data-team="CRC" aria-pressed="false" aria-label="Obserwuj reprezentację Kostaryka" title="Obserwuj"><svg viewBox="0 0 24 24"><path d="M2 12s3.6-6.5 10-6.5S22 12 22 12s-3.6 6.5-10 6.5S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></button>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <section class="team-section reveal" data-group="G" id="grupa-G">
+      <div class="team-section__head">
+        <h2 class="team-section__title"><span class="group-badge">G</span> Grupa G</h2>
+        <span class="team-section__meta">4 reprezentacje</span>
+      </div>
+      <div class="teams-grid">
+        <article class="team-card" data-team="FRA" data-group="G" data-search="francja fra didier deschamps">
+          <div class="team-card__head">
+            <img class="country-flag team-card__flag" src="https://flagcdn.com/fr.svg" alt="Francja" />
+            <div class="team-card__id">
+              <span class="team-card__name">Francja</span>
+            </div>
+            <span class="team-seed" title="Pozycja w grupie G">G1</span>
+          </div>
+          <div class="team-card__body">
+            <div class="team-coach">
+              <span class="team-coach__ic"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.4"/><path d="M5.5 20a6.5 6.5 0 0 1 13 0"/></svg></span>
+              <span class="team-coach__txt"><span class="lab">Selekcjoner</span><span class="nm">Didier Deschamps</span></span>
+            </div>
+          </div>
+          <div class="team-card__foot">
+            <a class="team-btn" href="#" aria-label="Zobacz profil reprezentacji Francja">Zobacz profil <svg viewBox="0 0 24 24"><path d="m9 5 7 7-7 7"/></svg></a>
+            <button class="team-fav" data-team="FRA" aria-pressed="false" aria-label="Obserwuj reprezentację Francja" title="Obserwuj"><svg viewBox="0 0 24 24"><path d="M2 12s3.6-6.5 10-6.5S22 12 22 12s-3.6 6.5-10 6.5S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></button>
+          </div>
+        </article>
+        <article class="team-card" data-team="MAR" data-group="G" data-search="maroko mar walid regragui">
+          <div class="team-card__head">
+            <img class="country-flag team-card__flag" src="https://flagcdn.com/ma.svg" alt="Maroko" />
+            <div class="team-card__id">
+              <span class="team-card__name">Maroko</span>
+            </div>
+            <span class="team-seed" title="Pozycja w grupie G">G2</span>
+          </div>
+          <div class="team-card__body">
+            <div class="team-coach">
+              <span class="team-coach__ic"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.4"/><path d="M5.5 20a6.5 6.5 0 0 1 13 0"/></svg></span>
+              <span class="team-coach__txt"><span class="lab">Selekcjoner</span><span class="nm">Walid Regragui</span></span>
+            </div>
+          </div>
+          <div class="team-card__foot">
+            <a class="team-btn" href="#" aria-label="Zobacz profil reprezentacji Maroko">Zobacz profil <svg viewBox="0 0 24 24"><path d="m9 5 7 7-7 7"/></svg></a>
+            <button class="team-fav" data-team="MAR" aria-pressed="false" aria-label="Obserwuj reprezentację Maroko" title="Obserwuj"><svg viewBox="0 0 24 24"><path d="M2 12s3.6-6.5 10-6.5S22 12 22 12s-3.6 6.5-10 6.5S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></button>
+          </div>
+        </article>
+        <article class="team-card" data-team="AUS" data-group="G" data-search="australia aus tony popovic">
+          <div class="team-card__head">
+            <img class="country-flag team-card__flag" src="https://flagcdn.com/au.svg" alt="Australia" />
+            <div class="team-card__id">
+              <span class="team-card__name">Australia</span>
+            </div>
+            <span class="team-seed" title="Pozycja w grupie G">G3</span>
+          </div>
+          <div class="team-card__body">
+            <div class="team-coach">
+              <span class="team-coach__ic"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.4"/><path d="M5.5 20a6.5 6.5 0 0 1 13 0"/></svg></span>
+              <span class="team-coach__txt"><span class="lab">Selekcjoner</span><span class="nm">Tony Popovic</span></span>
+            </div>
+          </div>
+          <div class="team-card__foot">
+            <a class="team-btn" href="#" aria-label="Zobacz profil reprezentacji Australia">Zobacz profil <svg viewBox="0 0 24 24"><path d="m9 5 7 7-7 7"/></svg></a>
+            <button class="team-fav" data-team="AUS" aria-pressed="false" aria-label="Obserwuj reprezentację Australia" title="Obserwuj"><svg viewBox="0 0 24 24"><path d="M2 12s3.6-6.5 10-6.5S22 12 22 12s-3.6 6.5-10 6.5S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></button>
+          </div>
+        </article>
+        <article class="team-card" data-team="CAN" data-group="G" data-search="kanada can jesse marsch">
+          <div class="team-card__head">
+            <img class="country-flag team-card__flag" src="https://flagcdn.com/ca.svg" alt="Kanada" />
+            <div class="team-card__id">
+              <span class="team-card__name">Kanada</span>
+            </div>
+            <span class="team-seed" title="Pozycja w grupie G">G4</span>
+          </div>
+          <div class="team-card__body">
+            <div class="team-coach">
+              <span class="team-coach__ic"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.4"/><path d="M5.5 20a6.5 6.5 0 0 1 13 0"/></svg></span>
+              <span class="team-coach__txt"><span class="lab">Selekcjoner</span><span class="nm">Jesse Marsch</span></span>
+            </div>
+          </div>
+          <div class="team-card__foot">
+            <a class="team-btn" href="#" aria-label="Zobacz profil reprezentacji Kanada">Zobacz profil <svg viewBox="0 0 24 24"><path d="m9 5 7 7-7 7"/></svg></a>
+            <button class="team-fav" data-team="CAN" aria-pressed="false" aria-label="Obserwuj reprezentację Kanada" title="Obserwuj"><svg viewBox="0 0 24 24"><path d="M2 12s3.6-6.5 10-6.5S22 12 22 12s-3.6 6.5-10 6.5S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></button>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <section class="team-section reveal" data-group="H" id="grupa-H">
+      <div class="team-section__head">
+        <h2 class="team-section__title"><span class="group-badge">H</span> Grupa H</h2>
+        <span class="team-section__meta">4 reprezentacje</span>
+      </div>
+      <div class="teams-grid">
+        <article class="team-card" data-team="ESP" data-group="H" data-search="hiszpania esp luis de la fuente">
+          <div class="team-card__head">
+            <img class="country-flag team-card__flag" src="https://flagcdn.com/es.svg" alt="Hiszpania" />
+            <div class="team-card__id">
+              <span class="team-card__name">Hiszpania</span>
+            </div>
+            <span class="team-seed" title="Pozycja w grupie H">H1</span>
+          </div>
+          <div class="team-card__body">
+            <div class="team-coach">
+              <span class="team-coach__ic"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.4"/><path d="M5.5 20a6.5 6.5 0 0 1 13 0"/></svg></span>
+              <span class="team-coach__txt"><span class="lab">Selekcjoner</span><span class="nm">Luis de la Fuente</span></span>
+            </div>
+          </div>
+          <div class="team-card__foot">
+            <a class="team-btn" href="#" aria-label="Zobacz profil reprezentacji Hiszpania">Zobacz profil <svg viewBox="0 0 24 24"><path d="m9 5 7 7-7 7"/></svg></a>
+            <button class="team-fav" data-team="ESP" aria-pressed="false" aria-label="Obserwuj reprezentację Hiszpania" title="Obserwuj"><svg viewBox="0 0 24 24"><path d="M2 12s3.6-6.5 10-6.5S22 12 22 12s-3.6 6.5-10 6.5S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></button>
+          </div>
+        </article>
+        <article class="team-card" data-team="COL" data-group="H" data-search="kolumbia col nestor lorenzo">
+          <div class="team-card__head">
+            <img class="country-flag team-card__flag" src="https://flagcdn.com/co.svg" alt="Kolumbia" />
+            <div class="team-card__id">
+              <span class="team-card__name">Kolumbia</span>
+            </div>
+            <span class="team-seed" title="Pozycja w grupie H">H2</span>
+          </div>
+          <div class="team-card__body">
+            <div class="team-coach">
+              <span class="team-coach__ic"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.4"/><path d="M5.5 20a6.5 6.5 0 0 1 13 0"/></svg></span>
+              <span class="team-coach__txt"><span class="lab">Selekcjoner</span><span class="nm">Néstor Lorenzo</span></span>
+            </div>
+          </div>
+          <div class="team-card__foot">
+            <a class="team-btn" href="#" aria-label="Zobacz profil reprezentacji Kolumbia">Zobacz profil <svg viewBox="0 0 24 24"><path d="m9 5 7 7-7 7"/></svg></a>
+            <button class="team-fav" data-team="COL" aria-pressed="false" aria-label="Obserwuj reprezentację Kolumbia" title="Obserwuj"><svg viewBox="0 0 24 24"><path d="M2 12s3.6-6.5 10-6.5S22 12 22 12s-3.6 6.5-10 6.5S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></button>
+          </div>
+        </article>
+        <article class="team-card" data-team="TUN" data-group="H" data-search="tunezja tun sami trabelsi">
+          <div class="team-card__head">
+            <img class="country-flag team-card__flag" src="https://flagcdn.com/tn.svg" alt="Tunezja" />
+            <div class="team-card__id">
+              <span class="team-card__name">Tunezja</span>
+            </div>
+            <span class="team-seed" title="Pozycja w grupie H">H3</span>
+          </div>
+          <div class="team-card__body">
+            <div class="team-coach">
+              <span class="team-coach__ic"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.4"/><path d="M5.5 20a6.5 6.5 0 0 1 13 0"/></svg></span>
+              <span class="team-coach__txt"><span class="lab">Selekcjoner</span><span class="nm">Sami Trabelsi</span></span>
+            </div>
+          </div>
+          <div class="team-card__foot">
+            <a class="team-btn" href="#" aria-label="Zobacz profil reprezentacji Tunezja">Zobacz profil <svg viewBox="0 0 24 24"><path d="m9 5 7 7-7 7"/></svg></a>
+            <button class="team-fav" data-team="TUN" aria-pressed="false" aria-label="Obserwuj reprezentację Tunezja" title="Obserwuj"><svg viewBox="0 0 24 24"><path d="M2 12s3.6-6.5 10-6.5S22 12 22 12s-3.6 6.5-10 6.5S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></button>
+          </div>
+        </article>
+        <article class="team-card" data-team="JOR" data-group="H" data-search="jordania jor jamal sellami">
+          <div class="team-card__head">
+            <img class="country-flag team-card__flag" src="https://flagcdn.com/jo.svg" alt="Jordania" />
+            <div class="team-card__id">
+              <span class="team-card__name">Jordania</span>
+            </div>
+            <span class="team-seed" title="Pozycja w grupie H">H4</span>
+          </div>
+          <div class="team-card__body">
+            <div class="team-coach">
+              <span class="team-coach__ic"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.4"/><path d="M5.5 20a6.5 6.5 0 0 1 13 0"/></svg></span>
+              <span class="team-coach__txt"><span class="lab">Selekcjoner</span><span class="nm">Jamal Sellami</span></span>
+            </div>
+          </div>
+          <div class="team-card__foot">
+            <a class="team-btn" href="#" aria-label="Zobacz profil reprezentacji Jordania">Zobacz profil <svg viewBox="0 0 24 24"><path d="m9 5 7 7-7 7"/></svg></a>
+            <button class="team-fav" data-team="JOR" aria-pressed="false" aria-label="Obserwuj reprezentację Jordania" title="Obserwuj"><svg viewBox="0 0 24 24"><path d="M2 12s3.6-6.5 10-6.5S22 12 22 12s-3.6 6.5-10 6.5S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></button>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <section class="team-section reveal" data-group="I" id="grupa-I">
+      <div class="team-section__head">
+        <h2 class="team-section__title"><span class="group-badge">I</span> Grupa I</h2>
+        <span class="team-section__meta">4 reprezentacje</span>
+      </div>
+      <div class="teams-grid">
+        <article class="team-card" data-team="GER" data-group="I" data-search="niemcy ger julian nagelsmann">
+          <div class="team-card__head">
+            <img class="country-flag team-card__flag" src="https://flagcdn.com/de.svg" alt="Niemcy" />
+            <div class="team-card__id">
+              <span class="team-card__name">Niemcy</span>
+            </div>
+            <span class="team-seed" title="Pozycja w grupie I">I1</span>
+          </div>
+          <div class="team-card__body">
+            <div class="team-coach">
+              <span class="team-coach__ic"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.4"/><path d="M5.5 20a6.5 6.5 0 0 1 13 0"/></svg></span>
+              <span class="team-coach__txt"><span class="lab">Selekcjoner</span><span class="nm">Julian Nagelsmann</span></span>
+            </div>
+          </div>
+          <div class="team-card__foot">
+            <a class="team-btn" href="#" aria-label="Zobacz profil reprezentacji Niemcy">Zobacz profil <svg viewBox="0 0 24 24"><path d="m9 5 7 7-7 7"/></svg></a>
+            <button class="team-fav" data-team="GER" aria-pressed="false" aria-label="Obserwuj reprezentację Niemcy" title="Obserwuj"><svg viewBox="0 0 24 24"><path d="M2 12s3.6-6.5 10-6.5S22 12 22 12s-3.6 6.5-10 6.5S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></button>
+          </div>
+        </article>
+        <article class="team-card" data-team="SRB" data-group="I" data-search="serbia srb dragan stojkovic">
+          <div class="team-card__head">
+            <img class="country-flag team-card__flag" src="https://flagcdn.com/rs.svg" alt="Serbia" />
+            <div class="team-card__id">
+              <span class="team-card__name">Serbia</span>
+            </div>
+            <span class="team-seed" title="Pozycja w grupie I">I2</span>
+          </div>
+          <div class="team-card__body">
+            <div class="team-coach">
+              <span class="team-coach__ic"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.4"/><path d="M5.5 20a6.5 6.5 0 0 1 13 0"/></svg></span>
+              <span class="team-coach__txt"><span class="lab">Selekcjoner</span><span class="nm">Dragan Stojković</span></span>
+            </div>
+          </div>
+          <div class="team-card__foot">
+            <a class="team-btn" href="#" aria-label="Zobacz profil reprezentacji Serbia">Zobacz profil <svg viewBox="0 0 24 24"><path d="m9 5 7 7-7 7"/></svg></a>
+            <button class="team-fav" data-team="SRB" aria-pressed="false" aria-label="Obserwuj reprezentację Serbia" title="Obserwuj"><svg viewBox="0 0 24 24"><path d="M2 12s3.6-6.5 10-6.5S22 12 22 12s-3.6 6.5-10 6.5S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></button>
+          </div>
+        </article>
+        <article class="team-card" data-team="CMR" data-group="I" data-search="kamerun cmr marc brys">
+          <div class="team-card__head">
+            <img class="country-flag team-card__flag" src="https://flagcdn.com/cm.svg" alt="Kamerun" />
+            <div class="team-card__id">
+              <span class="team-card__name">Kamerun</span>
+            </div>
+            <span class="team-seed" title="Pozycja w grupie I">I3</span>
+          </div>
+          <div class="team-card__body">
+            <div class="team-coach">
+              <span class="team-coach__ic"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.4"/><path d="M5.5 20a6.5 6.5 0 0 1 13 0"/></svg></span>
+              <span class="team-coach__txt"><span class="lab">Selekcjoner</span><span class="nm">Marc Brys</span></span>
+            </div>
+          </div>
+          <div class="team-card__foot">
+            <a class="team-btn" href="#" aria-label="Zobacz profil reprezentacji Kamerun">Zobacz profil <svg viewBox="0 0 24 24"><path d="m9 5 7 7-7 7"/></svg></a>
+            <button class="team-fav" data-team="CMR" aria-pressed="false" aria-label="Obserwuj reprezentację Kamerun" title="Obserwuj"><svg viewBox="0 0 24 24"><path d="M2 12s3.6-6.5 10-6.5S22 12 22 12s-3.6 6.5-10 6.5S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></button>
+          </div>
+        </article>
+        <article class="team-card" data-team="UZB" data-group="I" data-search="uzbekistan uzb timur kapadze">
+          <div class="team-card__head">
+            <img class="country-flag team-card__flag" src="https://flagcdn.com/uz.svg" alt="Uzbekistan" />
+            <div class="team-card__id">
+              <span class="team-card__name">Uzbekistan</span>
+            </div>
+            <span class="team-seed" title="Pozycja w grupie I">I4</span>
+          </div>
+          <div class="team-card__body">
+            <div class="team-coach">
+              <span class="team-coach__ic"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.4"/><path d="M5.5 20a6.5 6.5 0 0 1 13 0"/></svg></span>
+              <span class="team-coach__txt"><span class="lab">Selekcjoner</span><span class="nm">Timur Kapadze</span></span>
+            </div>
+          </div>
+          <div class="team-card__foot">
+            <a class="team-btn" href="#" aria-label="Zobacz profil reprezentacji Uzbekistan">Zobacz profil <svg viewBox="0 0 24 24"><path d="m9 5 7 7-7 7"/></svg></a>
+            <button class="team-fav" data-team="UZB" aria-pressed="false" aria-label="Obserwuj reprezentację Uzbekistan" title="Obserwuj"><svg viewBox="0 0 24 24"><path d="M2 12s3.6-6.5 10-6.5S22 12 22 12s-3.6 6.5-10 6.5S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></button>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <section class="team-section reveal" data-group="J" id="grupa-J">
+      <div class="team-section__head">
+        <h2 class="team-section__title"><span class="group-badge">J</span> Grupa J</h2>
+        <span class="team-section__meta">4 reprezentacje</span>
+      </div>
+      <div class="teams-grid">
+        <article class="team-card" data-team="POR" data-group="J" data-search="portugalia por roberto martinez">
+          <div class="team-card__head">
+            <img class="country-flag team-card__flag" src="https://flagcdn.com/pt.svg" alt="Portugalia" />
+            <div class="team-card__id">
+              <span class="team-card__name">Portugalia</span>
+            </div>
+            <span class="team-seed" title="Pozycja w grupie J">J1</span>
+          </div>
+          <div class="team-card__body">
+            <div class="team-coach">
+              <span class="team-coach__ic"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.4"/><path d="M5.5 20a6.5 6.5 0 0 1 13 0"/></svg></span>
+              <span class="team-coach__txt"><span class="lab">Selekcjoner</span><span class="nm">Roberto Martínez</span></span>
+            </div>
+          </div>
+          <div class="team-card__foot">
+            <a class="team-btn" href="#" aria-label="Zobacz profil reprezentacji Portugalia">Zobacz profil <svg viewBox="0 0 24 24"><path d="m9 5 7 7-7 7"/></svg></a>
+            <button class="team-fav" data-team="POR" aria-pressed="false" aria-label="Obserwuj reprezentację Portugalia" title="Obserwuj"><svg viewBox="0 0 24 24"><path d="M2 12s3.6-6.5 10-6.5S22 12 22 12s-3.6 6.5-10 6.5S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></button>
+          </div>
+        </article>
+        <article class="team-card" data-team="DEN" data-group="J" data-search="dania den brian riemer">
+          <div class="team-card__head">
+            <img class="country-flag team-card__flag" src="https://flagcdn.com/dk.svg" alt="Dania" />
+            <div class="team-card__id">
+              <span class="team-card__name">Dania</span>
+            </div>
+            <span class="team-seed" title="Pozycja w grupie J">J2</span>
+          </div>
+          <div class="team-card__body">
+            <div class="team-coach">
+              <span class="team-coach__ic"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.4"/><path d="M5.5 20a6.5 6.5 0 0 1 13 0"/></svg></span>
+              <span class="team-coach__txt"><span class="lab">Selekcjoner</span><span class="nm">Brian Riemer</span></span>
+            </div>
+          </div>
+          <div class="team-card__foot">
+            <a class="team-btn" href="#" aria-label="Zobacz profil reprezentacji Dania">Zobacz profil <svg viewBox="0 0 24 24"><path d="m9 5 7 7-7 7"/></svg></a>
+            <button class="team-fav" data-team="DEN" aria-pressed="false" aria-label="Obserwuj reprezentację Dania" title="Obserwuj"><svg viewBox="0 0 24 24"><path d="M2 12s3.6-6.5 10-6.5S22 12 22 12s-3.6 6.5-10 6.5S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></button>
+          </div>
+        </article>
+        <article class="team-card" data-team="CIV" data-group="J" data-search="wybrzeze k. civ emerse fae">
+          <div class="team-card__head">
+            <img class="country-flag team-card__flag" src="https://flagcdn.com/ci.svg" alt="Wybrzeże K." />
+            <div class="team-card__id">
+              <span class="team-card__name">Wybrzeże K.</span>
+            </div>
+            <span class="team-seed" title="Pozycja w grupie J">J3</span>
+          </div>
+          <div class="team-card__body">
+            <div class="team-coach">
+              <span class="team-coach__ic"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.4"/><path d="M5.5 20a6.5 6.5 0 0 1 13 0"/></svg></span>
+              <span class="team-coach__txt"><span class="lab">Selekcjoner</span><span class="nm">Emerse Faé</span></span>
+            </div>
+          </div>
+          <div class="team-card__foot">
+            <a class="team-btn" href="#" aria-label="Zobacz profil reprezentacji Wybrzeże K.">Zobacz profil <svg viewBox="0 0 24 24"><path d="m9 5 7 7-7 7"/></svg></a>
+            <button class="team-fav" data-team="CIV" aria-pressed="false" aria-label="Obserwuj reprezentację Wybrzeże K." title="Obserwuj"><svg viewBox="0 0 24 24"><path d="M2 12s3.6-6.5 10-6.5S22 12 22 12s-3.6 6.5-10 6.5S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></button>
+          </div>
+        </article>
+        <article class="team-card" data-team="RSA" data-group="J" data-search="rpa rsa hugo broos">
+          <div class="team-card__head">
+            <img class="country-flag team-card__flag" src="https://flagcdn.com/za.svg" alt="RPA" />
+            <div class="team-card__id">
+              <span class="team-card__name">RPA</span>
+            </div>
+            <span class="team-seed" title="Pozycja w grupie J">J4</span>
+          </div>
+          <div class="team-card__body">
+            <div class="team-coach">
+              <span class="team-coach__ic"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.4"/><path d="M5.5 20a6.5 6.5 0 0 1 13 0"/></svg></span>
+              <span class="team-coach__txt"><span class="lab">Selekcjoner</span><span class="nm">Hugo Broos</span></span>
+            </div>
+          </div>
+          <div class="team-card__foot">
+            <a class="team-btn" href="#" aria-label="Zobacz profil reprezentacji RPA">Zobacz profil <svg viewBox="0 0 24 24"><path d="m9 5 7 7-7 7"/></svg></a>
+            <button class="team-fav" data-team="RSA" aria-pressed="false" aria-label="Obserwuj reprezentację RPA" title="Obserwuj"><svg viewBox="0 0 24 24"><path d="M2 12s3.6-6.5 10-6.5S22 12 22 12s-3.6 6.5-10 6.5S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></button>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <section class="team-section reveal" data-group="K" id="grupa-K">
+      <div class="team-section__head">
+        <h2 class="team-section__title"><span class="group-badge">K</span> Grupa K</h2>
+        <span class="team-section__meta">4 reprezentacje</span>
+      </div>
+      <div class="teams-grid">
+        <article class="team-card" data-team="NED" data-group="K" data-search="holandia ned ronald koeman">
+          <div class="team-card__head">
+            <img class="country-flag team-card__flag" src="https://flagcdn.com/nl.svg" alt="Holandia" />
+            <div class="team-card__id">
+              <span class="team-card__name">Holandia</span>
+            </div>
+            <span class="team-seed" title="Pozycja w grupie K">K1</span>
+          </div>
+          <div class="team-card__body">
+            <div class="team-coach">
+              <span class="team-coach__ic"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.4"/><path d="M5.5 20a6.5 6.5 0 0 1 13 0"/></svg></span>
+              <span class="team-coach__txt"><span class="lab">Selekcjoner</span><span class="nm">Ronald Koeman</span></span>
+            </div>
+          </div>
+          <div class="team-card__foot">
+            <a class="team-btn" href="#" aria-label="Zobacz profil reprezentacji Holandia">Zobacz profil <svg viewBox="0 0 24 24"><path d="m9 5 7 7-7 7"/></svg></a>
+            <button class="team-fav" data-team="NED" aria-pressed="false" aria-label="Obserwuj reprezentację Holandia" title="Obserwuj"><svg viewBox="0 0 24 24"><path d="M2 12s3.6-6.5 10-6.5S22 12 22 12s-3.6 6.5-10 6.5S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></button>
+          </div>
+        </article>
+        <article class="team-card" data-team="ENG" data-group="K" data-search="anglia eng thomas tuchel">
+          <div class="team-card__head">
+            <img class="country-flag team-card__flag" src="https://flagcdn.com/gb-eng.svg" alt="Anglia" />
+            <div class="team-card__id">
+              <span class="team-card__name">Anglia</span>
+            </div>
+            <span class="team-seed" title="Pozycja w grupie K">K2</span>
+          </div>
+          <div class="team-card__body">
+            <div class="team-coach">
+              <span class="team-coach__ic"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.4"/><path d="M5.5 20a6.5 6.5 0 0 1 13 0"/></svg></span>
+              <span class="team-coach__txt"><span class="lab">Selekcjoner</span><span class="nm">Thomas Tuchel</span></span>
+            </div>
+          </div>
+          <div class="team-card__foot">
+            <a class="team-btn" href="#" aria-label="Zobacz profil reprezentacji Anglia">Zobacz profil <svg viewBox="0 0 24 24"><path d="m9 5 7 7-7 7"/></svg></a>
+            <button class="team-fav" data-team="ENG" aria-pressed="false" aria-label="Obserwuj reprezentację Anglia" title="Obserwuj"><svg viewBox="0 0 24 24"><path d="M2 12s3.6-6.5 10-6.5S22 12 22 12s-3.6 6.5-10 6.5S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></button>
+          </div>
+        </article>
+        <article class="team-card" data-team="PAR" data-group="K" data-search="paragwaj par gustavo alfaro">
+          <div class="team-card__head">
+            <img class="country-flag team-card__flag" src="https://flagcdn.com/py.svg" alt="Paragwaj" />
+            <div class="team-card__id">
+              <span class="team-card__name">Paragwaj</span>
+            </div>
+            <span class="team-seed" title="Pozycja w grupie K">K3</span>
+          </div>
+          <div class="team-card__body">
+            <div class="team-coach">
+              <span class="team-coach__ic"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.4"/><path d="M5.5 20a6.5 6.5 0 0 1 13 0"/></svg></span>
+              <span class="team-coach__txt"><span class="lab">Selekcjoner</span><span class="nm">Gustavo Alfaro</span></span>
+            </div>
+          </div>
+          <div class="team-card__foot">
+            <a class="team-btn" href="#" aria-label="Zobacz profil reprezentacji Paragwaj">Zobacz profil <svg viewBox="0 0 24 24"><path d="m9 5 7 7-7 7"/></svg></a>
+            <button class="team-fav" data-team="PAR" aria-pressed="false" aria-label="Obserwuj reprezentację Paragwaj" title="Obserwuj"><svg viewBox="0 0 24 24"><path d="M2 12s3.6-6.5 10-6.5S22 12 22 12s-3.6 6.5-10 6.5S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></button>
+          </div>
+        </article>
+        <article class="team-card" data-team="VEN" data-group="K" data-search="wenezuela ven fernando batista">
+          <div class="team-card__head">
+            <img class="country-flag team-card__flag" src="https://flagcdn.com/ve.svg" alt="Wenezuela" />
+            <div class="team-card__id">
+              <span class="team-card__name">Wenezuela</span>
+            </div>
+            <span class="team-seed" title="Pozycja w grupie K">K4</span>
+          </div>
+          <div class="team-card__body">
+            <div class="team-coach">
+              <span class="team-coach__ic"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.4"/><path d="M5.5 20a6.5 6.5 0 0 1 13 0"/></svg></span>
+              <span class="team-coach__txt"><span class="lab">Selekcjoner</span><span class="nm">Fernando Batista</span></span>
+            </div>
+          </div>
+          <div class="team-card__foot">
+            <a class="team-btn" href="#" aria-label="Zobacz profil reprezentacji Wenezuela">Zobacz profil <svg viewBox="0 0 24 24"><path d="m9 5 7 7-7 7"/></svg></a>
+            <button class="team-fav" data-team="VEN" aria-pressed="false" aria-label="Obserwuj reprezentację Wenezuela" title="Obserwuj"><svg viewBox="0 0 24 24"><path d="M2 12s3.6-6.5 10-6.5S22 12 22 12s-3.6 6.5-10 6.5S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></button>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <section class="team-section reveal" data-group="L" id="grupa-L">
+      <div class="team-section__head">
+        <h2 class="team-section__title"><span class="group-badge">L</span> Grupa L</h2>
+        <span class="team-section__meta">4 reprezentacje</span>
+      </div>
+      <div class="teams-grid">
+        <article class="team-card" data-team="BEL" data-group="L" data-search="belgia bel rudi garcia">
+          <div class="team-card__head">
+            <img class="country-flag team-card__flag" src="https://flagcdn.com/be.svg" alt="Belgia" />
+            <div class="team-card__id">
+              <span class="team-card__name">Belgia</span>
+            </div>
+            <span class="team-seed" title="Pozycja w grupie L">L1</span>
+          </div>
+          <div class="team-card__body">
+            <div class="team-coach">
+              <span class="team-coach__ic"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.4"/><path d="M5.5 20a6.5 6.5 0 0 1 13 0"/></svg></span>
+              <span class="team-coach__txt"><span class="lab">Selekcjoner</span><span class="nm">Rudi García</span></span>
+            </div>
+          </div>
+          <div class="team-card__foot">
+            <a class="team-btn" href="#" aria-label="Zobacz profil reprezentacji Belgia">Zobacz profil <svg viewBox="0 0 24 24"><path d="m9 5 7 7-7 7"/></svg></a>
+            <button class="team-fav" data-team="BEL" aria-pressed="false" aria-label="Obserwuj reprezentację Belgia" title="Obserwuj"><svg viewBox="0 0 24 24"><path d="M2 12s3.6-6.5 10-6.5S22 12 22 12s-3.6 6.5-10 6.5S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></button>
+          </div>
+        </article>
+        <article class="team-card" data-team="ITA" data-group="L" data-search="wlochy ita gennaro gattuso">
+          <div class="team-card__head">
+            <img class="country-flag team-card__flag" src="https://flagcdn.com/it.svg" alt="Włochy" />
+            <div class="team-card__id">
+              <span class="team-card__name">Włochy</span>
+            </div>
+            <span class="team-seed" title="Pozycja w grupie L">L2</span>
+          </div>
+          <div class="team-card__body">
+            <div class="team-coach">
+              <span class="team-coach__ic"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.4"/><path d="M5.5 20a6.5 6.5 0 0 1 13 0"/></svg></span>
+              <span class="team-coach__txt"><span class="lab">Selekcjoner</span><span class="nm">Gennaro Gattuso</span></span>
+            </div>
+          </div>
+          <div class="team-card__foot">
+            <a class="team-btn" href="#" aria-label="Zobacz profil reprezentacji Włochy">Zobacz profil <svg viewBox="0 0 24 24"><path d="m9 5 7 7-7 7"/></svg></a>
+            <button class="team-fav" data-team="ITA" aria-pressed="false" aria-label="Obserwuj reprezentację Włochy" title="Obserwuj"><svg viewBox="0 0 24 24"><path d="M2 12s3.6-6.5 10-6.5S22 12 22 12s-3.6 6.5-10 6.5S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></button>
+          </div>
+        </article>
+        <article class="team-card" data-team="TUR" data-group="L" data-search="turcja tur vincenzo montella">
+          <div class="team-card__head">
+            <img class="country-flag team-card__flag" src="https://flagcdn.com/tr.svg" alt="Turcja" />
+            <div class="team-card__id">
+              <span class="team-card__name">Turcja</span>
+            </div>
+            <span class="team-seed" title="Pozycja w grupie L">L3</span>
+          </div>
+          <div class="team-card__body">
+            <div class="team-coach">
+              <span class="team-coach__ic"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.4"/><path d="M5.5 20a6.5 6.5 0 0 1 13 0"/></svg></span>
+              <span class="team-coach__txt"><span class="lab">Selekcjoner</span><span class="nm">Vincenzo Montella</span></span>
+            </div>
+          </div>
+          <div class="team-card__foot">
+            <a class="team-btn" href="#" aria-label="Zobacz profil reprezentacji Turcja">Zobacz profil <svg viewBox="0 0 24 24"><path d="m9 5 7 7-7 7"/></svg></a>
+            <button class="team-fav" data-team="TUR" aria-pressed="false" aria-label="Obserwuj reprezentację Turcja" title="Obserwuj"><svg viewBox="0 0 24 24"><path d="M2 12s3.6-6.5 10-6.5S22 12 22 12s-3.6 6.5-10 6.5S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></button>
+          </div>
+        </article>
+        <article class="team-card" data-team="UKR" data-group="L" data-search="ukraina ukr serhij rebrow">
+          <div class="team-card__head">
+            <img class="country-flag team-card__flag" src="https://flagcdn.com/ua.svg" alt="Ukraina" />
+            <div class="team-card__id">
+              <span class="team-card__name">Ukraina</span>
+            </div>
+            <span class="team-seed" title="Pozycja w grupie L">L4</span>
+          </div>
+          <div class="team-card__body">
+            <div class="team-coach">
+              <span class="team-coach__ic"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.4"/><path d="M5.5 20a6.5 6.5 0 0 1 13 0"/></svg></span>
+              <span class="team-coach__txt"><span class="lab">Selekcjoner</span><span class="nm">Serhij Rebrow</span></span>
+            </div>
+          </div>
+          <div class="team-card__foot">
+            <a class="team-btn" href="#" aria-label="Zobacz profil reprezentacji Ukraina">Zobacz profil <svg viewBox="0 0 24 24"><path d="m9 5 7 7-7 7"/></svg></a>
+            <button class="team-fav" data-team="UKR" aria-pressed="false" aria-label="Obserwuj reprezentację Ukraina" title="Obserwuj"><svg viewBox="0 0 24 24"><path d="M2 12s3.6-6.5 10-6.5S22 12 22 12s-3.6 6.5-10 6.5S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></button>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <!-- Pusty stan -->
+    <div class="empty-state" id="emptyState">
+      <h3>Brak reprezentacji</h3>
+      <p>Żadna drużyna nie pasuje do bieżącego wyboru. Wyczyść filtr, aby zobaczyć wszystkie 48 zespołów.</p>
+    </div>
+
+  </main>
+
+  <!-- ============================= STOPKA ============================= -->
+  <footer class="footer">
+    <div class="container">
+      <div class="footer__grid">
+        <div class="footer__brand">
+          <a class="logo" href="Hajlajty - Strona Główna.html" aria-label="Hajlajty">
+            <svg class="logo__play" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M8 5v14l11-7z"/></svg>
+            <span class="logo__text">hajlajt<span class="logo__y">y</span></span>
+          </a>
+          <p class="footer__tag">Portal Młodego Kibica. Wszystkie skróty reprezentacji w jednym miejscu — prosto z oficjalnych kanałów.</p>
+        </div>
+        <div class="footer__col">
+          <h4>Serwis</h4>
+          <a href="Hajlajty - Na Żywo.html">Na żywo</a>
+          <a href="Hajlajty - Zapowiedzi.html">Zapowiedzi</a>
+          <a href="Hajlajty - Skróty.html">Skróty</a>
+          <a href="#">Reprezentacje</a>
+        </div>
+        <div class="footer__col">
+          <h4>Mundial 2026</h4>
+          <a href="#">Terminarz</a>
+          <a href="#">Grupy</a>
+          <a href="#">Faza pucharowa</a>
+          <a href="#">Strzelcy</a>
+        </div>
+        <div class="footer__col">
+          <h4>Hajlajty</h4>
+          <a href="#">O nas</a>
+          <a href="#">Kontakt</a>
+          <a href="#">Polityka prywatności</a>
+          <a href="#">Regulamin</a>
+        </div>
+      </div>
+      <div class="footer__bottom">
+        <span>© 2026 Hajlajty.pl — wszystkie prawa zastrzeżone.</span>
+        <span>Skróty pochodzą z oficjalnych kanałów YouTube.</span>
+      </div>
+    </div>
+  </footer>
+
+  </div><!-- /.content -->
+  </div><!-- /.shell -->
+
+  <!-- ============================== SKRYPT ============================== -->
+  <script>
+  (function () {
+    "use strict";
+    var STORE = { theme: "hajlajty:theme", follows: "hajlajty:follows", mode: "hajlajty:chipmode" };
+    var $  = function (s, c) { return (c || document).querySelector(s); };
+    var $$ = function (s, c) { return Array.prototype.slice.call((c || document).querySelectorAll(s)); };
+    function norm(s){ return (s || "").toLowerCase().replace(/\u0142/g,"l").normalize("NFD").replace(/[\u0300-\u036f]/g,""); }
+
+    /* ---------------- MOTYW (light / dark) ---------------- */
+    var root = document.documentElement;
+    try { var saved = localStorage.getItem(STORE.theme); if (saved) root.setAttribute("data-theme", saved); } catch (e) {}
+    $("#themeBtn").addEventListener("click", function () {
+      var next = root.getAttribute("data-theme") === "dark" ? "light" : "dark";
+      root.setAttribute("data-theme", next);
+      try { localStorage.setItem(STORE.theme, next); } catch (e) {}
+    });
+
+    /* ---------------- SIDEBAR (off-canvas / dokowane) ---------------- */
+    var sidebar = $("#sidebar"), scrim = $("#scrim"), menuBtn = $("#menuBtn");
+    function openSidebar(){ sidebar.classList.add("is-open"); scrim.hidden = false; requestAnimationFrame(function(){ scrim.classList.add("is-open"); }); menuBtn.setAttribute("aria-expanded","true"); document.body.style.overflow = "hidden"; }
+    function closeSidebar(){ sidebar.classList.remove("is-open"); scrim.classList.remove("is-open"); menuBtn.setAttribute("aria-expanded","false"); document.body.style.overflow = ""; setTimeout(function(){ if(!scrim.classList.contains("is-open")) scrim.hidden = true; },260); }
+    menuBtn.addEventListener("click", function(){
+      if (window.matchMedia("(min-width: 1100px)").matches) {
+        document.body.classList.toggle("nav-collapsed");
+        menuBtn.setAttribute("aria-expanded", String(!document.body.classList.contains("nav-collapsed")));
+      } else { openSidebar(); }
+    });
+    $("#sidebarClose").addEventListener("click", closeSidebar);
+    scrim.addEventListener("click", closeSidebar);
+    document.addEventListener("keydown", function(e){ if (e.key === "Escape") closeSidebar(); });
+    $$(".sidebar .nav-link").forEach(function(a){ a.addEventListener("click", function(){ if (!window.matchMedia("(min-width: 1100px)").matches) closeSidebar(); }); });
+    var mqDesktop = window.matchMedia("(min-width: 1100px)");
+    function syncSidebarMode(e){ if (e.matches) { sidebar.classList.remove("is-open"); scrim.classList.remove("is-open"); scrim.hidden = true; document.body.style.overflow = ""; menuBtn.setAttribute("aria-expanded","false"); } }
+    mqDesktop.addEventListener("change", syncSidebarMode); syncSidebarMode(mqDesktop);
+
+    /* ---------------- CHIPSY — referencje + stan obserwowanych ---------------- */
+    var chips = $$("#chips .chip[data-team]");
+    /* Chips-włącznik „Obserwowane” (oko): nagłówek (desktop) + input modalu (mobile) */
+    var obsBtns = $$("[data-action='toggle-observed']");
+
+    /* Klony chipsów w siatce modalu — ten sam markup, ta sama logika. */
+    var overlayGrid = $("#overlayChips");
+    var overlayChips = [];
+    if (overlayGrid) {
+      chips.forEach(function (chip) {
+        var clone = chip.cloneNode(true);
+        overlayGrid.appendChild(clone);
+        overlayChips.push(clone);
+      });
+    }
+    var allChips = chips.concat(overlayChips);
+
+    var observed = new Set(); var hadStore = false;
+    try { var rawF = localStorage.getItem(STORE.follows); if (rawF !== null) { hadStore = true; JSON.parse(rawF).forEach(function(t){ observed.add(t); }); } } catch (e) {}
+    if (!hadStore) { ["POL","BRA","ARG","ESP"].forEach(function(t){ observed.add(t); }); }
+    function persistObserved(){ try { localStorage.setItem(STORE.follows, JSON.stringify(Array.from(observed))); } catch (e) {} }
+
+    var mode = "all";
+    try { var sm = localStorage.getItem(STORE.mode); if (sm === "all" || sm === "observed") mode = sm; } catch (e) {}
+
+    /* ---------------- STRZAŁKI przewijania paska ---------------- */
+    var chipsScroll = $("#chips"), prevBtn = $("#chipsPrev"), nextBtn = $("#chipsNext");
+    function updateArrows(){ var max = chipsScroll.scrollWidth - chipsScroll.clientWidth - 2; prevBtn.classList.toggle("is-visible", chipsScroll.scrollLeft > 4); nextBtn.classList.toggle("is-visible", chipsScroll.scrollLeft < max); }
+    prevBtn.addEventListener("click", function(){ chipsScroll.scrollBy({ left:-280, behavior:"smooth" }); });
+    nextBtn.addEventListener("click", function(){ chipsScroll.scrollBy({ left:280, behavior:"smooth" }); });
+    chipsScroll.addEventListener("scroll", updateArrows, { passive:true });
+    window.addEventListener("resize", updateArrows);
+
+    /* ---------------- DYSKRETNE SCROLLBARY ---------------- */
+    function discreteScroll(el){ if(!el) return; var t=null; el.addEventListener("scroll", function(){ el.classList.add("is-scrolling"); if(t) clearTimeout(t); t=setTimeout(function(){ el.classList.remove("is-scrolling"); },650); }, { passive:true }); }
+    [sidebar, $("#content"), chipsScroll].forEach(discreteScroll);
+
+    /* ====================================================================
+       FILTROWANIE KART: chipsy (pasek) + wyszukiwarka (nagłówek) razem.
+       Karta widoczna, gdy pasuje do AKTYWNYCH chipsów ORAZ do frazy.
+       Sekcja grupy bez żadnej widocznej karty chowa się w całości.
+    ==================================================================== */
+    var sections = $$(".team-section");
+    var cards = $$(".team-card");
+    var favBtns = $$(".team-fav");
+    var filterNote = $("#filterNote");
+    var filterTeams = $("#filterTeams");
+    var filterPill = $("#filterPill");
+    var filterPillTeams = $("#filterPillTeams");
+    var emptyState = $("#emptyState");
+
+    var active = new Set();
+    var query = "";
+    var queryRaw = "";
+    if (mode === "observed") observed.forEach(function(t){ active.add(t); });
+
+    function teamName(code){
+      var chip = chips.filter(function(c){ return c.dataset.team === code; })[0];
+      if (chip) return chip.textContent.trim();
+      var card = cards.filter(function(c){ return c.dataset.team === code; })[0];
+      return card ? ($(".team-card__name", card).textContent.trim()) : code;
+    }
+
+    function applyFilter(){
+      var list = Array.from(active);
+      allChips.forEach(function(c){ c.classList.toggle("is-active", active.has(c.dataset.team)); });
+
+      // Komunikat filtra (desktop) + pigułka (mobile)
+      var labels = list.map(teamName);
+      if (queryRaw !== "") labels.push("\u201E" + queryRaw + "\u201D");
+      if (labels.length) {
+        filterTeams.textContent = labels.join(", ");
+        filterNote.classList.add("is-visible");
+        if (filterPillTeams) filterPillTeams.textContent = labels.join(", ");
+        if (filterPill) filterPill.classList.add("is-visible");
+      } else {
+        filterNote.classList.remove("is-visible");
+        if (filterPill) filterPill.classList.remove("is-visible");
+      }
+
+      var anyVisible = false;
+      sections.forEach(function(sec){
+        var secCards = $$(".team-card", sec), vis = 0;
+        secCards.forEach(function(card){
+          var code = card.dataset.team;
+          var matchChip = list.length === 0 || active.has(code);
+          var matchSearch = query === "" || (card.dataset.search || "").indexOf(query) !== -1;
+          var show = matchChip && matchSearch;
+          card.classList.toggle("is-hidden-by-filter", !show);
+          if (show) { vis++; anyVisible = true; }
+        });
+        sec.classList.toggle("is-hidden-by-filter", vis === 0);
+      });
+      if (emptyState) emptyState.classList.toggle("is-visible", !anyVisible);
+    }
+
+    /* Klik chipsa → dołącz/odłącz od filtra (suma reprezentacji) — pasek + modal */
+    allChips.forEach(function(chip){
+      chip.addEventListener("click", function(){
+        var code = chip.dataset.team;
+        if (active.has(code)) active.delete(code); else active.add(code);
+        if (mode === "observed") {
+          if (active.has(code)) observed.add(code); else observed.delete(code);
+          persistObserved(); renderFavs();
+        }
+        applyFilter();
+        notifyFilter();
+      });
+    });
+
+    /* Pełny reset filtra: [X] w nocie (desktop) i w pigułce (mobile) */
+    function clearFilter(){
+      active.clear();
+      searchInputs.forEach(function(inp){ inp.value = ""; });
+      syncClearBtns("");
+      if (mode === "observed") { mode = "all"; try { localStorage.setItem(STORE.mode, mode); } catch (e) {} renderMode(); }
+      applySearch("");
+      notifyFilter();
+    }
+    var fclear = $("#filterClear"); if (fclear) fclear.addEventListener("click", clearFilter);
+    $$("[data-action='clear-filter']").forEach(function(b){ b.addEventListener("click", clearFilter); });
+
+    /* ---------------- TRYB: Wszystkie / Obserwowane (oko w wyszukiwarce) ---------------- */
+    function notifyFilter(){
+      if (!window.Hajlajty || !window.Hajlajty.toast) return;
+      var title = active.size === 0
+        ? "Pokazuję wszystkie reprezentacje"
+        : (mode === "observed" ? "Pokazuję obserwowane reprezentacje" : "Pokazuję wybrane reprezentacje");
+      window.Hajlajty.toast({ simple: true, title: title, duration: 2600 });
+    }
+    function renderMode(){
+      var on = mode === "observed";
+      obsBtns.forEach(function(b){ b.classList.toggle("is-on", on); b.setAttribute("aria-pressed", String(on)); });
+    }
+    function setMode(nextMode){
+      if (nextMode === mode) return;
+      mode = nextMode;
+      try { localStorage.setItem(STORE.mode, mode); } catch (e) {}
+      active = (mode === "observed") ? new Set(observed) : new Set();
+      renderMode(); applyFilter(); notifyFilter();
+    }
+    obsBtns.forEach(function(b){ b.addEventListener("click", function(){ setMode(mode === "observed" ? "all" : "observed"); }); });
+
+    /* ---------------- OBSERWUJ (lornetka na karcie) ---------------- */
+    function renderFavs(){
+      favBtns.forEach(function(b){
+        var on = observed.has(b.dataset.team);
+        b.classList.toggle("is-active", on);
+        b.setAttribute("aria-pressed", String(on));
+        b.title = on ? "Obserwujesz" : "Obserwuj";
+      });
+    }
+    favBtns.forEach(function(b){
+      b.addEventListener("click", function(){
+        var code = b.dataset.team;
+        if (observed.has(code)) observed.delete(code); else observed.add(code);
+        persistObserved();
+        renderFavs();
+        renderMode();
+        if (mode === "observed") { active = new Set(observed); applyFilter(); }
+      });
+    });
+
+    /* ---------------- WYSZUKIWARKA (nagłówek + modal) ---------------- */
+    var searchInputs = $$(".search input");
+    var clearBtns = $$("[data-action='clear-query']");
+    function syncClearBtns(value){ clearBtns.forEach(function(b){ b.hidden = value.trim() === ""; }); }
+    function applySearch(value){
+      queryRaw = value.trim();
+      query = norm(queryRaw);
+      allChips.forEach(function(chip){ var hay = norm(chip.textContent) + " " + norm(chip.dataset.team); chip.classList.toggle("is-hidden", query !== "" && hay.indexOf(query) === -1); });
+      updateArrows();
+      applyFilter();
+    }
+    searchInputs.forEach(function(inp){
+      inp.addEventListener("input", function(){
+        searchInputs.forEach(function(other){ if (other !== inp) other.value = inp.value; });
+        applySearch(inp.value);
+        syncClearBtns(inp.value);
+      });
+    });
+    /* [X] w inpucie modalu: czyści wyłącznie tekst (nie stan filtrów) */
+    clearBtns.forEach(function(b){
+      b.addEventListener("click", function(){
+        searchInputs.forEach(function(inp){ inp.value = ""; });
+        applySearch("");
+        syncClearBtns("");
+        var inp = b.parentNode.querySelector("input");
+        if (inp) inp.focus();
+      });
+    });
+
+    /* ---------------- MODAL WYSZUKIWANIA (mobile) ---------------- */
+    var searchOverlay = $("#searchOverlay");
+    var overlayInput = $("#overlayInput");
+    var searchSnapshot = null;
+    function openSearch(){
+      /* Snapshot stanu filtrów — baza dla „Anuluj” */
+      searchSnapshot = { active: new Set(active), observed: new Set(observed), mode: mode, query: queryRaw };
+      searchOverlay.classList.add("is-open");
+      document.body.style.overflow = "hidden";
+      setTimeout(function(){ overlayInput.focus(); }, 80);
+    }
+    function closeSearch(commit){
+      if (!searchOverlay || !searchOverlay.classList.contains("is-open")) return;
+      if (!commit && searchSnapshot) {
+        /* Anuluj: przywróć stan sprzed otwarcia modalu */
+        active = new Set(searchSnapshot.active);
+        observed = new Set(searchSnapshot.observed);
+        mode = searchSnapshot.mode;
+        try { localStorage.setItem(STORE.mode, mode); } catch (e) {}
+        persistObserved();
+        renderMode(); renderFavs();
+        searchInputs.forEach(function(inp){ inp.value = searchSnapshot.query; });
+        syncClearBtns(searchSnapshot.query);
+        applySearch(searchSnapshot.query);
+      }
+      if (commit) { try { localStorage.setItem(STORE.mode, mode); } catch (e) {} persistObserved(); }
+      searchSnapshot = null;
+      searchOverlay.classList.remove("is-open");
+      document.body.style.overflow = "";
+    }
+    $$("[data-action='open-search']").forEach(function(b){ b.addEventListener("click", openSearch); });
+    $$("[data-action='close-search']").forEach(function(b){ b.addEventListener("click", function(){ closeSearch(false); }); });
+    $$("[data-action='apply-search']").forEach(function(b){ b.addEventListener("click", function(){ closeSearch(true); }); });
+    document.addEventListener("keydown", function(e){ if (e.key === "Escape") closeSearch(false); });
+    /* Powrót na desktop → modal nie zostaje w tle; wybór traktujemy jak zatwierdzony */
+    window.matchMedia("(min-width: 769px)").addEventListener("change", function(e){ if (e.matches) closeSearch(true); });
+
+    /* ---------------- INIT ---------------- */
+    renderFavs();
+    renderMode();
+    applyFilter();
+    updateArrows();
+    root.classList.add("js-anim");
+  })();
+  </script>
+  <script src="hajlajty-fav.js" defer></script>
+  <!-- MODUŁ: synchronizacja stanu obserwowania → chipsy (dwukierunkowa) -->
+  <script src="components/chip-follow.js" defer></script>
+  <!-- MODUŁ: przesuwanie paska chipsów myszką (drag-to-scroll) -->
+  <script src="components/chips-drag.js" defer></script>
+</body>
+</html>

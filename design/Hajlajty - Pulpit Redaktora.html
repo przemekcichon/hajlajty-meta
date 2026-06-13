@@ -1,0 +1,573 @@
+<!DOCTYPE html>
+<html lang="pl" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Hajlajty — Pulpit redaktora</title>
+  <meta name="description" content="Centralny pulpit redakcyjny Hajlajty.pl: filtrowanie meczów (Algolia-ready) i masowa edycja inline linków do skrótów wideo." />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+
+  <!-- ==========================================================
+       ARCHITEKTURA MODULARNA:
+       tokens → base → komponenty (.csel z editor-form.css,
+       paski .match-row z match-row.css). Layout strony żyje
+       wyłącznie w <style> poniżej.
+  =========================================================== -->
+  <link rel="stylesheet" href="styles/tokens.css" />
+  <link rel="stylesheet" href="styles/base.css" />
+  <link rel="stylesheet" href="components/editor-form.css" />
+  <link rel="stylesheet" href="components/match-row.css" />
+  <!-- MODUŁY: paginacja listy + dropdown użytkownika -->
+  <link rel="stylesheet" href="components/pagination.css" />
+  <link rel="stylesheet" href="components/user-menu.css" />
+
+  <style>
+  /* ============================================================
+     LAYOUT PULPITU (scaffolding — zero stylów wnętrza komponentów)
+  ============================================================ */
+  .panel-bar {
+    height: var(--topbar-h);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-sm);
+  }
+  .panel-bar__left { display: flex; align-items: center; gap: var(--space-sm); }
+  .panel-bar__right { display: flex; align-items: center; gap: var(--space-2xs); }
+  .panel-bar .logo {
+    display: inline-flex; align-items: center; gap: var(--space-3xs);
+    font-weight: 800; font-size: 25px; letter-spacing: -0.04em; line-height: 1;
+  }
+  .panel-bar .logo .logo__y { color: var(--accent); }
+  .panel-bar .logo svg { width: 20px; height: 20px; color: var(--accent); }
+  .role-badge {
+    display: inline-flex; align-items: center; gap: 7px;
+    padding: 5px 12px;
+    border-radius: var(--r-pill);
+    background: var(--accent-soft);
+    color: var(--accent-strong);
+    font-size: 12px; font-weight: 800; letter-spacing: 0.03em;
+    white-space: nowrap;
+  }
+  [data-theme="dark"] .role-badge { color: var(--accent); }
+  .role-badge .dot { width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
+
+  .bar-link {
+    display: inline-flex; align-items: center; gap: 7px;
+    height: 40px; padding: 0 16px;
+    border-radius: var(--r-pill);
+    background: var(--surface); border: 1px solid var(--border);
+    font-size: 13.5px; font-weight: 700; color: var(--text-muted);
+    white-space: nowrap;
+    transition: background var(--t-fast), color var(--t-fast), border-color var(--t-fast);
+  }
+  .bar-link:hover { background: var(--surface-hover); color: var(--text); border-color: var(--border-strong); }
+  .bar-link svg { width: 16px; height: 16px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+
+  .icon-btn {
+    width: 44px; height: 44px;
+    display: grid; place-items: center;
+    border-radius: var(--r-pill);
+    color: var(--text);
+    transition: background var(--t-fast), transform var(--t-fast);
+  }
+  .icon-btn:hover { background: var(--surface-2); }
+  .icon-btn:active { transform: scale(0.92); }
+  .icon-btn svg { width: 22px; height: 22px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+  [data-theme="dark"]  .theme-toggle .sun  { display: block; }
+  [data-theme="dark"]  .theme-toggle .moon { display: none; }
+  [data-theme="light"] .theme-toggle .sun  { display: none; }
+  [data-theme="light"] .theme-toggle .moon { display: block; }
+
+  main { padding-block: var(--space-lg) var(--space-2xl); }
+  .dash-col { display: flex; flex-direction: column; gap: var(--space-md); }
+
+  .dash-head { display: flex; flex-direction: column; gap: var(--space-3xs); }
+  .dash-head__title { font-size: clamp(22px, 3vw, 28px); font-weight: 800; letter-spacing: -0.03em; line-height: 1.15; }
+  .dash-head__sub { font-size: 14px; font-weight: 600; color: var(--text-muted); text-wrap: pretty; }
+
+  /* ---- PANEL FILTRÓW (Algolia-ready) ---- */
+  .filters {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: var(--space-xs);
+    padding: var(--space-sm);
+    border-radius: var(--r-lg);
+    background: var(--bg-elev);
+    border: 1px solid var(--border);
+  }
+  .filter { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+  .filter__label { font-size: 12px; font-weight: 800; letter-spacing: 0.03em; color: var(--text-muted); }
+
+  /* Dwupozycyjny przełącznik statusu wideo */
+  .status-seg {
+    display: flex;
+    height: 52px;
+    padding: 4px;
+    border-radius: var(--r-md);
+    background: var(--surface);
+    border: 1px solid var(--border-strong);
+  }
+  .status-seg__btn {
+    flex: 1;
+    display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+    border-radius: calc(var(--r-md) - 4px);
+    font-size: 13px; font-weight: 700;
+    color: var(--text-muted);
+    white-space: nowrap;
+    transition: background var(--t-fast), color var(--t-fast);
+  }
+  .status-seg__btn:hover { color: var(--text); }
+  .status-seg__btn.is-on { background: var(--accent); color: var(--accent-ink); font-weight: 800; }
+
+  /* ---- LICZNIK + LISTA + PUSTY STAN ---- */
+  .rows-count { font-size: 13px; font-weight: 600; color: var(--text-faint); }
+  .rows-count b { color: var(--text-muted); font-weight: 800; }
+  .match-rows { display: flex; flex-direction: column; gap: var(--space-2xs); }
+  .rows-empty {
+    padding: var(--space-lg) var(--space-md);
+    border-radius: var(--r-lg);
+    border: 1px dashed var(--border-strong);
+    text-align: center;
+  }
+  .rows-empty h3 { font-size: 16px; font-weight: 800; letter-spacing: -0.01em; }
+  .rows-empty p { margin-top: 4px; font-size: 13.5px; font-weight: 600; color: var(--text-muted); }
+  .rows-empty[hidden] { display: none; }
+
+  @media (max-width: 900px) {
+    .filters { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .panel-bar__left .role-badge { display: none; }
+    .bar-link .bar-link__txt { display: none; }
+    .bar-link { width: 40px; padding: 0; justify-content: center; }
+  }
+  @media (max-width: 560px) {
+    .filters { grid-template-columns: 1fr; }
+  }
+  </style>
+</head>
+
+<body class="is-admin">
+<!-- ^ .is-admin: kontekst zalogowanego redaktora (gating pozycji
+     „Panel publikacji" w dropdownie użytkownika). -->
+
+  <header class="panel-bar container">
+    <div class="panel-bar__left">
+      <a class="logo" href="Hajlajty - Strona Główna.html" aria-label="Hajlajty — strona główna">
+        <span>hajlajt<span class="logo__y">y</span></span>
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" stroke="currentColor" stroke-width="3" stroke-linejoin="round" stroke-linecap="round" d="M7 5.8 18 12 7 18.2Z"/></svg>
+      </a>
+      <span class="role-badge"><span class="dot"></span> Pulpit redaktora</span>
+    </div>
+    <div class="panel-bar__right">
+      <a class="bar-link" href="Hajlajty - Panel Redaktora.html" aria-label="Nowy skrót — formularz publikacji">
+        <svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
+        <span class="bar-link__txt">Nowy skrót</span>
+      </a>
+      <button class="icon-btn theme-toggle" id="themeBtn" aria-label="Przełącz motyw jasny/ciemny">
+        <svg class="sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4.2"/><path d="M12 2v2.5M12 19.5V22M2 12h2.5M19.5 12H22M4.9 4.9l1.8 1.8M17.3 17.3l1.8 1.8M19.1 4.9l-1.8 1.8M6.7 17.3l-1.8 1.8"/></svg>
+        <svg class="moon" viewBox="0 0 24 24"><path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z"/></svg>
+      </button>
+      <!-- KOMPONENT: dropdown użytkownika (components/user-menu.css/js) -->
+      <div class="user-menu">
+        <button class="icon-btn user-menu__btn" aria-label="Menu użytkownika" aria-haspopup="true" aria-expanded="false">
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="8.5" r="3.8"/><path d="M4.5 20a7.5 7.5 0 0 1 15 0"/></svg>
+        </button>
+        <div class="user-menu__panel" hidden>
+          <a class="user-menu__item" href="Hajlajty - Moje Konto.html">
+            <svg viewBox="0 0 24 24"><circle cx="12" cy="8.5" r="3.8"/><path d="M4.5 20a7.5 7.5 0 0 1 15 0"/></svg>
+            Moje konto
+          </a>
+          <a class="user-menu__item user-menu__item--editor" href="Hajlajty - Pulpit Redaktora.html">
+            <svg viewBox="0 0 24 24"><path d="M8 6h13M8 12h13M8 18h13"/><path d="M3 6h.01M3 12h.01M3 18h.01"/></svg>
+            Panel publikacji
+          </a>
+          <div class="user-menu__divider"></div>
+          <a class="user-menu__item user-menu__item--logout" href="Hajlajty - Bramka Logowania.html">
+            <svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="m16 17 5-5-5-5"/><path d="M21 12H9"/></svg>
+            Wyloguj się
+          </a>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main class="container">
+    <div class="dash-col">
+
+      <div class="dash-head">
+        <h1 class="dash-head__title">Mecze i skróty</h1>
+        <p class="dash-head__sub">Filtruj zakończone mecze i uzupełniaj linki do skrótów bez wychodzenia z listy.</p>
+      </div>
+
+      <!-- ==========================================================
+           FILTRY — stan zapytania w match-row.js (obiekt
+           competition/season/team/onlyNoVideo); ten sam obiekt
+           docelowo zasila Algolia index.search().
+      =========================================================== -->
+      <section class="filters" aria-label="Filtry listy meczów">
+
+        <div class="filter">
+          <span class="filter__label" id="fCompLabel">Rozgrywki</span>
+          <div class="csel" data-filter="competition">
+            <input type="hidden" value="" />
+            <button type="button" class="csel__trigger" aria-haspopup="listbox" aria-expanded="false" aria-labelledby="fCompLabel">
+              <span class="csel__current">Wszystkie</span>
+              <svg class="csel__chev" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg>
+            </button>
+            <div class="csel__panel" hidden>
+              <div class="csel__search">
+                <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.2-3.2"/></svg>
+                <input type="text" class="csel__search-input" placeholder="Szukaj rozgrywek..." aria-label="Szukaj rozgrywek" />
+              </div>
+              <ul class="csel__list" role="listbox" aria-labelledby="fCompLabel">
+                <li class="csel__option is-selected" role="option" data-value="" aria-selected="true">Wszystkie <svg class="csel__check" viewBox="0 0 24 24"><path d="m5 13 4 4L19 7"/></svg></li>
+                <li class="csel__option" role="option" data-value="mundial-2026" aria-selected="false">Mundial 2026 <svg class="csel__check" viewBox="0 0 24 24"><path d="m5 13 4 4L19 7"/></svg></li>
+                <li class="csel__option" role="option" data-value="liga-narodow" aria-selected="false">Liga Narodów <svg class="csel__check" viewBox="0 0 24 24"><path d="m5 13 4 4L19 7"/></svg></li>
+                <li class="csel__option" role="option" data-value="towarzyski" aria-selected="false">Mecze towarzyskie <svg class="csel__check" viewBox="0 0 24 24"><path d="m5 13 4 4L19 7"/></svg></li>
+                <li class="csel__option" role="option" data-value="ekstraklasa" aria-selected="false">Ekstraklasa <svg class="csel__check" viewBox="0 0 24 24"><path d="m5 13 4 4L19 7"/></svg></li>
+                <li class="csel__option" role="option" data-value="bundesliga" aria-selected="false">Bundesliga <svg class="csel__check" viewBox="0 0 24 24"><path d="m5 13 4 4L19 7"/></svg></li>
+              </ul>
+              <p class="csel__empty" hidden>Brak wyników</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="filter">
+          <span class="filter__label" id="fSeasonLabel">Sezon</span>
+          <div class="csel" data-filter="season">
+            <input type="hidden" value="" />
+            <button type="button" class="csel__trigger" aria-haspopup="listbox" aria-expanded="false" aria-labelledby="fSeasonLabel">
+              <span class="csel__current">Wszystkie</span>
+              <svg class="csel__chev" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg>
+            </button>
+            <div class="csel__panel" hidden>
+              <div class="csel__search">
+                <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.2-3.2"/></svg>
+                <input type="text" class="csel__search-input" placeholder="Szukaj sezonu..." aria-label="Szukaj sezonu" />
+              </div>
+              <ul class="csel__list" role="listbox" aria-labelledby="fSeasonLabel">
+                <li class="csel__option is-selected" role="option" data-value="" aria-selected="true">Wszystkie <svg class="csel__check" viewBox="0 0 24 24"><path d="m5 13 4 4L19 7"/></svg></li>
+                <li class="csel__option" role="option" data-value="2026" aria-selected="false">2026 <svg class="csel__check" viewBox="0 0 24 24"><path d="m5 13 4 4L19 7"/></svg></li>
+                <li class="csel__option" role="option" data-value="2025-26" aria-selected="false">2025/26 <svg class="csel__check" viewBox="0 0 24 24"><path d="m5 13 4 4L19 7"/></svg></li>
+                <li class="csel__option" role="option" data-value="2024-25" aria-selected="false">2024/25 <svg class="csel__check" viewBox="0 0 24 24"><path d="m5 13 4 4L19 7"/></svg></li>
+              </ul>
+              <p class="csel__empty" hidden>Brak wyników</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="filter">
+          <span class="filter__label" id="fTeamLabel">Drużyna</span>
+          <div class="csel" data-filter="team">
+            <input type="hidden" value="" />
+            <button type="button" class="csel__trigger" aria-haspopup="listbox" aria-expanded="false" aria-labelledby="fTeamLabel">
+              <span class="csel__current">Wszystkie</span>
+              <svg class="csel__chev" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg>
+            </button>
+            <div class="csel__panel" hidden>
+              <div class="csel__search">
+                <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.2-3.2"/></svg>
+                <input type="text" class="csel__search-input" placeholder="Szukaj drużyny..." aria-label="Szukaj drużyny" />
+              </div>
+              <ul class="csel__list" role="listbox" aria-labelledby="fTeamLabel">
+                <li class="csel__option is-selected" role="option" data-value="" aria-selected="true">Wszystkie <svg class="csel__check" viewBox="0 0 24 24"><path d="m5 13 4 4L19 7"/></svg></li>
+                <li class="csel__option" role="option" data-value="polska" aria-selected="false">Polska <svg class="csel__check" viewBox="0 0 24 24"><path d="m5 13 4 4L19 7"/></svg></li>
+                <li class="csel__option" role="option" data-value="argentyna" aria-selected="false">Argentyna <svg class="csel__check" viewBox="0 0 24 24"><path d="m5 13 4 4L19 7"/></svg></li>
+                <li class="csel__option" role="option" data-value="niemcy" aria-selected="false">Niemcy <svg class="csel__check" viewBox="0 0 24 24"><path d="m5 13 4 4L19 7"/></svg></li>
+                <li class="csel__option" role="option" data-value="holandia" aria-selected="false">Holandia <svg class="csel__check" viewBox="0 0 24 24"><path d="m5 13 4 4L19 7"/></svg></li>
+                <li class="csel__option" role="option" data-value="hiszpania" aria-selected="false">Hiszpania <svg class="csel__check" viewBox="0 0 24 24"><path d="m5 13 4 4L19 7"/></svg></li>
+                <li class="csel__option" role="option" data-value="japonia" aria-selected="false">Japonia <svg class="csel__check" viewBox="0 0 24 24"><path d="m5 13 4 4L19 7"/></svg></li>
+                <li class="csel__option" role="option" data-value="brazylia" aria-selected="false">Brazylia <svg class="csel__check" viewBox="0 0 24 24"><path d="m5 13 4 4L19 7"/></svg></li>
+                <li class="csel__option" role="option" data-value="korea" aria-selected="false">Korea Płd. <svg class="csel__check" viewBox="0 0 24 24"><path d="m5 13 4 4L19 7"/></svg></li>
+                <li class="csel__option" role="option" data-value="francja" aria-selected="false">Francja <svg class="csel__check" viewBox="0 0 24 24"><path d="m5 13 4 4L19 7"/></svg></li>
+                <li class="csel__option" role="option" data-value="chorwacja" aria-selected="false">Chorwacja <svg class="csel__check" viewBox="0 0 24 24"><path d="m5 13 4 4L19 7"/></svg></li>
+                <li class="csel__option" role="option" data-value="maroko" aria-selected="false">Maroko <svg class="csel__check" viewBox="0 0 24 24"><path d="m5 13 4 4L19 7"/></svg></li>
+                <li class="csel__option" role="option" data-value="usa" aria-selected="false">USA <svg class="csel__check" viewBox="0 0 24 24"><path d="m5 13 4 4L19 7"/></svg></li>
+                <li class="csel__option" role="option" data-value="lech" aria-selected="false">Lech Poznań <svg class="csel__check" viewBox="0 0 24 24"><path d="m5 13 4 4L19 7"/></svg></li>
+                <li class="csel__option" role="option" data-value="legia" aria-selected="false">Legia Warszawa <svg class="csel__check" viewBox="0 0 24 24"><path d="m5 13 4 4L19 7"/></svg></li>
+                <li class="csel__option" role="option" data-value="bayern" aria-selected="false">Bayern Monachium <svg class="csel__check" viewBox="0 0 24 24"><path d="m5 13 4 4L19 7"/></svg></li>
+                <li class="csel__option" role="option" data-value="bvb" aria-selected="false">Borussia Dortmund <svg class="csel__check" viewBox="0 0 24 24"><path d="m5 13 4 4L19 7"/></svg></li>
+              </ul>
+              <p class="csel__empty" hidden>Brak drużyny dla tej frazy</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="filter">
+          <span class="filter__label">Status wideo</span>
+          <div class="status-seg" role="group" aria-label="Status wideo">
+            <button type="button" class="status-seg__btn is-on" data-status-seg="all" aria-pressed="true">Wszystkie</button>
+            <button type="button" class="status-seg__btn" data-status-seg="no-video" aria-pressed="false">Tylko bez wideo</button>
+          </div>
+        </div>
+
+      </section>
+
+      <p class="rows-count">Wyniki: <b data-rows-count>8</b> meczów</p>
+
+      <!-- ==========================================================
+           LISTA PASKÓW — [data-row-region] = granica delegacji
+           zdarzeń (components/match-row.js)
+      =========================================================== -->
+      <section class="match-rows" data-row-region aria-label="Lista meczów">
+
+        <article class="match-row" data-competition="mundial-2026" data-season="2026" data-teams="polska argentyna" data-video="yes" data-url="https://www.youtube.com/watch?v=ZQ7Hm83sZ-A">
+          <div class="match-row__thumb has-video" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></div>
+          <div class="match-row__main">
+            <div class="match-row__match">
+              <span class="match-row__team"><img class="country-flag" src="https://flagcdn.com/pl.svg" alt="" /> Polska</span>
+              <span class="match-row__score">2 : 1</span>
+              <span class="match-row__team match-row__team--away"><img class="country-flag" src="https://flagcdn.com/ar.svg" alt="" /> Argentyna</span>
+            </div>
+            <p class="match-row__events">Lewandowski 23&#39;, Zieliński 67&#39; · Messi 81&#39; · żółte: 3</p>
+          </div>
+          <div class="match-row__meta">
+            <span class="match-row__date">15 cze · 18:00</span>
+            <span class="match-row__comp">Mundial 2026 · Grupa C</span>
+          </div>
+          <div class="match-row__source"><span class="match-row__channel">TVP Sport</span></div>
+          <button type="button" class="match-row__edit" data-action="row-edit" aria-label="Edytuj skrót: Polska – Argentyna">
+            <svg viewBox="0 0 24 24"><path d="M17 3a2.8 2.8 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5z"/></svg>
+            <span class="match-row__edit-txt">Edytuj</span>
+          </button>
+        </article>
+
+        <article class="match-row" data-competition="towarzyski" data-season="2026" data-teams="brazylia korea" data-video="no">
+          <div class="match-row__thumb" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M23 7l-7 5 7 5V7z"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg></div>
+          <div class="match-row__main">
+            <div class="match-row__match">
+              <span class="match-row__team"><img class="country-flag" src="https://flagcdn.com/br.svg" alt="" /> Brazylia</span>
+              <span class="match-row__score">4 : 0</span>
+              <span class="match-row__team match-row__team--away"><img class="country-flag" src="https://flagcdn.com/kr.svg" alt="" /> Korea Płd.</span>
+            </div>
+            <p class="match-row__events">Vinícius 12&#39;, 55&#39; · Rodrygo 34&#39; · Endrick 88&#39;</p>
+          </div>
+          <div class="match-row__meta">
+            <span class="match-row__date">12 cze · 02:30</span>
+            <span class="match-row__comp">Mecz towarzyski</span>
+          </div>
+          <div class="match-row__source"><span class="match-row__nochannel">Brak wideo</span></div>
+          <button type="button" class="match-row__edit" data-action="row-edit" aria-label="Edytuj skrót: Brazylia – Korea Płd.">
+            <svg viewBox="0 0 24 24"><path d="M17 3a2.8 2.8 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5z"/></svg>
+            <span class="match-row__edit-txt">Edytuj</span>
+          </button>
+        </article>
+
+        <article class="match-row" data-competition="liga-narodow" data-season="2025-26" data-teams="niemcy holandia" data-video="yes" data-url="https://www.youtube.com/watch?v=dQw4w9WgXcQ">
+          <div class="match-row__thumb has-video" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></div>
+          <div class="match-row__main">
+            <div class="match-row__match">
+              <span class="match-row__team"><img class="country-flag" src="https://flagcdn.com/de.svg" alt="" /> Niemcy</span>
+              <span class="match-row__score">3 : 2</span>
+              <span class="match-row__team match-row__team--away"><img class="country-flag" src="https://flagcdn.com/nl.svg" alt="" /> Holandia</span>
+            </div>
+            <p class="match-row__events">Musiala 9&#39;, Wirtz 44&#39;, Füllkrug 90+2&#39; · Gakpo 28&#39;, Simons 71&#39;</p>
+          </div>
+          <div class="match-row__meta">
+            <span class="match-row__date">11 cze · 20:45</span>
+            <span class="match-row__comp">Liga Narodów · Dyw. A</span>
+          </div>
+          <div class="match-row__source"><span class="match-row__channel">Eleven Sports</span></div>
+          <button type="button" class="match-row__edit" data-action="row-edit" aria-label="Edytuj skrót: Niemcy – Holandia">
+            <svg viewBox="0 0 24 24"><path d="M17 3a2.8 2.8 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5z"/></svg>
+            <span class="match-row__edit-txt">Edytuj</span>
+          </button>
+        </article>
+
+        <article class="match-row" data-competition="towarzyski" data-season="2026" data-teams="hiszpania japonia" data-video="yes" data-url="https://youtu.be/abc123">
+          <div class="match-row__thumb has-video" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></div>
+          <div class="match-row__main">
+            <div class="match-row__match">
+              <span class="match-row__team"><img class="country-flag" src="https://flagcdn.com/es.svg" alt="" /> Hiszpania</span>
+              <span class="match-row__score">5 : 0</span>
+              <span class="match-row__team match-row__team--away"><img class="country-flag" src="https://flagcdn.com/jp.svg" alt="" /> Japonia</span>
+            </div>
+            <p class="match-row__events">Yamal 6&#39;, 39&#39; · Pedri 21&#39; · Morata 58&#39; · Olmo 83&#39;</p>
+          </div>
+          <div class="match-row__meta">
+            <span class="match-row__date">10 cze · 21:00</span>
+            <span class="match-row__comp">Mecz towarzyski</span>
+          </div>
+          <div class="match-row__source"><span class="match-row__channel">Canal+ Sport</span></div>
+          <button type="button" class="match-row__edit" data-action="row-edit" aria-label="Edytuj skrót: Hiszpania – Japonia">
+            <svg viewBox="0 0 24 24"><path d="M17 3a2.8 2.8 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5z"/></svg>
+            <span class="match-row__edit-txt">Edytuj</span>
+          </button>
+        </article>
+
+        <article class="match-row" data-competition="liga-narodow" data-season="2025-26" data-teams="francja chorwacja" data-video="no">
+          <div class="match-row__thumb" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M23 7l-7 5 7 5V7z"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg></div>
+          <div class="match-row__main">
+            <div class="match-row__match">
+              <span class="match-row__team"><img class="country-flag" src="https://flagcdn.com/fr.svg" alt="" /> Francja</span>
+              <span class="match-row__score">1 : 0</span>
+              <span class="match-row__team match-row__team--away"><img class="country-flag" src="https://flagcdn.com/hr.svg" alt="" /> Chorwacja</span>
+            </div>
+            <p class="match-row__events">Mbappé 52&#39; (k) · czerwona: Gvardiol 78&#39;</p>
+          </div>
+          <div class="match-row__meta">
+            <span class="match-row__date">9 cze · 20:45</span>
+            <span class="match-row__comp">Liga Narodów · Dyw. A</span>
+          </div>
+          <div class="match-row__source"><span class="match-row__nochannel">Brak wideo</span></div>
+          <button type="button" class="match-row__edit" data-action="row-edit" aria-label="Edytuj skrót: Francja – Chorwacja">
+            <svg viewBox="0 0 24 24"><path d="M17 3a2.8 2.8 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5z"/></svg>
+            <span class="match-row__edit-txt">Edytuj</span>
+          </button>
+        </article>
+
+        <article class="match-row" data-competition="ekstraklasa" data-season="2025-26" data-teams="lech legia" data-video="yes" data-url="https://www.youtube.com/watch?v=xyz789">
+          <div class="match-row__thumb has-video" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></div>
+          <div class="match-row__main">
+            <div class="match-row__match">
+              <span class="match-row__team"><span class="crest" aria-hidden="true">LP</span> Lech Poznań</span>
+              <span class="match-row__score">2 : 2</span>
+              <span class="match-row__team match-row__team--away"><span class="crest" aria-hidden="true">LW</span> Legia Warszawa</span>
+            </div>
+            <p class="match-row__events">Ishak 31&#39;, Skóraś 66&#39; · Josué 45+1&#39; (k), Pekhart 84&#39;</p>
+          </div>
+          <div class="match-row__meta">
+            <span class="match-row__date">7 cze · 17:30</span>
+            <span class="match-row__comp">Ekstraklasa · kol. 34</span>
+          </div>
+          <div class="match-row__source"><span class="match-row__channel">Meczyki</span></div>
+          <button type="button" class="match-row__edit" data-action="row-edit" aria-label="Edytuj skrót: Lech Poznań – Legia Warszawa">
+            <svg viewBox="0 0 24 24"><path d="M17 3a2.8 2.8 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5z"/></svg>
+            <span class="match-row__edit-txt">Edytuj</span>
+          </button>
+        </article>
+
+        <article class="match-row" data-competition="bundesliga" data-season="2025-26" data-teams="bayern bvb" data-video="no">
+          <div class="match-row__thumb" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M23 7l-7 5 7 5V7z"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg></div>
+          <div class="match-row__main">
+            <div class="match-row__match">
+              <span class="match-row__team"><span class="crest" aria-hidden="true">FCB</span> Bayern Monachium</span>
+              <span class="match-row__score">3 : 1</span>
+              <span class="match-row__team match-row__team--away"><span class="crest" aria-hidden="true">BVB</span> Borussia Dortmund</span>
+            </div>
+            <p class="match-row__events">Kane 17&#39;, 60&#39; (k) · Musiala 38&#39; · Brandt 74&#39;</p>
+          </div>
+          <div class="match-row__meta">
+            <span class="match-row__date">6 cze · 18:30</span>
+            <span class="match-row__comp">Bundesliga · kol. 34</span>
+          </div>
+          <div class="match-row__source"><span class="match-row__nochannel">Brak wideo</span></div>
+          <button type="button" class="match-row__edit" data-action="row-edit" aria-label="Edytuj skrót: Bayern – Borussia Dortmund">
+            <svg viewBox="0 0 24 24"><path d="M17 3a2.8 2.8 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5z"/></svg>
+            <span class="match-row__edit-txt">Edytuj</span>
+          </button>
+        </article>
+
+        <article class="match-row" data-competition="towarzyski" data-season="2026" data-teams="maroko usa" data-video="yes" data-url="https://www.youtube.com/watch?v=qwe456">
+          <div class="match-row__thumb has-video" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></div>
+          <div class="match-row__main">
+            <div class="match-row__match">
+              <span class="match-row__team"><img class="country-flag" src="https://flagcdn.com/ma.svg" alt="" /> Maroko</span>
+              <span class="match-row__score">2 : 0</span>
+              <span class="match-row__team match-row__team--away"><img class="country-flag" src="https://flagcdn.com/us.svg" alt="" /> USA</span>
+            </div>
+            <p class="match-row__events">En-Nesyri 40&#39; · Ziyech 75&#39;</p>
+          </div>
+          <div class="match-row__meta">
+            <span class="match-row__date">5 cze · 22:00</span>
+            <span class="match-row__comp">Mecz towarzyski</span>
+          </div>
+          <div class="match-row__source"><span class="match-row__channel">Kanał Sportowy</span></div>
+          <button type="button" class="match-row__edit" data-action="row-edit" aria-label="Edytuj skrót: Maroko – USA">
+            <svg viewBox="0 0 24 24"><path d="M17 3a2.8 2.8 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5z"/></svg>
+            <span class="match-row__edit-txt">Edytuj</span>
+          </button>
+        </article>
+
+      </section>
+
+      <div class="rows-empty" data-rows-empty hidden>
+        <h3>Brak meczów dla tych filtrów</h3>
+        <p>Zmień rozgrywki, sezon lub drużynę — albo wyłącz filtr „Tylko bez wideo".</p>
+      </div>
+
+      <!-- ==========================================================
+           PAGINACJA — komponent components/pagination.css; markup
+           docelowo z paginate_links() (WP_Query)
+      =========================================================== -->
+      <nav class="pagination" aria-label="Paginacja listy meczów">
+        <a class="pagination__arrow" href="#" aria-label="Poprzednia strona">
+          <svg viewBox="0 0 24 24"><path d="m15 5-7 7 7 7"/></svg>
+          <span class="pagination__arrow-txt">Poprzednia</span>
+        </a>
+        <a class="pagination__page" href="#">1</a>
+        <a class="pagination__page is-active" href="#" aria-current="page">2</a>
+        <a class="pagination__page" href="#">3</a>
+        <span class="pagination__gap" aria-hidden="true">…</span>
+        <a class="pagination__page" href="#">10</a>
+        <a class="pagination__arrow" href="#" aria-label="Następna strona">
+          <span class="pagination__arrow-txt">Następna</span>
+          <svg viewBox="0 0 24 24"><path d="m9 5 7 7-7 7"/></svg>
+        </a>
+      </nav>
+
+    </div>
+  </main>
+
+  <!-- ==========================================================
+       SZABLON FORMULARZA INLINE — jedno źródło markupu; paski
+       klonują go przy pierwszym otwarciu edycji (match-row.js)
+  =========================================================== -->
+  <template id="rowFormTpl">
+    <form class="match-row__form" hidden onsubmit="return false">
+      <input class="match-row__url" type="url" inputmode="url" placeholder="Wklej link do skrótu na YouTube..." aria-label="Link do skrótu" />
+      <div class="csel">
+        <input type="hidden" name="acf[field_skrot_channel]" value="" />
+        <button type="button" class="csel__trigger" aria-haspopup="listbox" aria-expanded="false" aria-label="Kanał wydawniczy">
+          <span class="csel__current csel__current--placeholder">Kanał…</span>
+          <svg class="csel__chev" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg>
+        </button>
+        <div class="csel__panel" hidden>
+          <div class="csel__search">
+            <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.2-3.2"/></svg>
+            <input type="text" class="csel__search-input" placeholder="Szukaj kanału..." aria-label="Szukaj kanału" />
+          </div>
+          <ul class="csel__list" role="listbox" aria-label="Kanał wydawniczy">
+            <li class="csel__option" role="option" data-value="tvp-sport" aria-selected="false">TVP Sport <svg class="csel__check" viewBox="0 0 24 24"><path d="m5 13 4 4L19 7"/></svg></li>
+            <li class="csel__option" role="option" data-value="canal-plus-sport" aria-selected="false">Canal+ Sport <svg class="csel__check" viewBox="0 0 24 24"><path d="m5 13 4 4L19 7"/></svg></li>
+            <li class="csel__option" role="option" data-value="eleven-sports" aria-selected="false">Eleven Sports <svg class="csel__check" viewBox="0 0 24 24"><path d="m5 13 4 4L19 7"/></svg></li>
+            <li class="csel__option" role="option" data-value="meczyki" aria-selected="false">Meczyki <svg class="csel__check" viewBox="0 0 24 24"><path d="m5 13 4 4L19 7"/></svg></li>
+            <li class="csel__option" role="option" data-value="kanal-sportowy" aria-selected="false">Kanał Sportowy <svg class="csel__check" viewBox="0 0 24 24"><path d="m5 13 4 4L19 7"/></svg></li>
+          </ul>
+          <p class="csel__empty" hidden>Brak kanału dla tej frazy</p>
+        </div>
+      </div>
+      <button type="button" class="match-row__save" data-action="row-save">Zapisz</button>
+      <button type="button" class="match-row__cancel" data-action="row-cancel" aria-label="Anuluj edycję">
+        <svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg>
+      </button>
+    </form>
+  </template>
+
+  <!-- KOMPONENTY: .csel (editor-form.js) + logika pulpitu (match-row.js) -->
+  <script src="hajlajty-fav.js" defer></script>
+  <script src="components/editor-form.js" defer></script>
+  <script src="components/match-row.js" defer></script>
+  <script src="components/user-menu.js" defer></script>
+
+  <script>
+  /* Motyw — wspólny klucz localStorage całego serwisu */
+  (function () {
+    var root = document.documentElement;
+    try {
+      var saved = localStorage.getItem("hajlajty:theme");
+      if (saved) root.setAttribute("data-theme", saved);
+    } catch (e) {}
+    document.getElementById("themeBtn").addEventListener("click", function () {
+      var next = root.getAttribute("data-theme") === "dark" ? "light" : "dark";
+      root.setAttribute("data-theme", next);
+      try { localStorage.setItem("hajlajty:theme", next); } catch (e) {}
+    });
+  })();
+  </script>
+
+</body>
+</html>

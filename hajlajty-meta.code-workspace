@@ -1,0 +1,17 @@
+{
+	"folders": [
+		{
+			"path": "."
+		},
+		{
+			"path": "../hajlajty20/app/public/wp-content/themes/hajlajty-theme"
+		},
+		{
+			"path": "../hajlajty20/app/public/wp-content/plugins/hajlajty-core"
+		},
+		{
+			"path": "../hajlajty20/app/public/wp-content/plugins/hajlajty-user"
+		}
+	],
+	"settings": {}
+}

@@ -1,0 +1,92 @@
+/* ============================================================
+   HAJLAJTY — pages/terminarz.css
+   ------------------------------------------------------------
+   LAYOUT SCAFFOLDING strony „Terminarz turnieju”.
+
+   TEN PLIK ODPOWIADA WYŁĄCZNIE ZA:
+     • rytm pionowy listy dni,
+     • nagłówki sekcji dnia,
+     • siatkę CSS Grid, w której renderują się karty.
+
+   TEN PLIK NIE MA PRAWA:
+     • stylować wnętrza żadnej karty (.card--preview / .card--live /
+       .card--highlight) — ich wygląd żyje w components/*.css,
+     • powtarzać tokenów — wszystkie wartości z styles/tokens.css.
+
+   Jedyny dozwolony kontakt z kartą: NADPISANIE jej LOKALNYCH
+   zmiennych kontraktu (--card-*), np. dla gęstszej siatki:
+
+       .schedule--compact .card--preview {
+         --card-padding: var(--space-xs);
+         --card-gap: var(--space-sm);
+         --card-countdown-val: 20px;
+       }
+============================================================ */
+
+/* ---- Nagłówek strony ---- */
+.page-head {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2xs);
+  margin-bottom: var(--space-lg);
+}
+.page-head__title {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  font-size: clamp(24px, 3.4vw, 34px);
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  line-height: 1.1;
+}
+.page-head__title .kicker-dot {
+  width: 10px; height: 10px; border-radius: 50%;
+  background: var(--accent);
+  flex: 0 0 auto;
+}
+.page-head__sub {
+  color: var(--text-muted);
+  font-size: 15px;
+  max-width: 64ch;
+  text-wrap: pretty;
+}
+
+/* ---- Lista dni ---- */
+.schedule {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xl);
+}
+
+/* ---- Sekcja jednego dnia ---- */
+.schedule-day { /* sama sekcja = czysty potok; rytm daje .schedule */ }
+.schedule-day__head {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-sm);
+  margin-bottom: var(--space-md);
+  padding-bottom: var(--space-xs);
+  border-bottom: 1px solid var(--border);
+}
+.schedule-day__date {
+  font-size: 19px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+.schedule-day__count {
+  color: var(--text-faint);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+/* ---- Siatka kart (jedyna odpowiedzialność wobec komponentów:
+        wymiar kolumn i odstępy MIĘDZY kartami) ---- */
+.schedule-day__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: var(--space-md);
+}
+
+@media (max-width: 620px) {
+  .schedule { gap: var(--space-lg); }
+}

@@ -1,0 +1,665 @@
+<!DOCTYPE html>
+<html lang="pl" data-theme="dark" data-screen="signin">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Hajlajty — Logowanie · Zaloguj się lub załóż konto kibica</title>
+  <meta name="description" content="Zaloguj się, załóż darmowe konto lub zresetuj hasło na Hajlajty.pl — Portalu Młodego Kibica. Mundial 2026." />
+
+  <!-- FONTY — Manrope (identyczny stos jak w całym serwisie) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+
+  <style>
+  /* ============================================================
+     1. TOKENY / ZMIENNE — IDENTYCZNE z resztą serwisu (źródło prawdy)
+        Bramka NIE wprowadza żadnych nowych kolorów/fontów/promieni —
+        dziedziczy cały design system (light/dark, :focus, radius).
+  ============================================================ */
+  :root {
+    --accent:        oklch(0.72 0.17 160);
+    --accent-strong: oklch(0.66 0.18 160);
+    --accent-soft:   oklch(0.72 0.17 160 / 0.14);
+    --accent-ink:    oklch(0.22 0.06 160);
+
+    --live:          oklch(0.63 0.22 25);
+    --live-soft:     oklch(0.63 0.22 25 / 0.16);
+
+    --space-3xs: 4px;
+    --space-2xs: 8px;
+    --space-xs:  12px;
+    --space-sm:  16px;
+    --space-md:  24px;
+    --space-lg:  40px;
+    --space-xl:  64px;
+    --space-2xl: 96px;
+
+    --r-sm: 10px;
+    --r-md: 16px;
+    --r-lg: 22px;
+    --r-pill: 999px;
+
+    --font: "Manrope", system-ui, -apple-system, "Segoe UI", sans-serif;
+
+    --ease: cubic-bezier(0.22, 1, 0.36, 1);
+    --t-fast: 140ms var(--ease);
+    --t-med:  240ms var(--ease);
+  }
+
+  /* ---- MOTYW CIEMNY (domyślny) ---- */
+  [data-theme="dark"] {
+    --bg:          oklch(0.17 0.008 250);
+    --bg-elev:     oklch(0.205 0.009 250);
+    --surface:     oklch(0.225 0.01 250);
+    --surface-2:   oklch(0.27 0.011 250);
+    --surface-hover: oklch(0.30 0.012 250);
+    --border:      oklch(1 0 0 / 0.09);
+    --border-strong: oklch(1 0 0 / 0.16);
+    --text:        oklch(0.96 0.003 250);
+    --text-muted:  oklch(0.72 0.006 250);
+    --text-faint:  oklch(0.56 0.006 250);
+    --shadow: 0 1px 2px oklch(0 0 0 / 0.4), 0 12px 32px -12px oklch(0 0 0 / 0.55);
+    --scrim: oklch(0 0 0 / 0.62);
+  }
+
+  /* ---- MOTYW JASNY ---- */
+  [data-theme="light"] {
+    --bg:          oklch(0.985 0.003 250);
+    --bg-elev:     oklch(1 0 0);
+    --surface:     oklch(1 0 0);
+    --surface-2:   oklch(0.975 0.004 250);
+    --surface-hover: oklch(0.955 0.005 250);
+    --border:      oklch(0.2 0.01 250 / 0.1);
+    --border-strong: oklch(0.2 0.01 250 / 0.2);
+    --text:        oklch(0.24 0.012 250);
+    --text-muted:  oklch(0.46 0.01 250);
+    --text-faint:  oklch(0.6 0.008 250);
+    --shadow: 0 1px 2px oklch(0.2 0.02 250 / 0.06), 0 14px 34px -16px oklch(0.2 0.04 250 / 0.18);
+    --scrim: oklch(0.2 0.02 250 / 0.4);
+  }
+
+  /* ============================================================
+     2. RESET / BAZA — identyczne z serwisem
+  ============================================================ */
+  *, *::before, *::after { box-sizing: border-box; }
+  * { margin: 0; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    font-family: var(--font);
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.6;
+    font-weight: 500;
+    letter-spacing: -0.005em;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+    min-height: 100vh;
+    min-height: 100dvh;
+    transition: background var(--t-med), color var(--t-med);
+  }
+  img, svg { display: block; }
+  button { font: inherit; color: inherit; cursor: pointer; border: none; background: none; }
+  input { font: inherit; }
+  a { color: inherit; text-decoration: none; }
+  :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 4px; }
+
+  /* ============================================================
+     3. UKŁAD BRAMKI — pełny viewport, karta wyśrodkowana w pionie
+        i poziomie. BRAK app shella: bez sidebara, bez chipsów.
+  ============================================================ */
+  .auth {
+    position: relative;
+    min-height: 100vh;
+    min-height: 100dvh;
+    display: grid;
+    place-items: center;
+    padding: var(--space-md);
+    overflow: hidden;
+  }
+  /* Atmosfera: dyskretny boiskowy poblask (ten sam akcent co karty LIVE),
+     stała część systemu — nie nowy kolor, tylko --accent-soft w radialu. */
+  .auth::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(60% 50% at 50% -8%, var(--accent-soft), transparent 70%),
+      radial-gradient(40% 38% at 92% 108%, var(--accent-soft), transparent 70%);
+    pointer-events: none;
+  }
+
+  /* Sterownik motywu — dyskretnie w rogu (poza kartą) */
+  .auth__theme {
+    position: fixed;
+    top: var(--space-md);
+    right: var(--space-md);
+    z-index: 10;
+    width: 44px; height: 44px;
+    display: grid; place-items: center;
+    border-radius: var(--r-pill);
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--text);
+    transition: background var(--t-fast), border-color var(--t-fast), transform var(--t-fast);
+  }
+  .auth__theme:hover { background: var(--surface-2); border-color: var(--border-strong); }
+  .auth__theme:active { transform: scale(0.92); }
+  .auth__theme svg { width: 20px; height: 20px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+  [data-theme="dark"]  .auth__theme .sun  { display: block; }
+  [data-theme="dark"]  .auth__theme .moon { display: none; }
+  [data-theme="light"] .auth__theme .sun  { display: none; }
+  [data-theme="light"] .auth__theme .moon { display: block; }
+
+  /* ---- KARTA ---- */
+  .card {
+    position: relative;
+    z-index: 1;
+    width: 100%;
+    max-width: 444px;
+    background: var(--bg-elev);
+    border: 1px solid var(--border);
+    border-radius: var(--r-lg);
+    box-shadow: var(--shadow);
+    padding: clamp(var(--space-lg), 5vw, 52px) clamp(var(--space-md), 5vw, 44px);
+  }
+
+  /* ---- LOGO (identyczny logotyp jak w serwisie) ---- */
+  .card__logo {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-3xs);
+    font-weight: 800;
+    font-size: 27px;
+    letter-spacing: -0.04em;
+    line-height: 1;
+    color: var(--text);
+    margin-bottom: var(--space-lg);
+  }
+  .card__logo .logo__y { color: var(--accent); }
+  .card__logo .logo__play { flex: 0 0 auto; width: 21px; height: 21px; color: var(--accent); }
+
+  /* ---- Nagłówek karty ---- */
+  .card__head { margin-bottom: var(--space-lg); }
+  .card__eyebrow {
+    display: inline-flex; align-items: center; gap: 8px;
+    font-size: 12px; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase;
+    color: var(--accent-strong);
+    margin-bottom: var(--space-xs);
+  }
+  [data-theme="dark"] .card__eyebrow { color: var(--accent); }
+  .card__eyebrow .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--accent); flex: 0 0 auto; }
+  .card__title {
+    font-size: clamp(26px, 5vw, 32px);
+    font-weight: 800;
+    letter-spacing: -0.035em;
+    line-height: 1.08;
+  }
+  .card__sub {
+    margin-top: var(--space-xs);
+    font-size: 15px;
+    color: var(--text-muted);
+    text-wrap: pretty;
+    line-height: 1.5;
+  }
+
+  /* ============================================================
+     4. EKRANY — przełączane stanem (.is-hidden). WP-Interactivity ready:
+        [data-screen] na <html> ≈ data-wp-context; .is-hidden ≈ bind--hidden.
+  ============================================================ */
+  .screen { display: flex; flex-direction: column; }
+  .screen.is-hidden { display: none !important; }
+  @media (prefers-reduced-motion: no-preference) {
+    .screen { animation: screenIn 320ms var(--ease); }
+  }
+  @keyframes screenIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+
+  /* ============================================================
+     5. FORMULARZ — pola/przyciski 1:1 z design systemem (sekcja 15)
+  ============================================================ */
+  .form { display: flex; flex-direction: column; gap: var(--space-sm); }
+  .field { display: flex; flex-direction: column; gap: var(--space-2xs); }
+  .field__label { font-size: 13px; font-weight: 700; color: var(--text-muted); letter-spacing: -0.005em; }
+  .input {
+    width: 100%; height: 50px;
+    padding: 0 var(--space-sm);
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--r-md);
+    color: var(--text);
+    font-size: 15px; font-weight: 500;
+    transition: border-color var(--t-fast), background var(--t-fast), box-shadow var(--t-fast);
+  }
+  .input::placeholder { color: var(--text-faint); }
+  .input:focus {
+    outline: none;
+    border-color: var(--accent);
+    background: var(--bg-elev);
+    box-shadow: 0 0 0 3px var(--accent-soft);
+  }
+  .input.is-invalid { border-color: var(--live); box-shadow: 0 0 0 3px var(--live-soft); }
+
+  /* pole hasła z przyciskiem podglądu (identyczne z serwisem) */
+  .input-wrap { position: relative; display: flex; }
+  .input-wrap .input { padding-right: 48px; }
+  .input-eye {
+    position: absolute; right: 7px; top: 50%; transform: translateY(-50%);
+    width: 36px; height: 36px; display: grid; place-items: center;
+    border-radius: var(--r-sm); color: var(--text-faint);
+    transition: color var(--t-fast), background var(--t-fast);
+  }
+  .input-eye:hover { color: var(--text); background: var(--surface-2); }
+  .input-eye svg { width: 18px; height: 18px; stroke: currentColor; fill: none; stroke-width: 1.9; stroke-linecap: round; stroke-linejoin: round; }
+  .input-eye .eye-off { display: none; }
+  .input-eye.is-shown .eye-on { display: none; }
+  .input-eye.is-shown .eye-off { display: block; }
+
+  /* link „Zapomniałeś hasła?" — wyrównany do prawej pod polem hasła */
+  .field__aux { display: flex; justify-content: flex-end; margin-top: 2px; }
+  .link-accent {
+    display: inline-flex; align-items: center;
+    font-size: 13.5px; font-weight: 700;
+    color: var(--accent-strong);
+    padding: 4px 2px;
+    transition: color var(--t-fast);
+  }
+  [data-theme="dark"] .link-accent { color: var(--accent); }
+  .link-accent:hover { color: var(--text); }
+
+  /* checkbox regulaminu — z tokenów DS (accent fill, r-sm) */
+  .check {
+    display: grid; grid-template-columns: auto 1fr; align-items: start; gap: var(--space-xs);
+    cursor: pointer;
+    padding: var(--space-3xs) 0;
+    -webkit-user-select: none; user-select: none;
+  }
+  .check input { position: absolute; opacity: 0; width: 0; height: 0; }
+  .check__box {
+    width: 22px; height: 22px; flex: 0 0 auto; margin-top: 1px;
+    display: grid; place-items: center;
+    border-radius: 7px;
+    background: var(--surface);
+    border: 1.5px solid var(--border-strong);
+    transition: background var(--t-fast), border-color var(--t-fast), transform var(--t-fast);
+  }
+  .check__box svg { width: 14px; height: 14px; stroke: var(--accent-ink); fill: none; stroke-width: 2.6; stroke-linecap: round; stroke-linejoin: round; opacity: 0; transform: scale(0.6); transition: opacity var(--t-fast), transform var(--t-fast); }
+  .check input:checked ~ .check__box { background: var(--accent); border-color: var(--accent); }
+  .check input:checked ~ .check__box svg { opacity: 1; transform: none; }
+  .check input:focus-visible ~ .check__box { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .check:active .check__box { transform: scale(0.92); }
+  .check__label { font-size: 13.5px; font-weight: 600; color: var(--text-muted); line-height: 1.5; }
+  .check__label a { color: var(--accent-strong); font-weight: 700; }
+  [data-theme="dark"] .check__label a { color: var(--accent); }
+  .check__label a:hover { text-decoration: underline; }
+  .check.is-invalid .check__box { border-color: var(--live); box-shadow: 0 0 0 3px var(--live-soft); }
+
+  /* Główny przycisk — pełna szerokość, identyczny z .btn-primary serwisu */
+  .btn-primary {
+    display: inline-flex; align-items: center; justify-content: center; gap: 9px;
+    width: 100%;
+    height: 52px; padding: 0 24px; border-radius: var(--r-pill);
+    background: var(--accent); color: var(--accent-ink);
+    font-weight: 800; font-size: 15.5px;
+    margin-top: var(--space-2xs);
+    transition: background var(--t-fast), transform var(--t-fast);
+  }
+  .btn-primary svg { width: 18px; height: 18px; stroke: currentColor; fill: none; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
+  .btn-primary:hover { background: var(--accent-strong); }
+  .btn-primary:active { transform: scale(0.985); }
+
+  /* Komunikat formularza (status / błąd) — jak .form-note serwisu */
+  .form-note {
+    font-size: 13px; font-weight: 700; color: var(--accent-strong);
+    min-height: 1.2em;
+    opacity: 0; transform: translateY(3px);
+    transition: opacity var(--t-fast), transform var(--t-fast);
+  }
+  [data-theme="dark"] .form-note { color: var(--accent); }
+  .form-note.is-error { color: var(--live); }
+  .form-note.is-visible { opacity: 1; transform: none; }
+
+  /* ---- Stopka karty: przełączenie ekranu ---- */
+  .card__foot {
+    margin-top: var(--space-lg);
+    padding-top: var(--space-md);
+    border-top: 1px solid var(--border);
+    text-align: center;
+    font-size: 14px; font-weight: 600;
+    color: var(--text-muted);
+  }
+  .card__foot .switch {
+    color: var(--accent-strong);
+    font-weight: 800;
+    padding: 2px 2px;
+    transition: color var(--t-fast);
+  }
+  [data-theme="dark"] .card__foot .switch { color: var(--accent); }
+  .card__foot .switch:hover { color: var(--text); }
+
+  /* powrót do logowania (reset hasła) — link z ikoną, wyśrodkowany */
+  .back-link {
+    display: inline-flex; align-items: center; justify-content: center; gap: 7px;
+    align-self: center;
+    margin-top: var(--space-md);
+    font-size: 14px; font-weight: 700;
+    color: var(--text-muted);
+    padding: 8px 12px; border-radius: var(--r-pill);
+    transition: color var(--t-fast), background var(--t-fast);
+  }
+  .back-link svg { width: 16px; height: 16px; stroke: currentColor; fill: none; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; transition: transform var(--t-fast); }
+  .back-link:hover { color: var(--text); background: var(--surface-2); }
+  .back-link:hover svg { transform: translateX(-2px); }
+
+  /* ============================================================
+     6. RESPONSYWNOŚĆ — karta płynnie dopasowana na smartfonie
+  ============================================================ */
+  @media (max-width: 480px) {
+    .auth { padding: 0; place-items: stretch; }
+    .card {
+      max-width: none;
+      min-height: 100dvh;
+      border: none;
+      border-radius: 0;
+      box-shadow: none;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: var(--space-2xl) var(--space-md) var(--space-xl);
+    }
+    .auth__theme { top: var(--space-sm); right: var(--space-sm); }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation-duration: 0.001ms !important; transition-duration: 0.001ms !important; }
+  }
+  </style>
+</head>
+
+<body>
+  <!-- ============================================================
+       BRAMKA UWIERZYTELNIANIA — trzy ekrany w jednym pliku.
+       WP Interactivity API ready:
+         data-interactive="hajlajty"        ≈ data-wp-interactive
+         [data-screen] na <html>            ≈ data-wp-context (state)
+         data-action="x"                    ≈ data-wp-on--click="actions.x"
+         .is-hidden                         ≈ data-wp-bind--hidden
+  ============================================================ -->
+  <main class="auth" data-interactive="hajlajty">
+
+    <!-- Przełącznik motywu (jasny/ciemny) — poza kartą, w rogu -->
+    <button class="auth__theme" id="themeBtn" type="button" aria-label="Przełącz motyw jasny/ciemny">
+      <svg class="sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4.2"/><path d="M12 2v2.5M12 19.5V22M2 12h2.5M19.5 12H22M4.9 4.9l1.8 1.8M17.3 17.3l1.8 1.8M19.1 4.9l-1.8 1.8M6.7 17.3l-1.8 1.8"/></svg>
+      <svg class="moon" viewBox="0 0 24 24"><path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z"/></svg>
+    </button>
+
+    <section class="card" aria-live="polite">
+
+      <!-- LOGO serwisu -->
+      <a class="card__logo" href="Hajlajty - Strona Główna.html" aria-label="Hajlajty — strona główna">
+        <span class="logo__text">hajlajt<span class="logo__y">y</span></span>
+        <svg class="logo__play" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" stroke="currentColor" stroke-width="3" stroke-linejoin="round" stroke-linecap="round" d="M7 5.8 18 12 7 18.2Z"/></svg>
+      </a>
+
+      <!-- ===================== EKRAN 1: LOGOWANIE ===================== -->
+      <div class="screen" data-screen-panel="signin">
+        <header class="card__head">
+          <span class="card__eyebrow"><span class="dot"></span> Witaj ponownie</span>
+          <h1 class="card__title">Zaloguj się</h1>
+          <p class="card__sub">Wróć do swoich obserwowanych reprezentacji i zapisanych skrótów.</p>
+        </header>
+
+        <form class="form" data-form="signin" novalidate>
+          <div class="field">
+            <label class="field__label" for="si-email">Adres e-mail</label>
+            <input class="input" id="si-email" name="email" type="email" autocomplete="email" placeholder="ty@example.com" />
+          </div>
+
+          <div class="field">
+            <label class="field__label" for="si-pw">Hasło</label>
+            <div class="input-wrap">
+              <input class="input" id="si-pw" name="password" type="password" autocomplete="current-password" placeholder="••••••••" />
+              <button class="input-eye" type="button" data-action="toggle-pw" aria-label="Pokaż lub ukryj hasło">
+                <svg class="eye-on" viewBox="0 0 24 24"><path d="M2 12s3.6-6.5 10-6.5S22 12 22 12s-3.6 6.5-10 6.5S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>
+                <svg class="eye-off" viewBox="0 0 24 24"><path d="M4 4l16 16"/><path d="M9.5 5.6A10 10 0 0 1 12 5.5C18.4 5.5 22 12 22 12a16 16 0 0 1-3 3.6M6.3 6.3A16 16 0 0 0 2 12s3.6 6.5 10 6.5a10 10 0 0 0 3-.45"/><path d="M9.9 9.9a3 3 0 0 0 4.2 4.2"/></svg>
+              </button>
+            </div>
+            <div class="field__aux">
+              <button class="link-accent" type="button" data-action="go-reset">Zapomniałeś hasła?</button>
+            </div>
+          </div>
+
+          <span class="form-note" data-note="signin" role="status" aria-live="polite"></span>
+
+          <button class="btn-primary" type="submit">
+            <svg viewBox="0 0 24 24"><path d="M9 12h11M16 8l4 4-4 4"/><path d="M14 4H6a1 1 0 0 0-1 1v14a1 1 0 0 0 1 1h8"/></svg>
+            Zaloguj się
+          </button>
+        </form>
+
+        <p class="card__foot">
+          Nie masz jeszcze konta?
+          <button class="switch" type="button" data-action="go-signup">Zarejestruj się</button>
+        </p>
+      </div>
+
+      <!-- ===================== EKRAN 2: REJESTRACJA ===================== -->
+      <div class="screen is-hidden" data-screen-panel="signup">
+        <header class="card__head">
+          <span class="card__eyebrow"><span class="dot"></span> Dołącz do kibiców</span>
+          <h1 class="card__title">Załóż konto</h1>
+          <p class="card__sub">Obserwuj reprezentacje, zapisuj skróty i miej Mundial 2026 w jednym miejscu.</p>
+        </header>
+
+        <form class="form" data-form="signup" novalidate>
+          <div class="field">
+            <label class="field__label" for="su-name">Imię / Ksywka</label>
+            <input class="input" id="su-name" name="name" type="text" autocomplete="nickname" placeholder="np. Janek z trybuny" />
+          </div>
+
+          <div class="field">
+            <label class="field__label" for="su-email">Adres e-mail</label>
+            <input class="input" id="su-email" name="email" type="email" autocomplete="email" placeholder="ty@example.com" />
+          </div>
+
+          <div class="field">
+            <label class="field__label" for="su-pw">Hasło</label>
+            <div class="input-wrap">
+              <input class="input" id="su-pw" name="password" type="password" autocomplete="new-password" placeholder="min. 6 znaków" />
+              <button class="input-eye" type="button" data-action="toggle-pw" aria-label="Pokaż lub ukryj hasło">
+                <svg class="eye-on" viewBox="0 0 24 24"><path d="M2 12s3.6-6.5 10-6.5S22 12 22 12s-3.6 6.5-10 6.5S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>
+                <svg class="eye-off" viewBox="0 0 24 24"><path d="M4 4l16 16"/><path d="M9.5 5.6A10 10 0 0 1 12 5.5C18.4 5.5 22 12 22 12a16 16 0 0 1-3 3.6M6.3 6.3A16 16 0 0 0 2 12s3.6 6.5 10 6.5a10 10 0 0 0 3-.45"/><path d="M9.9 9.9a3 3 0 0 0 4.2 4.2"/></svg>
+              </button>
+            </div>
+          </div>
+
+          <div class="field">
+            <label class="field__label" for="su-pw2">Powtórz hasło</label>
+            <div class="input-wrap">
+              <input class="input" id="su-pw2" name="password2" type="password" autocomplete="new-password" placeholder="powtórz hasło" />
+              <button class="input-eye" type="button" data-action="toggle-pw" aria-label="Pokaż lub ukryj hasło">
+                <svg class="eye-on" viewBox="0 0 24 24"><path d="M2 12s3.6-6.5 10-6.5S22 12 22 12s-3.6 6.5-10 6.5S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>
+                <svg class="eye-off" viewBox="0 0 24 24"><path d="M4 4l16 16"/><path d="M9.5 5.6A10 10 0 0 1 12 5.5C18.4 5.5 22 12 22 12a16 16 0 0 1-3 3.6M6.3 6.3A16 16 0 0 0 2 12s3.6 6.5 10 6.5a10 10 0 0 0 3-.45"/><path d="M9.9 9.9a3 3 0 0 0 4.2 4.2"/></svg>
+              </button>
+            </div>
+          </div>
+
+          <label class="check" for="su-terms">
+            <input id="su-terms" name="terms" type="checkbox" />
+            <span class="check__box"><svg viewBox="0 0 24 24"><path d="m5 12 5 5 9-11"/></svg></span>
+            <span class="check__label">Akceptuję <a href="#" tabindex="-1">regulamin serwisu</a> i politykę prywatności Hajlajty.pl.</span>
+          </label>
+
+          <span class="form-note" data-note="signup" role="status" aria-live="polite"></span>
+
+          <button class="btn-primary" type="submit">
+            <svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.4"/><path d="M3.5 20a5.5 5.5 0 0 1 11 0"/><path d="M19 8v6M22 11h-6"/></svg>
+            Załóż darmowe konto
+          </button>
+        </form>
+
+        <p class="card__foot">
+          Masz już konto?
+          <button class="switch" type="button" data-action="go-signin">Zaloguj się</button>
+        </p>
+      </div>
+
+      <!-- ===================== EKRAN 3: RESET HASŁA ===================== -->
+      <div class="screen is-hidden" data-screen-panel="reset">
+        <header class="card__head">
+          <span class="card__eyebrow"><span class="dot"></span> Odzyskaj dostęp</span>
+          <h1 class="card__title">Reset hasła</h1>
+          <p class="card__sub">Wpisz swój adres e-mail, a wyślemy Ci link do zresetowania hasła.</p>
+        </header>
+
+        <form class="form" data-form="reset" novalidate>
+          <div class="field">
+            <label class="field__label" for="rs-email">Adres e-mail</label>
+            <input class="input" id="rs-email" name="email" type="email" autocomplete="email" placeholder="ty@example.com" />
+          </div>
+
+          <span class="form-note" data-note="reset" role="status" aria-live="polite"></span>
+
+          <button class="btn-primary" type="submit">
+            <svg viewBox="0 0 24 24"><path d="M4 6.5 12 12l8-5.5"/><rect x="3.5" y="5" width="17" height="14" rx="2.5"/></svg>
+            Wyślij link do resetu
+          </button>
+        </form>
+
+        <button class="back-link" type="button" data-action="go-signin">
+          <svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg>
+          Powrót do logowania
+        </button>
+      </div>
+
+    </section>
+  </main>
+
+  <!-- ============================== SKRYPT ==============================
+       Lekki vanilla JS, wzorzec zgodny z WordPress Interactivity API:
+         state.screen          ≈ data-wp-context
+         actions.NAME          ≈ data-wp-on--click="actions.NAME"
+         render()              ≈ deklaratywne data-wp-bind--hidden (.is-hidden)
+       Przełączanie ekranów BEZ przeładowania strony.
+  =================================================================== -->
+  <script>
+  (function () {
+    "use strict";
+    var THEME_KEY = "hajlajty:theme";
+    var $  = function (s, c) { return (c || document).querySelector(s); };
+    var $$ = function (s, c) { return Array.prototype.slice.call((c || document).querySelectorAll(s)); };
+    var root = document.documentElement;
+
+    /* ---------- STAN ---------- */
+    var SCREENS = { signin: 1, signup: 1, reset: 1 };
+    var HASH = { "#logowanie":"signin", "#signin":"signin", "#rejestracja":"signup", "#signup":"signup", "#reset":"reset", "#reset-hasla":"reset" };
+    var HASH_OUT = { signin:"#logowanie", signup:"#rejestracja", reset:"#reset" };
+
+    var state = {
+      screen: HASH[location.hash] || root.getAttribute("data-screen") || "signin",
+      theme: root.getAttribute("data-theme") || "dark"
+    };
+    try { var st = localStorage.getItem(THEME_KEY); if (st === "light" || st === "dark") state.theme = st; } catch (e) {}
+    if (!SCREENS[state.screen]) state.screen = "signin";
+
+    var panels = $$("[data-screen-panel]");
+
+    /* ---------- RENDER: stan → UI (deklaratywnie) ---------- */
+    function render(){
+      root.setAttribute("data-theme", state.theme);
+      root.setAttribute("data-screen", state.screen);
+      panels.forEach(function(p){ p.classList.toggle("is-hidden", p.dataset.screenPanel !== state.screen); });
+      try { if (HASH_OUT[state.screen]) history.replaceState(null, "", HASH_OUT[state.screen]); } catch (e) {}
+    }
+
+    function goScreen(name){
+      if (!SCREENS[name]) return;
+      state.screen = name;
+      clearNotes();
+      render();
+      // fokus na pierwszym polu nowego ekranu (dostępność)
+      var active = $('[data-screen-panel="' + name + '"]');
+      var first = active ? active.querySelector("input") : null;
+      if (first) { try { first.focus({ preventScroll: true }); } catch (e) { first.focus(); } }
+    }
+
+    function clearNotes(){ $$(".form-note").forEach(function(n){ n.classList.remove("is-visible","is-error"); n.textContent=""; });
+      $$(".input.is-invalid").forEach(function(i){ i.classList.remove("is-invalid"); });
+      $$(".check.is-invalid").forEach(function(c){ c.classList.remove("is-invalid"); }); }
+
+    function note(key, msg, isErr){
+      var el = $('[data-note="' + key + '"]'); if (!el) return;
+      el.textContent = msg; el.classList.toggle("is-error", !!isErr); el.classList.add("is-visible");
+      if (!isErr) { clearTimeout(el._t); el._t = setTimeout(function(){ el.classList.remove("is-visible"); }, 3200); }
+    }
+
+    var isEmail = function(v){ return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v); };
+    function mark(input, bad){ if (input) input.classList.toggle("is-invalid", !!bad); }
+
+    /* ---------- AKCJE (store) ---------- */
+    var actions = {
+      "go-signin": function(){ goScreen("signin"); },
+      "go-signup": function(){ goScreen("signup"); },
+      "go-reset":  function(){ goScreen("reset"); },
+      "toggle-theme": function(){ state.theme = state.theme === "dark" ? "light" : "dark"; try { localStorage.setItem(THEME_KEY, state.theme); } catch (e) {} render(); },
+      "toggle-pw": function(el){
+        var w = el.closest(".input-wrap"); if (!w) return;
+        var inp = w.querySelector("input"); if (!inp) return;
+        var show = inp.type === "password";
+        inp.type = show ? "text" : "password";
+        el.classList.toggle("is-shown", show);
+      }
+    };
+
+    /* ---------- DELEGACJA: data-action → actions.NAME ---------- */
+    document.addEventListener("click", function(e){
+      var el = e.target.closest("[data-action]");
+      if (!el) return;
+      var name = el.dataset.action;
+      if (actions[name]) { e.preventDefault(); actions[name](el); }
+    });
+    $("#themeBtn").addEventListener("click", function(){ actions["toggle-theme"](); });
+
+    /* ---------- WALIDACJA FORMULARZY (symulacja wysyłki) ---------- */
+    $('[data-form="signin"]').addEventListener("submit", function(e){
+      e.preventDefault();
+      var email = $("#si-email"), pw = $("#si-pw");
+      mark(email, false); mark(pw, false);
+      if (!isEmail(email.value.trim())) { mark(email, true); note("signin", "Podaj poprawny adres e-mail.", true); email.focus(); return; }
+      if (!pw.value) { mark(pw, true); note("signin", "Wpisz hasło.", true); pw.focus(); return; }
+      note("signin", "Logowanie… witaj z powrotem! ✓", false);
+    });
+
+    $('[data-form="signup"]').addEventListener("submit", function(e){
+      e.preventDefault();
+      var name = $("#su-name"), email = $("#su-email"), pw = $("#su-pw"), pw2 = $("#su-pw2"), terms = $("#su-terms");
+      [name, email, pw, pw2].forEach(function(i){ mark(i, false); });
+      var termsWrap = terms.closest(".check"); if (termsWrap) termsWrap.classList.remove("is-invalid");
+      if (!name.value.trim()) { mark(name, true); note("signup", "Podaj imię lub ksywkę.", true); name.focus(); return; }
+      if (!isEmail(email.value.trim())) { mark(email, true); note("signup", "Podaj poprawny adres e-mail.", true); email.focus(); return; }
+      if (pw.value.length < 6) { mark(pw, true); note("signup", "Hasło musi mieć min. 6 znaków.", true); pw.focus(); return; }
+      if (pw.value !== pw2.value) { mark(pw2, true); note("signup", "Hasła nie są takie same.", true); pw2.focus(); return; }
+      if (!terms.checked) { if (termsWrap) termsWrap.classList.add("is-invalid"); note("signup", "Zaakceptuj regulamin, aby kontynuować.", true); return; }
+      note("signup", "Konto utworzone — sprawdź skrzynkę e-mail! ✓", false);
+    });
+
+    $('[data-form="reset"]').addEventListener("submit", function(e){
+      e.preventDefault();
+      var email = $("#rs-email");
+      mark(email, false);
+      if (!isEmail(email.value.trim())) { mark(email, true); note("reset", "Podaj poprawny adres e-mail.", true); email.focus(); return; }
+      note("reset", "Link wysłany — sprawdź swoją skrzynkę. ✓", false);
+    });
+
+    // czyszczenie stanu błędu podczas pisania
+    $$(".input").forEach(function(i){ i.addEventListener("input", function(){ i.classList.remove("is-invalid"); }); });
+
+    // hash w URL → ekran (np. wejście z /#rejestracja)
+    window.addEventListener("hashchange", function(){ var s = HASH[location.hash]; if (s) goScreen(s); });
+
+    /* ---------- START ---------- */
+    render();
+  })();
+  </script>
+  <script src="hajlajty-fav.js" defer></script>
+</body>
+</html>

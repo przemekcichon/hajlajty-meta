@@ -1,0 +1,1796 @@
+<!DOCTYPE html>
+<html lang="pl" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Hajlajty — Zapowiedzi</title>
+  <meta name="description" content="Nadchodzące mecze reprezentacji z odliczaniem do pierwszego gwizdka — Hajlajty.pl." />
+
+  <!-- ==========================================================
+       FONTY — Manrope (neutralny groteskowy)
+  =========================================================== -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+
+  <style>
+  /* ============================================================
+     1. TOKENY / ZMIENNE — wspólne
+  ============================================================ */
+  :root {
+    /* Akcent „Mundial 2026" — boiskowa zieleń (identyczny w obu motywach) */
+    --accent:        oklch(0.72 0.17 160);
+    --accent-strong: oklch(0.66 0.18 160);
+    --accent-soft:   oklch(0.72 0.17 160 / 0.14);
+    --accent-ink:    oklch(0.22 0.06 160);   /* tekst na zielonym tle */
+
+    /* Kolor LIVE */
+    --live:          oklch(0.63 0.22 25);
+    --live-soft:     oklch(0.63 0.22 25 / 0.16);
+
+    /* Kontener — JEDNA spójna szerokość dla całej strony */
+    --container: 1320px;
+    --gutter: clamp(16px, 3vw, 40px);
+    --topbar-h: 72px;
+    --sidebar-w: 288px;
+
+    /* Skala odstępów (oddech) */
+    --space-3xs: 4px;
+    --space-2xs: 8px;
+    --space-xs:  12px;
+    --space-sm:  16px;
+    --space-md:  24px;
+    --space-lg:  40px;
+    --space-xl:  64px;
+    --space-2xl: 96px;
+    /* Pionowy oddech wiersza chipsów — wspólne źródło prawdy: ten sam offset
+       stosuje sidebar, by górna krawędź 1. pozycji menu licowała z chipsami. */
+    --chips-pad-y: 14px;
+
+    /* Promienie */
+    --r-sm: 10px;
+    --r-md: 16px;
+    --r-lg: 22px;
+    --r-pill: 999px;
+
+    /* Typografia */
+    --font: "Manrope", system-ui, -apple-system, "Segoe UI", sans-serif;
+    /* Stos emoji: webfont kolorowy najpierw → spójne flagi na wszystkich OS-ach */
+    --font-emoji: "Noto Color Emoji", "Apple Color Emoji", "Segoe UI Emoji", "Twemoji Mozilla", sans-serif;
+
+    /* Przejścia */
+    --ease: cubic-bezier(0.22, 1, 0.36, 1);
+    --t-fast: 140ms var(--ease);
+    --t-med:  240ms var(--ease);
+  }
+
+  /* ---- MOTYW CIEMNY (domyślny) ---- */
+  [data-theme="dark"] {
+    --bg:          oklch(0.17 0.008 250);
+    --bg-elev:     oklch(0.205 0.009 250);
+    --surface:     oklch(0.225 0.01 250);
+    --surface-2:   oklch(0.27 0.011 250);
+    --surface-hover: oklch(0.30 0.012 250);
+    --border:      oklch(1 0 0 / 0.09);
+    --border-strong: oklch(1 0 0 / 0.16);
+    --text:        oklch(0.96 0.003 250);
+    --text-muted:  oklch(0.72 0.006 250);
+    --text-faint:  oklch(0.56 0.006 250);
+    --shadow: 0 1px 2px oklch(0 0 0 / 0.4), 0 12px 32px -12px oklch(0 0 0 / 0.55);
+    --thumb-a: oklch(0.26 0.012 250);
+    --thumb-b: oklch(0.235 0.01 250);
+    --scrim: oklch(0 0 0 / 0.62);
+    --scrollthumb: oklch(1 0 0 / 0.22);
+  }
+
+  /* ---- MOTYW JASNY ---- */
+  [data-theme="light"] {
+    --bg:          oklch(0.985 0.003 250);
+    --bg-elev:     oklch(1 0 0);
+    --surface:     oklch(1 0 0);
+    --surface-2:   oklch(0.975 0.004 250);
+    --surface-hover: oklch(0.955 0.005 250);
+    --border:      oklch(0.2 0.01 250 / 0.1);
+    --border-strong: oklch(0.2 0.01 250 / 0.2);
+    --text:        oklch(0.24 0.012 250);
+    --text-muted:  oklch(0.46 0.01 250);
+    --text-faint:  oklch(0.6 0.008 250);
+    --shadow: 0 1px 2px oklch(0.2 0.02 250 / 0.06), 0 14px 34px -16px oklch(0.2 0.04 250 / 0.18);
+    --thumb-a: oklch(0.93 0.006 250);
+    --thumb-b: oklch(0.96 0.004 250);
+    --scrim: oklch(0.2 0.02 250 / 0.4);
+    --scrollthumb: oklch(0.3 0.02 250 / 0.32);
+  }
+
+  /* ============================================================
+     2. RESET / BAZA
+  ============================================================ */
+  *, *::before, *::after { box-sizing: border-box; }
+  * { margin: 0; }
+
+  html { -webkit-text-size-adjust: 100%; scroll-behavior: smooth; }
+
+  body {
+    font-family: var(--font);
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.6;
+    font-weight: 500;
+    letter-spacing: -0.005em;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+    min-height: 100vh;
+    transition: background var(--t-med), color var(--t-med);
+  }
+
+  img, svg { display: block; }
+  button { font: inherit; color: inherit; cursor: pointer; border: none; background: none; }
+  input { font: inherit; }
+  a { color: inherit; text-decoration: none; }
+  ul { list-style: none; padding: 0; }
+
+  :focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+
+  /* ---- KONTENER (spójna szerokość: nagłówek = main = stopka) ---- */
+  .container {
+    width: 100%;
+    max-width: var(--container);
+    margin-inline: auto;
+    padding-inline: var(--gutter);
+  }
+
+  /* ============================================================
+     3. TOP BAR
+  ============================================================ */
+  .topbar {
+    position: sticky;
+    top: 0;
+    z-index: 60;
+    height: var(--topbar-h);
+    display: flex;
+    align-items: center;
+    background: var(--bg);
+  }
+  /* Header w 3 strefach: [logo+menu] [wyszukiwarka — wyśrodkowana] [akcje].
+     Grid 1fr auto 1fr gwarantuje, że środkowa strefa jest idealnie
+     wyśrodkowana względem okna, niezależnie od szerokości stref bocznych. */
+  .topbar__inner {
+    display: grid;
+    grid-template-columns: 1fr minmax(0, 640px) 1fr;
+    align-items: center;
+    gap: var(--space-md);
+    height: 100%;
+    max-width: none;            /* header edge-to-edge */
+    /* Padding ciasno przy krawędziach — i tak dobrany, by GLIF hamburgera
+       (btn 44 / ikona 22 → wcięcie 11px) licował się w pionie z ikonami
+       nawigacji w sidebarze: sidebar pad-left 8 + nav-link pad 16 = 24px,
+       a tu 12 + 11 = 23px → ta sama oś. Po prawej ten sam dystans = czysta
+       domykająca linia. */
+    padding-inline: var(--space-xs);
+  }
+
+  .topbar__left  { display: flex; align-items: center; gap: var(--space-sm); justify-self: start; }
+  .topbar__right { display: flex; align-items: center; gap: var(--space-2xs); justify-self: end; }
+
+  /* ---- MOBILNY NAGŁÓWEK: flex space-between + licowanie do krawędzi ----
+     Lewa strona: logo tuż przy hamburgerze. Prawa: ikony dosunięte tak,
+     by GLIF skrajnych ikon (btn 44 / ikona 22 → wcięcie 11px) licował się
+     z krawędziami treści poniżej (pigułka filtra, karty). Ujemne marginesy
+     kompensują wewnętrzne wcięcie okrągłych przycisków — działa też na
+     stronach bez lupy: flex space-between rozpycha grupy bez dziur. */
+  @media (max-width: 768px) {
+    .topbar__inner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0;
+      padding-inline: var(--gutter);
+    }
+    .topbar__left  { gap: var(--space-3xs); }
+    .topbar__left > .icon-btn:first-child { margin-left: -11px; }
+    .topbar__right { gap: var(--space-3xs); }
+    .topbar__right > .icon-btn:last-child { margin-right: -11px; }
+  }
+
+  /* Okrągłe przyciski ikon */
+  .icon-btn {
+    width: 44px; height: 44px;
+    display: grid; place-items: center;
+    border-radius: var(--r-pill);
+    color: var(--text);
+    transition: background var(--t-fast), color var(--t-fast), transform var(--t-fast);
+  }
+  .icon-btn:hover  { background: var(--surface-2); }
+  .icon-btn:active { transform: scale(0.92); }
+  .icon-btn svg { width: 22px; height: 22px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+
+  /* ---- LOGO: play OBOK tekstu (po „y"), „y" + play w akcencie ---- */
+  .logo {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-3xs);
+    padding-inline: 6px;
+    font-weight: 800;
+    font-size: 25px;
+    letter-spacing: -0.04em;
+    line-height: 1;
+    color: var(--text);
+  }
+  .logo__text { display: inline-flex; }
+  .logo__y { color: var(--accent); }
+  /* play stoi tuż za „y" jako czyste domknięcie logotypu — żadnego overlapu */
+  .logo__play {
+    flex: 0 0 auto;
+    width: 20px; height: 20px;
+    color: var(--accent);
+    transition: transform var(--t-med);
+  }
+  .logo:hover .logo__play { transform: scale(1.12); }
+
+  /* ---- WYSZUKIWARKA + PRZEŁĄCZNIK (hub w nagłówku) ----
+     Skrócony input dzieli środkową strefę (640px) z toggle'em
+     [Wszystkie/Obserwowane] — jedna linia, wspólny kontekst drużynowy. */
+  .topbar__hub {
+    justify-self: center;
+    width: 100%;
+    max-width: 640px;
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    gap: var(--space-2xs);
+  }
+  /* ---- WYSZUKIWARKA z wbudowanym chipsem „Obserwowane” ----
+     Input + przycisk-włącznik w jednym pill-kontenerze; flex gwarantuje,
+     że tekst nigdy nie nachodzi na przycisk (input min-width:0, chips flex:0). */
+  .search {
+    justify-self: center;
+    width: 100%;
+    max-width: 640px;
+    flex: 1 1 auto;
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    gap: var(--space-2xs);
+    height: 46px;
+    padding-inline: var(--space-sm) 5px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--r-pill);
+    transition: border-color var(--t-fast), background var(--t-fast);
+  }
+  .search:focus-within { border-color: var(--accent); background: var(--bg-elev); }
+  .search svg { width: 20px; height: 20px; stroke: var(--text-muted); fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; flex: 0 0 auto; }
+  .search input {
+    flex: 1 1 auto;
+    min-width: 0;
+    border: none;
+    background: none;
+    color: var(--text);
+    font-size: 15px;
+    font-weight: 500;
+  }
+  .search input::placeholder { color: var(--text-faint); }
+  .search input:focus { outline: none; }
+
+  /* Chips-włącznik „Obserwowane” (on/off) wewnątrz wyszukiwarki.
+     Off = wszystkie reprezentacje; on = akcent + filtr obserwowanych. */
+  .search__obs {
+    flex: 0 0 auto;
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    height: 36px;
+    padding: 0 14px;
+    border-radius: var(--r-pill);
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    color: var(--text-muted);
+    font-size: 13px;
+    font-weight: 700;
+    white-space: nowrap;
+    transition: background var(--t-fast), color var(--t-fast), border-color var(--t-fast), transform var(--t-fast);
+  }
+  .search__obs svg { width: 16px; height: 16px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; flex: 0 0 auto; }
+  .search__obs:hover { background: var(--surface-hover); color: var(--text); }
+  .search__obs:active { transform: scale(0.95); }
+  .search__obs.is-on {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: var(--accent-ink);
+  }
+  .search__obs.is-on:hover { background: var(--accent); color: var(--accent-ink); filter: brightness(1.05); }
+  /* Wariant ikonowy (modal mobile) — samo oko, bez etykiety */
+  .search__obs--icon { width: 36px; padding: 0; justify-content: center; }
+  .search__obs--icon .search__obs-txt { display: none; }
+
+  /* [X] czyszczenia tekstu wewnątrz inputu — widoczny tylko gdy jest tekst */
+  .search__clear {
+    flex: 0 0 auto;
+    width: 30px; height: 30px;
+    display: grid; place-items: center;
+    border-radius: var(--r-pill);
+    color: var(--text-muted);
+    transition: background var(--t-fast), color var(--t-fast);
+  }
+  .search__clear:hover { background: var(--surface-2); color: var(--text); }
+  .search__clear svg { width: 15px; height: 15px; stroke: currentColor; fill: none; stroke-width: 2.4; stroke-linecap: round; }
+  .search__clear[hidden] { display: none; }
+
+  /* Theme toggle — ikona zmienia się wg motywu */
+  [data-theme="dark"]  .theme-toggle .sun  { display: block; }
+  [data-theme="dark"]  .theme-toggle .moon { display: none; }
+  [data-theme="light"] .theme-toggle .sun  { display: none; }
+  [data-theme="light"] .theme-toggle .moon { display: block; }
+
+  /* ============================================================
+     4. SIDEBAR (off-canvas) + SCRIM
+  ============================================================ */
+  .scrim {
+    position: fixed; inset: 0;
+    z-index: 70;
+    background: var(--scrim);
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity var(--t-med), visibility var(--t-med);
+  }
+  .scrim.is-open { opacity: 1; visibility: visible; }
+
+  .sidebar {
+    position: fixed;
+    top: 0; left: 0;
+    z-index: 80;
+    width: var(--sidebar-w);
+    max-width: 84vw;
+    height: 100dvh;
+    background: var(--bg);
+    box-shadow: var(--shadow);
+    transform: translateX(-100%);
+    transition: transform var(--t-med);
+    display: flex;
+    flex-direction: column;
+    padding: var(--space-sm) var(--space-sm) var(--space-lg);
+    overflow-y: auto;
+  }
+  .sidebar.is-open { transform: translateX(0); }
+
+  .sidebar__head {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    height: calc(var(--topbar-h) - 16px);
+    padding-inline: var(--space-2xs);
+    margin-bottom: var(--space-sm);
+  }
+
+  .sidebar__group { padding: var(--space-sm) 0; border-top: 1px solid var(--border); }
+  .sidebar__group:first-of-type { border-top: none; padding-top: 0; }
+  .sidebar__label {
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-faint);
+    padding: var(--space-2xs) var(--space-sm);
+  }
+
+  .nav-link {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    padding: var(--space-xs) var(--space-sm);
+    border-radius: var(--r-sm);
+    color: var(--text);
+    font-weight: 600;
+    font-size: 15px;
+    transition: background var(--t-fast), color var(--t-fast);
+  }
+  .nav-link svg { width: 21px; height: 21px; stroke: currentColor; fill: none; stroke-width: 1.9; stroke-linecap: round; stroke-linejoin: round; flex: 0 0 auto; }
+  .nav-link:hover { background: var(--surface-2); }
+  .nav-link.is-active { background: var(--accent-soft); color: var(--accent-strong); }
+  [data-theme="dark"] .nav-link.is-active { color: var(--accent); }
+  .nav-link .badge-live {
+    margin-left: auto;
+    font-size: 11px; font-weight: 800; letter-spacing: 0.06em;
+    color: var(--live);
+  }
+
+  /* ============================================================
+     5. PASEK CHIPSÓW (reprezentacje)
+  ============================================================ */
+  .chipsbar {
+    position: sticky;
+    top: var(--topbar-h);
+    z-index: 50;
+    background: var(--bg);
+  }
+  .chipsbar__inner { position: relative; }
+
+  .chips-scroll {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2xs);
+    overflow-x: auto;
+    scroll-behavior: smooth;
+    padding-block: var(--chips-pad-y);
+    /* miękkie wygaszenie krawędzi */
+    -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 28px, #000 calc(100% - 28px), transparent 100%);
+            mask-image: linear-gradient(90deg, transparent 0, #000 28px, #000 calc(100% - 28px), transparent 100%);
+  }
+
+  /* ---- Dyskretne scrollbary: niewidoczne w spoczynku, cienka linia
+     podczas scrollowania, bez strzałek (górnej/dolnej). ---- */
+  .sidebar, .content, .chips-scroll {
+    scrollbar-width: thin;
+    scrollbar-color: transparent transparent;      /* Firefox: ukryty w spoczynku */
+    transition: scrollbar-color var(--t-med);
+  }
+  .sidebar.is-scrolling, .content.is-scrolling, .chips-scroll.is-scrolling {
+    scrollbar-color: var(--scrollthumb) transparent;
+  }
+  .sidebar::-webkit-scrollbar,
+  .content::-webkit-scrollbar,
+  .chips-scroll::-webkit-scrollbar { width: 8px; height: 8px; }
+  .sidebar::-webkit-scrollbar-track,
+  .content::-webkit-scrollbar-track,
+  .chips-scroll::-webkit-scrollbar-track { background: transparent; }
+  .sidebar::-webkit-scrollbar-thumb,
+  .content::-webkit-scrollbar-thumb,
+  .chips-scroll::-webkit-scrollbar-thumb {
+    background: transparent;
+    border-radius: var(--r-pill);
+    border: 2px solid transparent;
+    background-clip: padding-box;
+    transition: background var(--t-med);
+  }
+  .sidebar.is-scrolling::-webkit-scrollbar-thumb,
+  .content.is-scrolling::-webkit-scrollbar-thumb,
+  .chips-scroll.is-scrolling::-webkit-scrollbar-thumb {
+    background: var(--scrollthumb);
+    background-clip: padding-box;
+  }
+  /* Brak strzałek (przyciski scrollbara) — czysta linia */
+  .sidebar::-webkit-scrollbar-button,
+  .content::-webkit-scrollbar-button,
+  .chips-scroll::-webkit-scrollbar-button { display: none; width: 0; height: 0; }
+
+  .chip {
+    flex: 0 0 auto;
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-xs);
+    height: 40px;
+    padding: 0 16px;
+    border-radius: var(--r-pill);
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--text);
+    font-size: 14px;
+    font-weight: 600;
+    white-space: nowrap;
+    transition: background var(--t-fast), border-color var(--t-fast), color var(--t-fast), transform var(--t-fast);
+  }
+  .chip:hover { background: var(--surface-hover); border-color: var(--border-strong); }
+  .chip:active { transform: scale(0.96); }
+  /* ---- FLAGI: jednolite obrazy SVG (flagcdn) zamiast emoji ----
+     Renderują się PIKSEL W PIKSEL identycznie na Windows / macOS / iOS /
+     Android, bo to zwykłe <img>. Stała wysokość + szerokość auto = poprawne
+     proporcje każdego kraju; delikatny radius i cień dają premium look. */
+  /* ---- FLAGI: błyszczące, „falujące" ikony (FlagsAPI shiny / GoSquared) ----
+     Glossy, lekko wypukłe flagi z delikatną animacją powiewu. To zwykłe <img>,
+     więc renderują się identycznie na Windows / macOS / iOS / Android. */
+  /* ---- FLAGI: jednolite, płaskie obrazy SVG (flagcdn) ----
+     Zwykłe <img> → identyczne na każdym systemie. Bez animacji. */
+  .country-flag {
+    flex: 0 0 auto;
+    width: auto;
+    border-radius: 2px;
+    box-shadow: 0 0 0 0.5px rgba(0,0,0,0.10), 0 1px 2px rgba(0,0,0,0.22);
+    object-fit: cover;
+    -webkit-user-select: none;
+    user-select: none;
+  }
+  .chip .country-flag { height: 18px; }
+  .chip__check {
+    width: 0; height: 16px; overflow: hidden;
+    display: inline-flex; align-items: center;
+    opacity: 0;
+    transition: width var(--t-fast), opacity var(--t-fast);
+  }
+  .chip__check svg { width: 16px; height: 16px; stroke: var(--accent-ink); fill: none; stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; }
+
+  .chip.is-active {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: var(--accent-ink);
+  }
+  .chip.is-active .chip__check { width: 16px; opacity: 1; }
+
+  /* ---- CHIP PRZEŁĄCZNIK: Wszystkie / Obserwowane ----
+     Bazuje na .chip (te same zmienne: wysokość, promień, obramowanie, tło),
+     a wewnątrz renderuje dwa segmenty w stylu segmented control. Nie zmienia
+     reguł istniejących chipsów — to wyłącznie nowe klasy. */
+  .chip--toggle {
+    padding: 3px;
+    gap: 3px;
+    align-items: stretch;
+    cursor: default;
+  }
+  .chip--toggle:hover { background: var(--surface); border-color: var(--border); }
+  .chip--toggle:active { transform: none; }
+  .chip-seg {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 0 13px;
+    border-radius: var(--r-pill);
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-muted);
+    white-space: nowrap;
+    transition: background var(--t-fast), color var(--t-fast);
+  }
+  .chip-seg svg { width: 15px; height: 15px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+  .chip-seg:hover { color: var(--text); }
+  .chip-seg.is-on { background: var(--accent); color: var(--accent-ink); }
+  .chip-seg.is-on:hover { color: var(--accent-ink); }
+
+  /* Zawężanie paska przez wyszukiwarkę w nagłówku */
+  .chip.is-hidden { display: none !important; }
+
+  /* Strzałki przewijania */
+  .chips-arrow {
+    position: absolute;
+    /* 43% (nie 50%): optyczne centrum względem samych chipsów,
+       z pominięciem dolnego paddingu paska */
+    top: 43%; transform: translateY(-50%);
+    width: 38px; height: 38px;
+    display: grid; place-items: center;
+    border-radius: var(--r-pill);
+    background: var(--bg-elev);
+    border: 1px solid var(--border);
+    box-shadow: var(--shadow);
+    color: var(--text);
+    z-index: 2;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity var(--t-fast);
+  }
+  .chips-arrow.is-visible { opacity: 1; pointer-events: auto; }
+  .chips-arrow:hover { background: var(--surface-2); }
+  .chips-arrow.prev { left: 0; }
+  .chips-arrow.next { right: 0; }
+  .chips-arrow svg { width: 18px; height: 18px; stroke: currentColor; fill: none; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
+
+  /* ============================================================
+     6. MAIN / SEKCJE
+  ============================================================ */
+  main { padding-block: var(--space-xl) var(--space-2xl); }
+
+  .section { margin-bottom: var(--space-2xl); }
+  .section:last-child { margin-bottom: 0; }
+
+  .section__head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 0;
+    margin-bottom: var(--space-sm);
+  }
+  /* Mobile: nagłówek sekcji w kolumnie — tytuł, pod nim link „więcej" */
+  @media (max-width: 768px) {
+    .section__head {
+      flex-direction: column;
+      justify-content: space-evenly;
+      margin-bottom: var(--space-xs);
+    }
+  }
+  .section__title {
+    display: flex;
+    align-items: center;
+    gap: var(--space-xs);
+    font-size: clamp(20px, 3vw, 26px);
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    line-height: 1.1;
+  }
+  .section__title .kicker-dot {
+    width: 10px; height: 10px; border-radius: 50%;
+    background: var(--accent);
+    flex: 0 0 auto;
+  }
+  .section__title.live .kicker-dot { background: var(--live); animation: pulse 1.6s var(--ease) infinite; }
+  .section__more {
+    flex: 0 0 auto;
+    display: inline-flex; align-items: center; gap: 6px;
+    font-size: 14px; font-weight: 700;
+    color: var(--text-muted);
+    padding: 8px 22px;
+    border-radius: var(--r-sm);
+    transition: color var(--t-fast);
+  }
+  .section__more:hover { color: var(--accent); }
+  .section__more svg { width: 16px; height: 16px; stroke: currentColor; fill: none; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
+  /* Mobile override PO regule bazowej (ta sama specyficzność — wygrywa kolejność) */
+  @media (max-width: 768px) { .section__more { font-size: 13px; } }
+
+  @keyframes pulse {
+    0%, 100% { box-shadow: 0 0 0 0 var(--live-soft); }
+    50%      { box-shadow: 0 0 0 7px transparent; }
+  }
+
+  /* ---- Wiersz przewijany poziomo (LIVE + Zapowiedzi) ---- */
+  .row-scroll {
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: min(86vw, 408px);
+    gap: var(--space-md);
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    padding-bottom: var(--space-2xs);
+    scrollbar-width: none;
+    margin-inline: calc(-1 * var(--gutter));
+    padding-inline: var(--gutter);
+  }
+  .row-scroll::-webkit-scrollbar { display: none; }
+  .row-scroll > * { scroll-snap-align: start; }
+
+  /* ============================================================
+     7. KARTY — wspólne / miniatury
+  ============================================================ */
+  .thumb {
+    position: relative;
+    aspect-ratio: 16 / 9;
+    border-radius: var(--r-md);
+    overflow: hidden;
+    background:
+      repeating-linear-gradient(135deg, var(--thumb-a) 0 14px, var(--thumb-b) 14px 28px);
+  }
+  .thumb__dur {
+    position: absolute;
+    right: 10px; bottom: 10px;
+    padding: 3px 8px;
+    border-radius: 6px;
+    background: oklch(0 0 0 / 0.72);
+    color: #fff;
+    font-size: 12px; font-weight: 700;
+    letter-spacing: 0.02em;
+  }
+  .thumb__play {
+    position: absolute;
+    inset: 0;
+    margin: auto;
+    width: 60px; height: 60px;
+    display: grid; place-items: center;
+    border-radius: 50%;
+    background: oklch(0 0 0 / 0.45);
+    backdrop-filter: blur(2px);
+    border: 1.5px solid oklch(1 0 0 / 0.5);
+    transition: transform var(--t-med), background var(--t-med);
+  }
+  .thumb__play svg { width: 24px; height: 24px; fill: #fff; transform: translateX(1px); }
+
+  .card-video { display: block; }
+  .card-video:hover .thumb__play { transform: scale(1.08); background: var(--accent); }
+  .card-video:hover .thumb__play svg { fill: var(--accent-ink); }
+
+  /* ---- KARTA LIVE ---- */
+  .live-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--r-lg);
+    padding: var(--space-sm);
+    transition: transform var(--t-med), border-color var(--t-med), box-shadow var(--t-med);
+  }
+  .live-card:hover { transform: translateY(-4px); border-color: var(--border-strong); box-shadow: var(--shadow); }
+
+  .live-card .thumb {
+    background:
+      radial-gradient(120% 120% at 50% -10%, var(--accent-soft), transparent 55%),
+      repeating-linear-gradient(135deg, var(--thumb-a) 0 14px, var(--thumb-b) 14px 28px);
+  }
+  .live-badge {
+    position: absolute;
+    left: 12px; top: 12px;
+    display: inline-flex; align-items: center; gap: 7px;
+    padding: 5px 11px 5px 9px;
+    border-radius: var(--r-pill);
+    background: var(--live);
+    color: #fff;
+    font-size: 12px; font-weight: 800; letter-spacing: 0.08em;
+  }
+  .live-badge .dot { width: 7px; height: 7px; border-radius: 50%; background: #fff; animation: pulse-live 1.4s ease-in-out infinite; }
+  @keyframes pulse-live { 0%,100%{opacity:1;} 50%{opacity:0.35;} }
+
+  .live-minute {
+    position: absolute;
+    right: 12px; top: 12px;
+    padding: 5px 10px;
+    border-radius: var(--r-pill);
+    background: oklch(0 0 0 / 0.62);
+    color: #fff;
+    font-size: 12px; font-weight: 800;
+  }
+  .live-score {
+    position: absolute;
+    inset: auto 0 0 0;
+    display: flex; align-items: center; justify-content: center; gap: 14px;
+    padding: 16px;
+    background: linear-gradient(0deg, oklch(0 0 0 / 0.78), transparent);
+    color: #fff;
+  }
+  .live-score .team { display: flex; align-items: center; gap: 8px; font-weight: 700; font-size: 15px; }
+  .live-score .team.away { flex-direction: row-reverse; }
+  .live-score .country-flag { height: 18px; vertical-align: -0.18em; }
+  .live-score .num {
+    font-size: 26px; font-weight: 800; letter-spacing: 0.02em;
+    min-width: 26px; text-align: center;
+  }
+  .live-score .sep { opacity: 0.6; font-weight: 700; }
+
+  .live-events {
+    list-style: none;
+    margin-top: var(--space-sm);
+    display: flex; flex-direction: column; gap: 8px;
+  }
+  .live-events li {
+    display: flex; align-items: center; gap: 10px;
+    font-size: 14px; color: var(--text-muted); font-weight: 600;
+  }
+  .live-events .min {
+    flex: 0 0 auto;
+    min-width: 34px;
+    font-variant-numeric: tabular-nums;
+    font-weight: 800; color: var(--text);
+  }
+  .live-events .ball { font-size: 14px; }
+  .live-events .who { color: var(--text); }
+
+  /* KARTA ZAPOWIEDZI — przeniesiona w całości do components/card-preview.css
+     (Single Source of Truth). Plik strony NIE nadpisuje wyglądu karty;
+     dozwolone jest wyłącznie strojenie jej lokalnych zmiennych --card-*. */
+
+  /* ---- GRID SKRÓTÓW ---- */
+  .grid-videos {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: var(--space-lg) var(--space-md);
+  }
+  .vcard { display: flex; flex-direction: column; gap: var(--space-sm); }
+  .vcard .thumb { transition: transform var(--t-med); }
+  .vcard:hover .thumb { transform: translateY(-3px); }
+  .vcard__body { display: flex; flex-direction: column; gap: 8px; }
+  .vcard__title {
+    font-size: 16px; font-weight: 700;
+    letter-spacing: -0.01em;
+    line-height: 1.35;
+    text-wrap: pretty;
+  }
+  .vcard__meta {
+    display: flex; align-items: center; gap: 8px;
+    flex-wrap: wrap;
+    font-size: 13px; color: var(--text-muted); font-weight: 600;
+  }
+  .vcard__comp {
+    display: inline-flex; align-items: center;
+    padding: 3px 10px;
+    border-radius: var(--r-pill);
+    background: var(--surface-2);
+    color: var(--text-muted);
+    font-size: 12px; font-weight: 700;
+  }
+  .vcard__meta .dot-sep { width: 3px; height: 3px; border-radius: 50%; background: var(--text-faint); }
+
+  /* Aktywny player (po kliknięciu facade) */
+  .thumb.is-playing { background: #000; }
+  .thumb iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
+
+  /* ---- Stan filtra ---- */
+  .filter-note {
+    display: none;
+    align-items: center;
+    gap: var(--space-sm);
+    margin-bottom: var(--space-lg);
+    padding: var(--space-sm) var(--space-md);
+    background: var(--accent-soft);
+    border: 1px solid color-mix(in oklab, var(--accent) 35%, transparent);
+    border-radius: var(--r-md);
+    font-size: 14px; font-weight: 600;
+  }
+  .filter-note.is-visible { display: flex; }
+  .filter-note__txt { color: var(--text); }
+  .filter-note__txt b { color: var(--accent-strong); }
+  [data-theme="dark"] .filter-note__txt b { color: var(--accent); }
+  .filter-note__clear {
+    margin-left: auto;
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 7px 14px;
+    border-radius: var(--r-pill);
+    background: var(--bg-elev);
+    border: 1px solid var(--border);
+    font-weight: 700; font-size: 13px;
+    transition: background var(--t-fast);
+  }
+  .filter-note__clear:hover { background: var(--surface-2); }
+
+  /* ---- Pigułka aktywnego filtru (tylko mobile) ----
+     Minimalistyczna kapsułka pod nagłówkiem: „Filtrujesz: Kraj” + [X].
+     Pozwala zresetować filtr bez otwierania modalu wyszukiwania. */
+  .filter-pill {
+    display: none;
+    align-items: center;
+    gap: var(--space-2xs);
+    width: max-content;
+    max-width: 100%;
+    margin-bottom: var(--space-md);
+    padding: 6px 8px 6px 16px;
+    border-radius: var(--r-pill);
+    background: var(--surface);
+    border: 1px solid var(--border);
+    font-size: 13.5px;
+    font-weight: 600;
+    color: var(--text);
+  }
+  .filter-pill__txt { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .filter-pill__txt b { color: var(--accent-strong); }
+  [data-theme="dark"] .filter-pill__txt b { color: var(--accent); }
+  .filter-pill__clear {
+    flex: 0 0 auto;
+    width: 28px; height: 28px;
+    display: grid; place-items: center;
+    border-radius: var(--r-pill);
+    background: var(--surface-2);
+    color: var(--text-muted);
+    transition: background var(--t-fast), color var(--t-fast), transform var(--t-fast);
+  }
+  .filter-pill__clear:hover { background: var(--surface-hover); color: var(--text); }
+  .filter-pill__clear:active { transform: scale(0.92); }
+  .filter-pill__clear svg { width: 14px; height: 14px; stroke: currentColor; fill: none; stroke-width: 2.4; stroke-linecap: round; }
+
+  /* ---- PEŁNOEKRANOWY MODAL WYSZUKIWANIA (mobile) ---- */
+  .search-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 110;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-sm);
+    padding: var(--space-xs) var(--gutter) 0;
+    background: var(--bg);
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(14px);
+    transition: opacity var(--t-med), visibility var(--t-med), transform var(--t-med);
+  }
+  .search-overlay.is-open { opacity: 1; visibility: visible; transform: none; }
+  .search-overlay__head {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2xs);
+    min-height: var(--topbar-h);
+  }
+  .search-overlay__back { flex: 0 0 auto; }
+  .search-overlay__head .search { display: flex; max-width: none; }   /* nadpisuje mobilne ukrycie */
+  /* Przewijany obszar listy — sticky foot nakłada się na jego dół */
+  .search-overlay__body {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+  }
+  .search-overlay__grid {
+    flex: 1 0 auto;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--space-2xs);
+    align-content: start;
+    padding-block: var(--space-3xs) var(--space-2xs);
+  }
+  @media (min-width: 480px) { .search-overlay__grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+  .search-overlay__grid .chip {
+    width: 100%;
+    height: 48px;
+    justify-content: flex-start;
+  }
+  .search-overlay__grid .chip .chip__check { margin-left: auto; }
+  /* Sticky bar z przyciskiem akcji: tło modalu + miękkie wygaszenie nad krawędzią */
+  .search-overlay__foot {
+    position: sticky;
+    bottom: 0;
+    margin-top: auto;
+    padding: var(--space-2xs) 0 max(var(--space-xs), env(safe-area-inset-bottom));
+    background: var(--bg);
+  }
+  .search-overlay__foot::before {
+    content: "";
+    position: absolute;
+    left: 0; right: 0;
+    bottom: 100%;
+    height: 28px;
+    background: linear-gradient(180deg, transparent, var(--bg));
+    pointer-events: none;
+  }
+  .search-overlay__apply {
+    width: 100%;
+    height: 52px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--r-pill);
+    background: var(--accent);
+    color: var(--accent-ink);
+    font-size: 15.5px;
+    font-weight: 800;
+    letter-spacing: -0.01em;
+    transition: filter var(--t-fast), transform var(--t-fast);
+  }
+  .search-overlay__apply:hover { filter: brightness(1.05); }
+  .search-overlay__apply:active { transform: scale(0.985); }
+  @media (min-width: 769px) { .search-overlay { display: none; } }
+  @media (prefers-reduced-motion: reduce) { .search-overlay { transform: none; } }
+
+  .is-hidden-by-filter { display: none !important; }
+  /* Cała karta na stronie kategorii prowadzi do strony meczu */
+  .is-clickable { cursor: pointer; }
+
+  .empty-state {
+    display: none;
+    text-align: center;
+    padding: var(--space-xl) var(--space-md);
+    color: var(--text-muted);
+  }
+  .empty-state.is-visible { display: block; }
+  .empty-state h3 { font-size: 18px; font-weight: 800; color: var(--text); margin-bottom: 8px; }
+
+  /* ============================================================
+     8. STOPKA (ten sam kontener)
+  ============================================================ */
+  .footer {
+    border-top: 1px solid var(--border);
+    background: var(--bg);
+    padding-block: var(--space-xl);
+  }
+  .footer__grid {
+    display: grid;
+    grid-template-columns: 1.4fr repeat(3, 1fr);
+    gap: var(--space-lg);
+  }
+  .footer__brand { display: flex; flex-direction: column; gap: var(--space-sm); max-width: 320px; }
+  .footer__tag { color: var(--text-muted); font-size: 14px; }
+  .footer__col h4 { font-size: 13px; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; color: var(--text-faint); margin-bottom: var(--space-sm); }
+  .footer__col a { display: block; padding: 6px 0; color: var(--text-muted); font-weight: 600; font-size: 14px; transition: color var(--t-fast); }
+  .footer__col a:hover { color: var(--accent); }
+  .footer__bottom {
+    display: flex; align-items: center; justify-content: space-between; gap: var(--space-md);
+    flex-wrap: wrap;
+    margin-top: var(--space-xl);
+    padding-top: var(--space-lg);
+    border-top: 1px solid var(--border);
+    color: var(--text-faint);
+    font-size: 13px; font-weight: 600;
+  }
+
+  /* ============================================================
+     9. RESPONSYWNOŚĆ
+  ============================================================ */
+  @media (max-width: 860px) {
+    .footer__grid { grid-template-columns: 1fr 1fr; gap: var(--space-lg) var(--space-md); }
+    .footer__brand { grid-column: 1 / -1; }
+  }
+  /* ---- Próg mobile dla wyszukiwania i filtrów: 768px ----
+     Hub (input+toggle) i pasek chipsów znikają; zostaje lupa otwierająca
+     pełnoekranowy modal, a aktywny filtr sygnalizuje pigułka. */
+  @media (max-width: 768px) {
+    .topbar .search { display: none; }
+    .search-mobile-btn { display: grid; }
+    .chipsbar { display: none; }
+    .filter-note { display: none !important; }
+    .filter-pill.is-visible { display: inline-flex; }
+  }
+  @media (min-width: 769px) { .search-mobile-btn { display: none; } }
+  @media (max-width: 620px) {
+    :root { --topbar-h: 64px; }
+    .logo { font-size: 22px; }
+    .footer__grid { grid-template-columns: 1fr; }
+    main { padding-block: var(--space-lg) var(--space-xl); }
+    .section { margin-bottom: var(--space-xl); }
+  }
+
+  /* ============================================================
+     APP SHELL (desktop ≥1100px)
+     Header na górze (pełna szerokość, treść do max-width).
+     Poniżej CSS Grid: [sidebar] [content] — dwa NIEZALEŻNE panele
+     scrolla. body nie scrolluje (overflow:hidden) → menu i treść
+     przewijają się osobno, a sidebar zaczyna się pod headerem.
+  ============================================================ */
+  .shell { display: block; }            /* mobile: zwykły blok */
+  .content { display: block; }
+
+  @media (min-width: 1100px) {
+    html, body { height: 100%; }
+    body {
+      height: 100dvh;
+      overflow: hidden;                 /* scroll przejmują panele */
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Header: w potoku, pełna szerokość (edge-to-edge) */
+    .topbar { position: static; flex: 0 0 auto; }
+
+    /* Dwie kolumny pod headerem — FLUID, pełna szerokość ekranu.
+       Sidebar przylega do lewej krawędzi, treść wypełnia resztę. */
+    .shell {
+      flex: 1 1 auto;
+      min-height: 0;
+      width: 100%;
+      display: grid;
+      grid-template-columns: var(--sidebar-w) minmax(0, 1fr);
+      transition: grid-template-columns var(--t-med);
+    }
+    /* Zwinięte menu (hamburger) — kolumna sidebara chowa się do 0 */
+    body.nav-collapsed .shell { grid-template-columns: 0px minmax(0, 1fr); }
+    body.nav-collapsed .sidebar { opacity: 0; pointer-events: none; }
+
+    /* SIDEBAR: statyczna kolumna z własnym scrollem (zaczyna się pod headerem),
+       przylega do lewej krawędzi okna. */
+    .sidebar {
+      position: static;
+      transform: none;
+      width: auto;
+      max-width: none;
+      height: 100%;
+      box-shadow: none;
+      overflow-y: auto;
+      /* Góra = dokładnie offset wiersza chipsów (var) → 1. pozycja menu licuje
+         z paskiem chipsów. Boki/dół bez zmian. Brak magic numbers. */
+      padding: var(--chips-pad-y) var(--space-2xs) var(--space-xl);
+      transition: opacity var(--t-med);
+    }
+    .sidebar__head { display: none; }   /* logo żyje w headerze nad sidebarem */
+
+    /* CONTENT: prawa kolumna z własnym scrollem */
+    .content {
+      height: 100%;
+      overflow-y: auto;
+      overflow-x: hidden;
+    }
+
+    /* W kolumnie .content nie nakładamy drugi raz max-width/centrowania */
+    .content .chipsbar__inner,
+    .content main.container,
+    .content .footer > .container {
+      max-width: none;
+      margin-inline: 0;
+      padding-inline: var(--gutter);
+    }
+
+    /* Chipsy: sticky w obrębie scrolla treści */
+    .chipsbar { top: 0; }
+
+    .scrim { display: none !important; }
+
+    main { padding-block: var(--space-lg) var(--space-2xl); }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation-duration: 0.001ms !important; transition-duration: 0.001ms !important; scroll-behavior: auto !important; }
+  }
+
+  /* Delikatne wejście sekcji — czysto CSS, odpalane raz po załadowaniu.
+     Stan spoczynkowy elementu jest WIDOCZNY (opacity:1), animacja jedynie
+     „domalowuje” wejście. Bez JS / przy druku / reduced-motion treść jest
+     zawsze widoczna — bezpieczne dla produkcji (WordPress, SEO, no-JS). */
+  @media (prefers-reduced-motion: no-preference) {
+    html.js-anim .reveal { animation: revealIn 560ms var(--ease) backwards; }
+    html.js-anim .reveal:nth-of-type(2) { animation-delay: 70ms; }
+    html.js-anim .reveal:nth-of-type(3) { animation-delay: 140ms; }
+  }
+  @keyframes revealIn {
+    from { transform: translateY(16px); }
+    to   { transform: none; }
+  }
+  </style>
+
+  <!-- MODUŁ KOMPONENTU — jedyne źródło prawdy o wyglądzie karty zapowiedzi -->
+  <link rel="stylesheet" href="components/card-preview.css" />
+  <!-- MODUŁ: wskaźnik obserwowania na chipsach (stan .is-followed) -->
+  <link rel="stylesheet" href="components/chip-follow.css" />
+</head>
+
+<body>
+
+  <!-- ============================ TOP BAR (header na górze, pełna szerokość) ============================ -->
+  <header class="topbar">
+    <div class="topbar__inner container">
+      <div class="topbar__left">
+        <button class="icon-btn" id="menuBtn" aria-label="Otwórz menu" aria-expanded="false" aria-controls="sidebar">
+          <svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+        </button>
+        <a class="logo" href="#" aria-label="Hajlajty — strona główna">
+          <span class="logo__text">hajlajt<span class="logo__y">y</span></span>
+          <svg class="logo__play" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" stroke="currentColor" stroke-width="3" stroke-linejoin="round" stroke-linecap="round" d="M7 5.8 18 12 7 18.2Z"/></svg>
+        </a>
+      </div>
+
+      <!-- WYSZUKIWARKA z wbudowanym chipsem-włącznikiem „Obserwowane” (on/off).
+           Stan domyślny (off) = wszystkie reprezentacje; włączony = filtr obserwowanych. -->
+      <form class="search" role="search" onsubmit="return false">
+        <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.2-3.2"/></svg>
+        <input type="search" placeholder="Szukaj reprezentacji..." aria-label="Szukaj reprezentacji" />
+        <button type="button" class="search__obs" data-action="toggle-observed" aria-pressed="false" title="Pokaż tylko obserwowane">
+          <svg viewBox="0 0 24 24"><path d="M2 12s3.6-6.5 10-6.5S22 12 22 12s-3.6 6.5-10 6.5S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>
+          <span class="search__obs-txt">Obserwowane</span>
+        </button>
+      </form>
+
+      <div class="topbar__right">
+        <button class="icon-btn search-mobile-btn" data-action="open-search" aria-label="Szukaj" aria-haspopup="dialog" aria-controls="searchOverlay">
+          <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.2-3.2"/></svg>
+        </button>
+        <button class="icon-btn theme-toggle" id="themeBtn" aria-label="Przełącz motyw jasny/ciemny">
+          <svg class="sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4.2"/><path d="M12 2v2.5M12 19.5V22M2 12h2.5M19.5 12H22M4.9 4.9l1.8 1.8M17.3 17.3l1.8 1.8M19.1 4.9l-1.8 1.8M6.7 17.3l-1.8 1.8"/></svg>
+          <svg class="moon" viewBox="0 0 24 24"><path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z"/></svg>
+        </button>
+        <button class="icon-btn" aria-label="Profil">
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="8.5" r="3.8"/><path d="M4.5 20a7.5 7.5 0 0 1 15 0"/></svg>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- ============== PEŁNOEKRANOWY MODAL WYSZUKIWANIA (mobile) ==============
+       Otwierany lupą w nagłówku; blokuje przewijanie tła. Chipsy reprezentacji
+       są klonowane z paska #chips przez JS (jedno źródło prawdy). -->
+  <div class="search-overlay" id="searchOverlay" role="dialog" aria-modal="true" aria-label="Wyszukiwanie reprezentacji">
+    <div class="search-overlay__head">
+      <!-- Strzałka powrotu (jak na stronie zapowiedzi) = anuluj i zamknij -->
+      <button class="icon-btn search-overlay__back" data-action="close-search" aria-label="Wróć (anuluj wyszukiwanie)">
+        <svg viewBox="0 0 24 24"><path d="m15 5-7 7 7 7"/></svg>
+      </button>
+      <form class="search" role="search" onsubmit="return false">
+        <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.2-3.2"/></svg>
+        <input type="search" id="overlayInput" placeholder="Szukaj reprezentacji..." aria-label="Szukaj reprezentacji" />
+        <!-- [X] czyści wyłącznie tekst; widoczny tylko podczas wpisywania -->
+        <button type="button" class="search__clear" data-action="clear-query" hidden aria-label="Wyczyść tekst">
+          <svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg>
+        </button>
+        <!-- Chips „Obserwowane” skurczony do ikony oka -->
+        <button type="button" class="search__obs search__obs--icon" data-action="toggle-observed" aria-pressed="false" aria-label="Pokaż tylko obserwowane" title="Pokaż tylko obserwowane">
+          <svg viewBox="0 0 24 24"><path d="M2 12s3.6-6.5 10-6.5S22 12 22 12s-3.6 6.5-10 6.5S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>
+          <span class="search__obs-txt">Obserwowane</span>
+        </button>
+      </form>
+    </div>
+    <div class="search-overlay__body">
+      <div class="search-overlay__grid" id="overlayChips" aria-label="Reprezentacje"></div>
+      <!-- STICKY BAR: zawsze widoczny nad przewijaną listą; zatwierdza wybór i zamyka modal -->
+      <div class="search-overlay__foot">
+        <button type="button" class="search-overlay__apply" data-action="apply-search">Zatwierdź i pokaż mecze</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="scrim" id="scrim" hidden></div>
+
+  <!-- ===================== APP SHELL: sidebar + treść (poniżej headera) ===================== -->
+  <div class="shell">
+
+  <!-- ============================ SIDEBAR ============================ -->
+  <aside class="sidebar" id="sidebar" aria-label="Menu główne">
+    <div class="sidebar__head">
+      <button class="icon-btn" id="sidebarClose" aria-label="Zamknij menu">
+        <svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+      </button>
+      <a class="logo" href="#" aria-label="Hajlajty — strona główna">
+        <span class="logo__text">hajlajt<span class="logo__y">y</span></span>
+        <svg class="logo__play" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" stroke="currentColor" stroke-width="3" stroke-linejoin="round" stroke-linecap="round" d="M7 5.8 18 12 7 18.2Z"/></svg>
+      </a>
+    </div>
+
+    <nav class="sidebar__group">
+      <a class="nav-link" href="Hajlajty - Strona Główna.html"><svg viewBox="0 0 24 24"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V21h14V9.5"/></svg> Strona główna</a>
+      <a class="nav-link" href="Hajlajty - Na Żywo.html"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M5.6 5.6a9 9 0 0 0 0 12.8M18.4 5.6a9 9 0 0 1 0 12.8"/></svg> Na żywo <span class="badge-live">● LIVE</span></a>
+      <a class="nav-link is-active" href="Hajlajty - Zapowiedzi.html"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg> Zapowiedzi</a>
+      <a class="nav-link" href="Hajlajty - Skróty.html"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="3"/><path d="M10 9.5v5l4-2.5z"/></svg> Skróty</a>
+    </nav>
+
+    <nav class="sidebar__group">
+      <p class="sidebar__label">Mundial 2026</p>
+      <a class="nav-link" href="Hajlajty - Terminarz Turnieju.html"><svg viewBox="0 0 24 24"><path d="M6 4h12v3a6 6 0 0 1-12 0z"/><path d="M9 14h6M10 14v4M14 14v4M8 21h8"/></svg> Terminarz turnieju</a>
+      <a class="nav-link" href="Hajlajty - Tabele Grup.html"><svg viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h10"/></svg> Tabele grup</a>
+      <a class="nav-link" href="Hajlajty - Reprezentacje.html"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 3a14 14 0 0 0 0 18M12 3a14 14 0 0 1 0 18M3 12h18"/></svg> Reprezentacje</a>
+    </nav>
+
+    <nav class="sidebar__group">
+      <p class="sidebar__label">Twoje</p>
+      <a class="nav-link" href="Hajlajty - Obserwowane.html"><svg viewBox="0 0 24 24"><path d="M2 12s3.6-6.5 10-6.5S22 12 22 12s-3.6 6.5-10 6.5S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg> Obserwowane</a>
+      <a class="nav-link" href="Hajlajty - Ulubione.html"><svg viewBox="0 0 24 24"><path d="M12 20.5 4.2 12.7a4.7 4.7 0 0 1 6.6-6.6l1.2 1.2 1.2-1.2a4.7 4.7 0 0 1 6.6 6.6z"/></svg> Ulubione</a>
+      <a class="nav-link" href="Hajlajty - Ustawienia.html"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 12a7.4 7.4 0 0 0-.1-1.2l2-1.5-2-3.4-2.3 1a7.3 7.3 0 0 0-2-1.2L16.6 2h-4l-.4 2.5a7.3 7.3 0 0 0-2 1.2l-2.3-1-2 3.4 2 1.5a7.4 7.4 0 0 0 0 2.4l-2 1.5 2 3.4 2.3-1a7.3 7.3 0 0 0 2 1.2l.4 2.5h4l.4-2.5a7.3 7.3 0 0 0 2-1.2l2.3 1 2-3.4-2-1.5c.07-.4.1-.8.1-1.2z"/></svg> Ustawienia</a>
+    </nav>
+  </aside>
+
+  <!-- ============================ TREŚĆ (prawa kolumna) ============================ -->
+  <div class="content" id="content">
+
+  <!-- ========================= PASEK CHIPSÓW ========================= -->
+  <div class="chipsbar">
+    <div class="chipsbar__inner container">
+      <button class="chips-arrow prev" id="chipsPrev" aria-label="Przewiń w lewo">
+        <svg viewBox="0 0 24 24"><path d="m15 5-7 7 7 7"/></svg>
+      </button>
+
+      <div class="chips-scroll" id="chips">
+        <!-- chip: data-team = kod reprezentacji (przełącznik trybu przeniósł się do nagłówka) -->
+        <button class="chip" data-team="POL"><img class="country-flag" src="https://flagcdn.com/pl.svg" alt="Polska" /> Polska <span class="chip__eye-indicator" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M2 12s3.6-6.5 10-6.5S22 12 22 12s-3.6 6.5-10 6.5S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></span> <span class="chip__check"><svg viewBox="0 0 24 24"><path d="m5 12 5 5 9-11"/></svg></span></button>
+        <button class="chip" data-team="BRA"><img class="country-flag" src="https://flagcdn.com/br.svg" alt="Brazylia" /> Brazylia <span class="chip__eye-indicator" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M2 12s3.6-6.5 10-6.5S22 12 22 12s-3.6 6.5-10 6.5S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></span> <span class="chip__check"><svg viewBox="0 0 24 24"><path d="m5 12 5 5 9-11"/></svg></span></button>
+        <button class="chip" data-team="ARG"><img class="country-flag" src="https://flagcdn.com/ar.svg" alt="Argentyna" /> Argentyna <span class="chip__eye-indicator" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M2 12s3.6-6.5 10-6.5S22 12 22 12s-3.6 6.5-10 6.5S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></span> <span class="chip__check"><svg viewBox="0 0 24 24"><path d="m5 12 5 5 9-11"/></svg></span></button>
+        <button class="chip" data-team="FRA"><img class="country-flag" src="https://flagcdn.com/fr.svg" alt="Francja" /> Francja <span class="chip__eye-indicator" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M2 12s3.6-6.5 10-6.5S22 12 22 12s-3.6 6.5-10 6.5S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></span> <span class="chip__check"><svg viewBox="0 0 24 24"><path d="m5 12 5 5 9-11"/></svg></span></button>
+        <button class="chip" data-team="ESP"><img class="country-flag" src="https://flagcdn.com/es.svg" alt="Hiszpania" /> Hiszpania <span class="chip__eye-indicator" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M2 12s3.6-6.5 10-6.5S22 12 22 12s-3.6 6.5-10 6.5S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></span> <span class="chip__check"><svg viewBox="0 0 24 24"><path d="m5 12 5 5 9-11"/></svg></span></button>
+        <button class="chip" data-team="GER"><img class="country-flag" src="https://flagcdn.com/de.svg" alt="Niemcy" /> Niemcy <span class="chip__eye-indicator" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M2 12s3.6-6.5 10-6.5S22 12 22 12s-3.6 6.5-10 6.5S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></span> <span class="chip__check"><svg viewBox="0 0 24 24"><path d="m5 12 5 5 9-11"/></svg></span></button>
+        <button class="chip" data-team="POR"><img class="country-flag" src="https://flagcdn.com/pt.svg" alt="Portugalia" /> Portugalia <span class="chip__eye-indicator" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M2 12s3.6-6.5 10-6.5S22 12 22 12s-3.6 6.5-10 6.5S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></span> <span class="chip__check"><svg viewBox="0 0 24 24"><path d="m5 12 5 5 9-11"/></svg></span></button>
+        <button class="chip" data-team="NED"><img class="country-flag" src="https://flagcdn.com/nl.svg" alt="Holandia" /> Holandia <span class="chip__eye-indicator" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M2 12s3.6-6.5 10-6.5S22 12 22 12s-3.6 6.5-10 6.5S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></span> <span class="chip__check"><svg viewBox="0 0 24 24"><path d="m5 12 5 5 9-11"/></svg></span></button>
+        <button class="chip" data-team="MAR"><img class="country-flag" src="https://flagcdn.com/ma.svg" alt="Maroko" /> Maroko <span class="chip__eye-indicator" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M2 12s3.6-6.5 10-6.5S22 12 22 12s-3.6 6.5-10 6.5S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></span> <span class="chip__check"><svg viewBox="0 0 24 24"><path d="m5 12 5 5 9-11"/></svg></span></button>
+        <button class="chip" data-team="MEX"><img class="country-flag" src="https://flagcdn.com/mx.svg" alt="Meksyk" /> Meksyk <span class="chip__eye-indicator" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M2 12s3.6-6.5 10-6.5S22 12 22 12s-3.6 6.5-10 6.5S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></span> <span class="chip__check"><svg viewBox="0 0 24 24"><path d="m5 12 5 5 9-11"/></svg></span></button>
+        <button class="chip" data-team="USA"><img class="country-flag" src="https://flagcdn.com/us.svg" alt="USA" /> USA <span class="chip__eye-indicator" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M2 12s3.6-6.5 10-6.5S22 12 22 12s-3.6 6.5-10 6.5S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></span> <span class="chip__check"><svg viewBox="0 0 24 24"><path d="m5 12 5 5 9-11"/></svg></span></button>
+        <button class="chip" data-team="JPN"><img class="country-flag" src="https://flagcdn.com/jp.svg" alt="Japonia" /> Japonia <span class="chip__eye-indicator" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M2 12s3.6-6.5 10-6.5S22 12 22 12s-3.6 6.5-10 6.5S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></span> <span class="chip__check"><svg viewBox="0 0 24 24"><path d="m5 12 5 5 9-11"/></svg></span></button>
+        <button class="chip" data-team="CRO"><img class="country-flag" src="https://flagcdn.com/hr.svg" alt="Chorwacja" /> Chorwacja <span class="chip__eye-indicator" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M2 12s3.6-6.5 10-6.5S22 12 22 12s-3.6 6.5-10 6.5S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></span> <span class="chip__check"><svg viewBox="0 0 24 24"><path d="m5 12 5 5 9-11"/></svg></span></button>
+        <button class="chip" data-team="URU"><img class="country-flag" src="https://flagcdn.com/uy.svg" alt="Urugwaj" /> Urugwaj <span class="chip__eye-indicator" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M2 12s3.6-6.5 10-6.5S22 12 22 12s-3.6 6.5-10 6.5S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></span> <span class="chip__check"><svg viewBox="0 0 24 24"><path d="m5 12 5 5 9-11"/></svg></span></button>
+        <button class="chip" data-team="BEL"><img class="country-flag" src="https://flagcdn.com/be.svg" alt="Belgia" /> Belgia <span class="chip__eye-indicator" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M2 12s3.6-6.5 10-6.5S22 12 22 12s-3.6 6.5-10 6.5S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></span> <span class="chip__check"><svg viewBox="0 0 24 24"><path d="m5 12 5 5 9-11"/></svg></span></button>
+        <button class="chip" data-team="KOR"><img class="country-flag" src="https://flagcdn.com/kr.svg" alt="Korea Płd." /> Korea Płd. <span class="chip__eye-indicator" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M2 12s3.6-6.5 10-6.5S22 12 22 12s-3.6 6.5-10 6.5S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></span> <span class="chip__check"><svg viewBox="0 0 24 24"><path d="m5 12 5 5 9-11"/></svg></span></button>
+      </div>
+
+      <button class="chips-arrow next" id="chipsNext" aria-label="Przewiń w prawo">
+        <svg viewBox="0 0 24 24"><path d="m9 5 7 7-7 7"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- ============================== MAIN ============================== -->
+  <main class="container" data-card-region>
+
+    <!-- Pigułka aktywnego filtru (mobile) — wyjście z przefiltrowanego widoku
+         bez otwierania modalu. -->
+    <div class="filter-pill" id="filterPill">
+      <span class="filter-pill__txt">Filtrujesz: <b id="filterPillTeams"></b></span>
+      <button class="filter-pill__clear" id="filterPillClear" data-action="clear-filter" aria-label="Wyczyść filtr">
+        <svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg>
+      </button>
+    </div>
+
+    <!-- ===== STRONA KATEGORII: Zapowiedzi — pełna lista w siatce.
+         Karty są skopiowane 1:1 ze strony głównej (te same klasy). ===== -->
+    <section class="section reveal" id="zapowiedzi" data-screen-label="Zapowiedzi">
+      <div class="section__head">
+        <h2 class="section__title"><span class="kicker-dot"></span> Zapowiedzi</h2>
+      </div>
+
+      <div class="grid-videos" data-filterable>
+
+        <article class="card--preview" data-card-id="up-POL-BRA" data-teams="POL BRA" data-kickoff="2026-06-11T20:00:00">
+          <button class="card__fav" data-card-fav aria-pressed="false" aria-label="Dodaj do ulubionych">
+            <svg viewBox="0 0 24 24"><path d="M12 20.5 4.2 12.7a4.7 4.7 0 0 1 6.6-6.6l1.2 1.2 1.2-1.2a4.7 4.7 0 0 1 6.6 6.6z"/></svg>
+          </button>
+          <span class="card__phase">⚽ Faza grupowa · Grupa C</span>
+          <div class="card__countdown" data-countdown>
+            <div class="card__unit"><span class="card__val" data-d>00</span><span class="card__lab">dni</span></div>
+            <div class="card__unit"><span class="card__val" data-h>00</span><span class="card__lab">godz</span></div>
+            <div class="card__unit"><span class="card__val" data-m>00</span><span class="card__lab">min</span></div>
+            <div class="card__unit"><span class="card__val" data-s>00</span><span class="card__lab">sek</span></div>
+          </div>
+          <p class="card__when" data-when></p>
+          <div class="card__teams">
+            <div class="card__team"><img class="country-flag" src="https://flagcdn.com/pl.svg" alt="PL" /><span class="card__team-name">Polska</span></div>
+            <span class="card__vs">VS</span>
+            <div class="card__team"><img class="country-flag" src="https://flagcdn.com/br.svg" alt="BR" /><span class="card__team-name">Brazylia</span></div>
+          </div>
+          <button class="card__bell" data-card-bell aria-pressed="false">
+            <svg viewBox="0 0 24 24"><path d="M18 8.4A6 6 0 0 0 6 8.4c0 6.6-2.6 8.6-2.6 8.6h17.2S18 15 18 8.4"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg>
+            <span data-bell-text>Przypomnij mi</span>
+          </button>
+        </article>
+
+        <article class="card--preview" data-card-id="up-FRA-GER" data-teams="FRA GER" data-kickoff="2026-06-12T20:45:00">
+          <button class="card__fav" data-card-fav aria-pressed="false" aria-label="Dodaj do ulubionych">
+            <svg viewBox="0 0 24 24"><path d="M12 20.5 4.2 12.7a4.7 4.7 0 0 1 6.6-6.6l1.2 1.2 1.2-1.2a4.7 4.7 0 0 1 6.6 6.6z"/></svg>
+          </button>
+          <span class="card__phase">⚽ Faza grupowa · Grupa A</span>
+          <div class="card__countdown" data-countdown>
+            <div class="card__unit"><span class="card__val" data-d>00</span><span class="card__lab">dni</span></div>
+            <div class="card__unit"><span class="card__val" data-h>00</span><span class="card__lab">godz</span></div>
+            <div class="card__unit"><span class="card__val" data-m>00</span><span class="card__lab">min</span></div>
+            <div class="card__unit"><span class="card__val" data-s>00</span><span class="card__lab">sek</span></div>
+          </div>
+          <p class="card__when" data-when></p>
+          <div class="card__teams">
+            <div class="card__team"><img class="country-flag" src="https://flagcdn.com/fr.svg" alt="FR" /><span class="card__team-name">Francja</span></div>
+            <span class="card__vs">VS</span>
+            <div class="card__team"><img class="country-flag" src="https://flagcdn.com/de.svg" alt="DE" /><span class="card__team-name">Niemcy</span></div>
+          </div>
+          <button class="card__bell" data-card-bell aria-pressed="false">
+            <svg viewBox="0 0 24 24"><path d="M18 8.4A6 6 0 0 0 6 8.4c0 6.6-2.6 8.6-2.6 8.6h17.2S18 15 18 8.4"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg>
+            <span data-bell-text>Przypomnij mi</span>
+          </button>
+        </article>
+
+        <article class="card--preview" data-card-id="up-ARG-ESP" data-teams="ARG ESP" data-kickoff="2026-06-13T18:00:00">
+          <button class="card__fav" data-card-fav aria-pressed="false" aria-label="Dodaj do ulubionych">
+            <svg viewBox="0 0 24 24"><path d="M12 20.5 4.2 12.7a4.7 4.7 0 0 1 6.6-6.6l1.2 1.2 1.2-1.2a4.7 4.7 0 0 1 6.6 6.6z"/></svg>
+          </button>
+          <span class="card__phase">⚽ Faza grupowa · Grupa F</span>
+          <div class="card__countdown" data-countdown>
+            <div class="card__unit"><span class="card__val" data-d>00</span><span class="card__lab">dni</span></div>
+            <div class="card__unit"><span class="card__val" data-h>00</span><span class="card__lab">godz</span></div>
+            <div class="card__unit"><span class="card__val" data-m>00</span><span class="card__lab">min</span></div>
+            <div class="card__unit"><span class="card__val" data-s>00</span><span class="card__lab">sek</span></div>
+          </div>
+          <p class="card__when" data-when></p>
+          <div class="card__teams">
+            <div class="card__team"><img class="country-flag" src="https://flagcdn.com/ar.svg" alt="AR" /><span class="card__team-name">Argentyna</span></div>
+            <span class="card__vs">VS</span>
+            <div class="card__team"><img class="country-flag" src="https://flagcdn.com/es.svg" alt="ES" /><span class="card__team-name">Hiszpania</span></div>
+          </div>
+          <button class="card__bell" data-card-bell aria-pressed="false">
+            <svg viewBox="0 0 24 24"><path d="M18 8.4A6 6 0 0 0 6 8.4c0 6.6-2.6 8.6-2.6 8.6h17.2S18 15 18 8.4"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg>
+            <span data-bell-text>Przypomnij mi</span>
+          </button>
+        </article>
+
+        <article class="card--preview" data-card-id="up-POR-NED" data-teams="POR NED" data-kickoff="2026-06-14T21:00:00">
+          <button class="card__fav" data-card-fav aria-pressed="false" aria-label="Dodaj do ulubionych">
+            <svg viewBox="0 0 24 24"><path d="M12 20.5 4.2 12.7a4.7 4.7 0 0 1 6.6-6.6l1.2 1.2 1.2-1.2a4.7 4.7 0 0 1 6.6 6.6z"/></svg>
+          </button>
+          <span class="card__phase">⚽ Faza grupowa · Grupa H</span>
+          <div class="card__countdown" data-countdown>
+            <div class="card__unit"><span class="card__val" data-d>00</span><span class="card__lab">dni</span></div>
+            <div class="card__unit"><span class="card__val" data-h>00</span><span class="card__lab">godz</span></div>
+            <div class="card__unit"><span class="card__val" data-m>00</span><span class="card__lab">min</span></div>
+            <div class="card__unit"><span class="card__val" data-s>00</span><span class="card__lab">sek</span></div>
+          </div>
+          <p class="card__when" data-when></p>
+          <div class="card__teams">
+            <div class="card__team"><img class="country-flag" src="https://flagcdn.com/pt.svg" alt="PT" /><span class="card__team-name">Portugalia</span></div>
+            <span class="card__vs">VS</span>
+            <div class="card__team"><img class="country-flag" src="https://flagcdn.com/nl.svg" alt="NL" /><span class="card__team-name">Holandia</span></div>
+          </div>
+          <button class="card__bell" data-card-bell aria-pressed="false">
+            <svg viewBox="0 0 24 24"><path d="M18 8.4A6 6 0 0 0 6 8.4c0 6.6-2.6 8.6-2.6 8.6h17.2S18 15 18 8.4"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg>
+            <span data-bell-text>Przypomnij mi</span>
+          </button>
+        </article>
+
+      </div>
+
+      <div class="empty-state" id="emptyState">
+        <h3>Brak zapowiedzi dla tego filtru</h3>
+        <p>Wyczyść wyszukiwanie lub wyłącz filtr obserwowanych, aby zobaczyć wszystkie nadchodzące mecze.</p>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ============================= STOPKA ============================= -->
+  <footer class="footer">
+    <div class="container">
+      <div class="footer__grid">
+        <div class="footer__brand">
+          <a class="logo" href="#" aria-label="Hajlajty">
+            <svg class="logo__play" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M8 5v14l11-7z"/></svg>
+            <span class="logo__text">hajlajt<span class="logo__y">y</span></span>
+          </a>
+          <p class="footer__tag">Portal Młodego Kibica. Wszystkie skróty reprezentacji w jednym miejscu — prosto z oficjalnych kanałów.</p>
+        </div>
+        <div class="footer__col">
+          <h4>Serwis</h4>
+          <a href="Hajlajty - Na Żywo.html">Na żywo</a>
+          <a href="Hajlajty - Zapowiedzi.html">Zapowiedzi</a>
+          <a href="Hajlajty - Skróty.html">Skróty</a>
+          <a href="#">Reprezentacje</a>
+        </div>
+        <div class="footer__col">
+          <h4>Mundial 2026</h4>
+          <a href="#">Terminarz</a>
+          <a href="#">Grupy</a>
+          <a href="#">Faza pucharowa</a>
+          <a href="#">Strzelcy</a>
+        </div>
+        <div class="footer__col">
+          <h4>Hajlajty</h4>
+          <a href="#">O nas</a>
+          <a href="#">Kontakt</a>
+          <a href="#">Polityka prywatności</a>
+          <a href="#">Regulamin</a>
+        </div>
+      </div>
+      <div class="footer__bottom">
+        <span>© 2026 Hajlajty.pl — wszystkie prawa zastrzeżone.</span>
+        <span>Skróty pochodzą z oficjalnych kanałów YouTube.</span>
+      </div>
+    </div>
+  </footer>
+
+  </div><!-- /.content -->
+  </div><!-- /.shell -->
+
+  <!-- ============================== SKRYPT ============================== -->
+  <script>
+  (function () {
+    "use strict";
+
+    var STORE = { theme: "hajlajty:theme", follows: "hajlajty:follows", mode: "hajlajty:chipmode" };
+    var $  = function (s, c) { return (c || document).querySelector(s); };
+    var $$ = function (s, c) { return Array.prototype.slice.call((c || document).querySelectorAll(s)); };
+
+    /* ---------------------------------------------------------
+       MOTYW (light / dark) + zapamiętanie
+    --------------------------------------------------------- */
+    var root = document.documentElement;
+    try {
+      var saved = localStorage.getItem(STORE.theme);
+      if (saved) root.setAttribute("data-theme", saved);
+    } catch (e) {}
+
+    $("#themeBtn").addEventListener("click", function () {
+      var next = root.getAttribute("data-theme") === "dark" ? "light" : "dark";
+      root.setAttribute("data-theme", next);
+      try { localStorage.setItem(STORE.theme, next); } catch (e) {}
+    });
+
+    /* ---------------------------------------------------------
+       SIDEBAR (off-canvas)
+    --------------------------------------------------------- */
+    var sidebar = $("#sidebar"), scrim = $("#scrim"), menuBtn = $("#menuBtn");
+
+    function openSidebar() {
+      sidebar.classList.add("is-open");
+      scrim.hidden = false;
+      requestAnimationFrame(function () { scrim.classList.add("is-open"); });
+      menuBtn.setAttribute("aria-expanded", "true");
+      document.body.style.overflow = "hidden";
+    }
+    function closeSidebar() {
+      sidebar.classList.remove("is-open");
+      scrim.classList.remove("is-open");
+      menuBtn.setAttribute("aria-expanded", "false");
+      document.body.style.overflow = "";
+      setTimeout(function () { if (!scrim.classList.contains("is-open")) scrim.hidden = true; }, 260);
+    }
+
+    menuBtn.addEventListener("click", function () {
+      if (window.matchMedia("(min-width: 1100px)").matches) {
+        /* Desktop: hamburger zwija/rozwija zadokowane menu */
+        document.body.classList.toggle("nav-collapsed");
+        var collapsed = document.body.classList.contains("nav-collapsed");
+        menuBtn.setAttribute("aria-expanded", String(!collapsed));
+      } else {
+        /* Mobile: hamburger wysuwa menu off-canvas */
+        openSidebar();
+      }
+    });
+    $("#sidebarClose").addEventListener("click", closeSidebar);
+    scrim.addEventListener("click", closeSidebar);
+    document.addEventListener("keydown", function (e) { if (e.key === "Escape") closeSidebar(); });
+    $$(".sidebar .nav-link").forEach(function (a) { a.addEventListener("click", function () {
+      if (!window.matchMedia("(min-width: 1100px)").matches) closeSidebar();
+    }); });
+
+    /* Przy przejściu do desktopu (menu zadokowane) czyścimy stan overlay'a */
+    var mqDesktop = window.matchMedia("(min-width: 1100px)");
+    function syncSidebarMode(e) {
+      if (e.matches) {
+        sidebar.classList.remove("is-open");
+        scrim.classList.remove("is-open");
+        scrim.hidden = true;
+        document.body.style.overflow = "";
+        menuBtn.setAttribute("aria-expanded", "false");
+      }
+    }
+    mqDesktop.addEventListener("change", syncSidebarMode);
+    syncSidebarMode(mqDesktop);
+
+    /* ---------------------------------------------------------
+       CHIPSY: tryb (Wszystkie / Obserwowane) + filtrowanie treści
+       + wyszukiwarka w nagłówku zawężająca pasek
+    --------------------------------------------------------- */
+    // Tylko realne chipsy krajów w pasku (źródło prawdy dla klonów w modalu)
+    var chips = $$("#chips .chip[data-team]");
+    /* Chips-włącznik „Obserwowane” (on/off): w nagłówku (desktop) i w inpucie
+       modalu (mobile, sama ikona oka) — jeden wspólny stan. */
+    var obsBtns = $$("[data-action='toggle-observed']");
+
+    /* Klony chipsów w siatce modalu — ten sam markup, ta sama logika. */
+    var overlayGrid = $("#overlayChips");
+    var overlayChips = [];
+    if (overlayGrid) {
+      chips.forEach(function (chip) {
+        var clone = chip.cloneNode(true);
+        overlayGrid.appendChild(clone);
+        overlayChips.push(clone);
+      });
+    }
+    var allChips = chips.concat(overlayChips);
+
+    /* OBSERWOWANE — zbiór trwały (localStorage). Symulujemy wcześniejsze
+       „zaobserwowania” (akcja lornetki) domyślnym zestawem, gdy brak zapisu. */
+    var observed = new Set();
+    var hadStore = false;
+    try {
+      var raw = localStorage.getItem(STORE.follows);
+      if (raw !== null) { hadStore = true; JSON.parse(raw).forEach(function (t) { observed.add(t); }); }
+    } catch (e) {}
+    if (!hadStore) { ["POL", "BRA", "ARG", "ESP"].forEach(function (t) { observed.add(t); }); }
+
+    /* TRYB paska: "all" | "observed" */
+    var mode = "all";
+    try { var savedMode = localStorage.getItem(STORE.mode); if (savedMode === "all" || savedMode === "observed") mode = savedMode; } catch (e) {}
+
+    /* ACTIVE — chipsy aktywne (is-active) sterujące filtrem kart */
+    var active = new Set();
+    if (mode === "observed") observed.forEach(function (t) { active.add(t); });
+
+    /* QUERY — fraza wyszukiwania filtruje też karty meczów */
+    var query = "";
+    var queryRaw = "";
+
+    var filterPill = $("#filterPill");
+    var filterPillTeams = $("#filterPillTeams");
+    var emptyState = $("#emptyState");
+
+    /* Efemeryczny komunikat filtra — standardowy toast (kapsułka) u dołu strony,
+       bez listowania reprezentacji. Wyłącznie przy interakcji (nie przy starcie). */
+    function notifyFilter() {
+      if (!window.Hajlajty || !window.Hajlajty.toast) return;
+      var title = active.size === 0
+        ? "Pokazuję wszystkie mecze"
+        : (mode === "observed"
+            ? "Pokazuję mecze obserwowanych reprezentacji"
+            : "Pokazuję mecze wybranych reprezentacji");
+      window.Hajlajty.toast({ simple: true, title: title, duration: 2600 });
+    }
+
+    function teamName(code) {
+      var chip = chips.filter(function (c) { return c.dataset.team === code; })[0];
+      if (!chip) return code;
+      return chip.textContent.trim();
+    }
+
+    function persistObserved() {
+      try { localStorage.setItem(STORE.follows, JSON.stringify(Array.from(observed))); } catch (e) {}
+    }
+    function persistMode() { try { localStorage.setItem(STORE.mode, mode); } catch (e) {} }
+
+    function applyFilter() {
+      var list = Array.from(active);
+
+      // Stan chipsów (podświetlenie is-active) — pasek + siatka modalu
+      allChips.forEach(function (c) { c.classList.toggle("is-active", active.has(c.dataset.team)); });
+
+      // Pigułka filtru (mobile) — jedyny stały indykator; desktop komunikuje toastem
+      var labels = list.map(teamName);
+      if (queryRaw !== "") labels.push("\u201E" + queryRaw + "\u201D");
+      if (labels.length) {
+        filterPillTeams.textContent = labels.join(", ");
+        filterPill.classList.add("is-visible");
+      } else {
+        filterPill.classList.remove("is-visible");
+      }
+
+      // Filtrowanie kart we wszystkich sekcjach (parowanie data-team ↔ data-teams)
+      $$("[data-filterable]").forEach(function (container) {
+        var cards = $$("[data-teams]", container);
+        var visible = 0;
+        cards.forEach(function (card) {
+          var teams = (card.dataset.teams || "").split(/\s+/);
+          var matchChips = list.length === 0 || teams.some(function (t) { return active.has(t); });
+          /* Fraza dopasowuje też kody (POL) i pełne nazwy (Polska) drużyn karty */
+          var hay = norm(card.textContent) + " " + norm(teams.join(" ")) + " " + norm(teams.map(teamName).join(" "));
+          var matchQuery = query === "" || hay.indexOf(query) !== -1;
+          var match = matchChips && matchQuery;
+          card.classList.toggle("is-hidden-by-filter", !match);
+          if (match) visible++;
+        });
+        // Pusty stan siatki — zero wyników dla chipsów/oka/frazy
+        emptyState.classList.toggle("is-visible", visible === 0 && (list.length > 0 || query !== ""));
+      });
+    }
+
+    function renderMode() {
+      var on = mode === "observed";
+      obsBtns.forEach(function (b) {
+        b.classList.toggle("is-on", on);
+        b.setAttribute("aria-pressed", String(on));
+      });
+    }
+
+    function setMode(next) {
+      if (next === mode) return;
+      mode = next;
+      persistMode();
+      // "observed" → auto-aktywuj obserwowane; "all" → wyczyść filtr (pokaż wszystko)
+      active = (mode === "observed") ? new Set(observed) : new Set();
+      renderMode();
+      applyFilter();
+      notifyFilter();
+    }
+
+    obsBtns.forEach(function (b) {
+      b.addEventListener("click", function () { setMode(mode === "observed" ? "all" : "observed"); });
+    });
+
+    allChips.forEach(function (chip) {
+      chip.addEventListener("click", function () {
+        var code = chip.dataset.team;
+        if (active.has(code)) active.delete(code); else active.add(code);
+        // W trybie „Obserwowane” klik kuruje listę obserwowanych
+        if (mode === "observed") {
+          if (active.has(code)) observed.add(code); else observed.delete(code);
+          persistObserved();
+        }
+        applyFilter();
+        notifyFilter();
+      });
+    });
+
+    /* Pigułka (mobile): X = pełny reset filtru → wracają wszystkie mecze */
+    $("#filterPillClear").addEventListener("click", function () {
+      active.clear();
+      searchInputs.forEach(function (inp) { inp.value = ""; });
+      syncClearBtns("");
+      if (mode === "observed") { mode = "all"; persistMode(); renderMode(); }
+      applySearch("");
+      notifyFilter();
+    });
+
+    renderMode();
+    applyFilter();
+
+    /* --- WYSZUKIWARKA w nagłówku → zawężanie paska chipsów (.is-hidden) --- */
+    var searchInputs = $$(".search input");   /* nagłówek + modal — jeden stan zapytania */
+    var clearBtns = $$("[data-action='clear-query']");
+    function syncClearBtns(value) {
+      clearBtns.forEach(function (b) { b.hidden = value.trim() === ""; });
+    }
+    function norm(s) {
+      return (s || "").toLowerCase()
+        .replace(/\u0142/g, "l")
+        .normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+    }
+    function applySearch(value) {
+      queryRaw = value.trim();
+      query = norm(queryRaw);
+      allChips.forEach(function (chip) {
+        var hay = norm(chip.textContent) + " " + norm(chip.dataset.team);
+        chip.classList.toggle("is-hidden", query !== "" && hay.indexOf(query) === -1);
+      });
+      updateArrows();
+      applyFilter();
+    }
+    searchInputs.forEach(function (inp) {
+      inp.addEventListener("input", function () {
+        searchInputs.forEach(function (other) { if (other !== inp) other.value = inp.value; });
+        applySearch(inp.value);
+        syncClearBtns(inp.value);
+      });
+    });
+    /* [X] w inpucie modalu: czyści wyłącznie tekst (nie stan filtrów) */
+    clearBtns.forEach(function (b) {
+      b.addEventListener("click", function () {
+        searchInputs.forEach(function (inp) { inp.value = ""; });
+        applySearch("");
+        syncClearBtns("");
+        var inp = b.parentNode.querySelector("input");
+        if (inp) inp.focus();
+      });
+    });
+
+    /* ---------------------------------------------------------
+       MODAL WYSZUKIWANIA (mobile) — lupa otwiera; przycisk „Zatwierdź
+       i pokaż mecze” zapisuje wybór i zamyka; [X]/Esc anuluje i przywraca
+       stan sprzed otwarcia (snapshot). Deklaratywne data-action.
+    --------------------------------------------------------- */
+    var searchOverlay = $("#searchOverlay");
+    var overlayInput = $("#overlayInput");
+    var searchSnapshot = null;
+    function openSearch() {
+      /* Snapshot stanu filtrów — baza dla „Anuluj” */
+      searchSnapshot = { active: new Set(active), observed: new Set(observed), mode: mode, query: queryRaw };
+      searchOverlay.classList.add("is-open");
+      document.body.style.overflow = "hidden";
+      setTimeout(function () { overlayInput.focus(); }, 80);
+    }
+    function closeSearch(commit) {
+      if (!searchOverlay.classList.contains("is-open")) return;
+      if (!commit && searchSnapshot) {
+        /* Anuluj: przywróć stan sprzed otwarcia modalu */
+        active = new Set(searchSnapshot.active);
+        observed = new Set(searchSnapshot.observed);
+        mode = searchSnapshot.mode;
+        persistMode();
+        persistObserved();
+        renderMode();
+        searchInputs.forEach(function (inp) { inp.value = searchSnapshot.query; });
+        syncClearBtns(searchSnapshot.query);
+        applySearch(searchSnapshot.query);
+      }
+      if (commit) { persistMode(); persistObserved(); }   /* Zatwierdź: utrwal wybór */
+      searchSnapshot = null;
+      searchOverlay.classList.remove("is-open");
+      document.body.style.overflow = "";
+    }
+    $$("[data-action='open-search']").forEach(function (b) { b.addEventListener("click", openSearch); });
+    $$("[data-action='close-search']").forEach(function (b) { b.addEventListener("click", function () { closeSearch(false); }); });
+    $$("[data-action='apply-search']").forEach(function (b) { b.addEventListener("click", function () { closeSearch(true); }); });
+    document.addEventListener("keydown", function (e) { if (e.key === "Escape") closeSearch(false); });
+    /* Powrót na desktop → modal nie zostaje w tle; wybór traktujemy jak zatwierdzony */
+    window.matchMedia("(min-width: 769px)").addEventListener("change", function (e) { if (e.matches) closeSearch(true); });
+
+    /* ---------------------------------------------------------
+       CHIPSY: strzałki przewijania
+    --------------------------------------------------------- */
+    var chipsScroll = $("#chips"), prev = $("#chipsPrev"), next = $("#chipsNext");
+
+    function updateArrows() {
+      var max = chipsScroll.scrollWidth - chipsScroll.clientWidth - 2;
+      prev.classList.toggle("is-visible", chipsScroll.scrollLeft > 4);
+      next.classList.toggle("is-visible", chipsScroll.scrollLeft < max);
+    }
+    prev.addEventListener("click", function () { chipsScroll.scrollBy({ left: -280, behavior: "smooth" }); });
+    next.addEventListener("click", function () { chipsScroll.scrollBy({ left:  280, behavior: "smooth" }); });
+    chipsScroll.addEventListener("scroll", updateArrows, { passive: true });
+    window.addEventListener("resize", updateArrows);
+    updateArrows();
+
+    /* ---------------------------------------------------------
+       DYSKRETNE SCROLLBARY — klasa .is-scrolling tylko podczas
+       przewijania; znika po krótkiej chwili bezczynności.
+    --------------------------------------------------------- */
+    function discreteScroll(el) {
+      if (!el) return;
+      var timer = null;
+      el.addEventListener("scroll", function () {
+        el.classList.add("is-scrolling");
+        if (timer) clearTimeout(timer);
+        timer = setTimeout(function () { el.classList.remove("is-scrolling"); }, 650);
+      }, { passive: true });
+    }
+    [sidebar, $("#content"), chipsScroll].forEach(discreteScroll);
+
+    /* COUNTDOWN — obsługiwany przez moduł components/cards.js
+       (silnik odliczania + tekst „Pierwszy gwizdek”). */
+
+    /* ---------------------------------------------------------
+       KARTY → STRONA MECZU. Na stronie kategorii cała karta jest
+       klikalna i prowadzi do dedykowanej strony meczu (watch page);
+       wyjątkiem są przyciski akcji wewnątrz karty (np. „Przypomnij mi”).
+    --------------------------------------------------------- */
+    var WATCH_PAGE = "Hajlajty - Zapowiedź Meczu.html";
+    $$("[data-filterable] [data-teams]").forEach(function (card) {
+      card.classList.add("is-clickable");
+      card.addEventListener("click", function (e) {
+        if (e.target.closest("button")) return;   /* akcje karty zostają na miejscu */
+        e.preventDefault();
+        window.location.href = WATCH_PAGE;
+      });
+    });
+
+    /* ---------------------------------------------------------
+       DELIKATNE WEJŚCIE SEKCJI — obsługuje czysty CSS (patrz @keyframes).
+       JS jedynie włącza klasę bramkującą, by bez JS treść była od razu widoczna.
+    --------------------------------------------------------- */
+    root.classList.add("js-anim");
+
+  })();
+  </script>
+  <!-- Moduł kart: serce/dzwonek (delegacja w [data-card-region]) + countdown -->
+  <script src="components/cards.js" defer></script>
+  <script src="hajlajty-fav.js" defer></script>
+  <!-- MODUŁ: synchronizacja stanu obserwowania → chipsy (dwukierunkowa) -->
+  <script src="components/chip-follow.js" defer></script>
+  <!-- MODUŁ: przesuwanie paska chipsów myszką (drag-to-scroll) -->
+  <script src="components/chips-drag.js" defer></script>
+</body>
+</html>

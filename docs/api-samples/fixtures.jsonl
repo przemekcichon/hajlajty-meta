@@ -1,0 +1,224 @@
+// Response | GET : https://v3.football.api-sports.io/fixtures?league=1&season=2026&team=1113
+// This file contains the response for the API endpoint that retrieves fixtures for a specific team (Bosnia & Herzegovina) in the World Cup league for the 2026 season. The response includes details about the fixtures, such as the date, venue, teams involved, and scores. If team ID is not provided, it will return all fixtures for the specified league and season.
+{
+    get: "fixtures"
+    parameters: {
+        league: "1"
+        season: "2026"
+        team: "1113"
+    }
+    errors: []
+    results: 3
+    paging: {
+        current: 1
+        total: 1
+    }
+    response: [{
+        fixture: {
+            id: 1539000
+            referee: "Facundo Raul Tello Figueroa, Argentina"
+            timezone: "UTC"
+            date: "2026-06-12T19:00:00+00:00"
+            timestamp: 1781290800
+            periods: {
+                first: 1781290800
+                second: 1781294400
+            }
+            venue: {
+                id: 312
+                name: "BMO Field"
+                city: "Toronto"
+            }
+            status: {
+                long: "Second Half"
+                short: "2H"
+                elapsed: 48
+                extra: null
+            }
+        }
+        league: {
+            id: 1
+            name: "World Cup"
+            country: "World"
+            logo: "https://media.api-sports.io/football/leagues/1.png"
+            flag: null
+            season: 2026
+            round: "Group Stage - 1"
+            standings: true
+        }
+        teams: {
+            home: {
+                id: 5529
+                name: "Canada"
+                logo: "https://media.api-sports.io/football/teams/5529.png"
+                winner: false
+            }
+            away: {
+                id: 1113
+                name: "Bosnia & Herzegovina"
+                logo: "https://media.api-sports.io/football/teams/1113.png"
+                winner: true
+            }
+        }
+        goals: {
+            home: 0
+            away: 1
+        }
+        score: {
+            halftime: {
+                home: 0
+                away: 1
+            }
+            fulltime: {
+                home: null
+                away: null
+            }
+            extratime: {
+                home: null
+                away: null
+            }
+            penalty: {
+                home: null
+                away: null
+            }
+        }
+    } {
+        fixture: {
+            id: 1539005
+            referee: null
+            timezone: "UTC"
+            date: "2026-06-18T19:00:00+00:00"
+            timestamp: 1781809200
+            periods: {
+                first: null
+                second: null
+            }
+            venue: {
+                id: null
+                name: "SoFi Stadium"
+                city: "Los Angeles"
+            }
+            status: {
+                long: "Not Started"
+                short: "NS"
+                elapsed: null
+                extra: null
+            }
+        }
+        league: {
+            id: 1
+            name: "World Cup"
+            country: "World"
+            logo: "https://media.api-sports.io/football/leagues/1.png"
+            flag: null
+            season: 2026
+            round: "Group Stage - 2"
+            standings: true
+        }
+        teams: {
+            home: {
+                id: 15
+                name: "Switzerland"
+                logo: "https://media.api-sports.io/football/teams/15.png"
+                winner: null
+            }
+            away: {
+                id: 1113
+                name: "Bosnia & Herzegovina"
+                logo: "https://media.api-sports.io/football/teams/1113.png"
+                winner: null
+            }
+        }
+        goals: {
+            home: null
+            away: null
+        }
+        score: {
+            halftime: {
+                home: null
+                away: null
+            }
+            fulltime: {
+                home: null
+                away: null
+            }
+            extratime: {
+                home: null
+                away: null
+            }
+            penalty: {
+                home: null
+                away: null
+            }
+        }
+    } {
+        fixture: {
+            id: 1539009
+            referee: null
+            timezone: "UTC"
+            date: "2026-06-24T19:00:00+00:00"
+            timestamp: 1782327600
+            periods: {
+                first: null
+                second: null
+            }
+            venue: {
+                id: 11534
+                name: "Lumen Field"
+                city: "Seattle"
+            }
+            status: {
+                long: "Not Started"
+                short: "NS"
+                elapsed: null
+                extra: null
+            }
+        }
+        league: {
+            id: 1
+            name: "World Cup"
+            country: "World"
+            logo: "https://media.api-sports.io/football/leagues/1.png"
+            flag: null
+            season: 2026
+            round: "Group Stage - 3"
+            standings: true
+        }
+        teams: {
+            home: {
+                id: 1113
+                name: "Bosnia & Herzegovina"
+                logo: "https://media.api-sports.io/football/teams/1113.png"
+                winner: null
+            }
+            away: {
+                id: 1569
+                name: "Qatar"
+                logo: "https://media.api-sports.io/football/teams/1569.png"
+                winner: null
+            }
+        }
+        goals: {
+            home: null
+            away: null
+        }
+        score: {
+            halftime: {
+                home: null
+                away: null
+            }
+            fulltime: {
+                home: null
+                away: null
+            }
+            extratime: {
+                home: null
+                away: null
+            }
+            penalty: {
+                home: null
+                away: null
+            }
+        }
+    }]
+}

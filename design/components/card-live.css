@@ -1,0 +1,159 @@
+/* ============================================================
+   HAJLAJTY — components/card-live.css
+   ------------------------------------------------------------
+   KOMPONENT: KARTA MECZU NA ŻYWO  (BEM: .card--live)
+
+   Jedyne źródło prawdy o wyglądzie karty live. Strony dostarczają
+   wyłącznie siatkę. Kontrakt zmiennych lokalnych — jak w
+   card-preview.css (sekcja 1 tamtego pliku).
+
+   STRUKTURA HTML (wzorzec):
+     <article class="card--live" data-card-id="live-POL-MAR" data-teams="POL MAR">
+       <div class="card__media">
+         <span class="card__badge"><span class="card__badge-dot"></span> LIVE</span>
+         <span class="card__minute">67'</span>
+         <button class="card__fav" data-card-fav aria-pressed="false">…serce…</button>
+         <div class="card__score">
+           <span class="card__side">…flaga… POL</span>
+           <span class="card__num">1</span><span class="card__sep">:</span><span class="card__num">1</span>
+           <span class="card__side card__side--away">…flaga… MAR</span>
+         </div>
+       </div>
+       <ul class="card__events"> li × n </ul>
+     </article>
+============================================================ */
+
+/* ============ 1. LOKALNE ZMIENNE KOMPONENTU ============ */
+.card--live {
+  --card-bg:           var(--surface);
+  --card-border:       var(--border);
+  --card-border-hover: var(--border-strong);
+  --card-radius:       var(--r-lg);
+  --card-shadow-hover: var(--shadow);
+  --card-padding:      var(--space-sm);
+
+  /* miniatura (pasiasty placeholder + poświata akcentu) */
+  --card-media-radius: var(--r-md);
+  --card-media-bg:
+    radial-gradient(120% 120% at 50% -10%, var(--accent-soft), transparent 55%),
+    repeating-linear-gradient(135deg, var(--thumb-a) 0 14px, var(--thumb-b) 14px 28px);
+
+  /* wynik / badge */
+  --card-flag-h:       18px;
+  --card-score-size:   26px;
+  --card-badge-bg:     var(--live);
+
+  --card-lift:         -4px;
+}
+
+/* ============ 2. BLOK ============ */
+.card--live {
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: var(--card-radius);
+  padding: var(--card-padding);
+  transition: transform var(--t-med), border-color var(--t-med), box-shadow var(--t-med);
+}
+.card--live:hover {
+  transform: translateY(var(--card-lift));
+  border-color: var(--card-border-hover);
+  box-shadow: var(--card-shadow-hover);
+}
+
+/* ============ 3. ELEMENTY ============ */
+
+/* ---- 3a. Miniatura 16:9 ---- */
+.card--live .card__media {
+  position: relative;
+  aspect-ratio: 16 / 9;
+  border-radius: var(--card-media-radius);
+  overflow: hidden;
+  background: var(--card-media-bg);
+}
+
+/* ---- 3b. Pulsujący badge LIVE ---- */
+.card--live .card__badge {
+  position: absolute;
+  left: 12px; top: 12px;
+  display: inline-flex; align-items: center; gap: 7px;
+  padding: 5px 11px 5px 9px;
+  border-radius: var(--r-pill);
+  background: var(--card-badge-bg);
+  color: #fff;
+  font-size: 12px; font-weight: 800; letter-spacing: 0.08em;
+}
+.card--live .card__badge-dot {
+  width: 7px; height: 7px; border-radius: 50%;
+  background: #fff;
+  animation: card-live-pulse 1.4s ease-in-out infinite;
+}
+@keyframes card-live-pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.35; } }
+
+/* ---- 3c. Minuta meczu ---- */
+.card--live .card__minute {
+  position: absolute;
+  right: 54px; top: 12px;            /* 54px → miejsce na serce obok */
+  padding: 5px 10px;
+  border-radius: var(--r-pill);
+  background: oklch(0 0 0 / 0.62);
+  color: #fff;
+  font-size: 12px; font-weight: 800;
+}
+
+/* ---- 3d. Serce „Ulubione” na miniaturze ---- */
+.card--live .card__fav {
+  position: absolute;
+  top: 10px; right: 10px;
+  z-index: 3;
+  width: 34px; height: 34px;
+  display: grid; place-items: center;
+  border-radius: var(--r-pill);
+  background: oklch(0 0 0 / 0.5);
+  border: 1px solid oklch(1 0 0 / 0.16);
+  color: #fff;
+  backdrop-filter: blur(2px);
+  transition: background var(--t-fast), color var(--t-fast), transform var(--t-fast);
+}
+.card--live .card__fav svg { width: 18px; height: 18px; stroke: currentColor; fill: none; stroke-width: 1.9; stroke-linecap: round; stroke-linejoin: round; }
+.card--live .card__fav:hover { background: oklch(0 0 0 / 0.72); }
+.card--live .card__fav:active { transform: scale(0.9); }
+.card--live .card__fav.is-on { color: var(--live); }
+.card--live .card__fav.is-on svg { fill: currentColor; }
+
+/* ---- 3e. Wynik na dolnej krawędzi miniatury ---- */
+.card--live .card__score {
+  position: absolute;
+  inset: auto 0 0 0;
+  display: flex; align-items: center; justify-content: center; gap: 14px;
+  padding: 16px;
+  background: linear-gradient(0deg, oklch(0 0 0 / 0.78), transparent);
+  color: #fff;
+}
+.card--live .card__side { display: flex; align-items: center; gap: 8px; font-weight: 700; font-size: 15px; }
+.card--live .card__side--away { flex-direction: row-reverse; }
+.card--live .card__score .country-flag { height: var(--card-flag-h); }
+.card--live .card__num {
+  font-size: var(--card-score-size);
+  font-weight: 800; letter-spacing: 0.02em;
+  min-width: 26px; text-align: center;
+}
+.card--live .card__sep { opacity: 0.6; font-weight: 700; }
+
+/* ---- 3f. Lista wydarzeń (bramki / kartki) ---- */
+.card--live .card__events {
+  list-style: none;
+  margin-top: var(--card-padding);
+  display: flex; flex-direction: column; gap: 8px;
+}
+.card--live .card__events li {
+  display: flex; align-items: center; gap: 10px;
+  font-size: 14px; color: var(--text-muted); font-weight: 600;
+}
+.card--live .card__events .card__ev-min {
+  flex: 0 0 auto;
+  min-width: 34px;
+  font-variant-numeric: tabular-nums;
+  font-weight: 800; color: var(--text);
+}
+.card--live .card__events .card__ev-ic { font-size: 14px; font-family: var(--font-emoji); }
+.card--live .card__events .card__ev-who { color: var(--text); }

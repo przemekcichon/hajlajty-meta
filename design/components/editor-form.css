@@ -1,0 +1,187 @@
+/* ============================================================
+   HAJLAJTY — components/editor-form.css
+   ------------------------------------------------------------
+   KOMPONENT: FORMULARZ REDAKTORA (BEM: .editor-form + .csel)
+
+   Front-endowy panel przypisywania skrótu wideo do zakończonego
+   meczu. DOKŁADNIE dwa pola (kontrakt ACF acf_form()):
+     • acf[field_skrot_url]      → input URL
+     • acf[field_skrot_channel]  → ukryty input sterowany przez
+       searchable select (.csel) — wzorzec Select2/Choices.js
+       w czystym Vanilla JS (components/editor-form.js).
+
+   Izolacja: plik stylizuje WYŁĄCZNIE formularz i selektor.
+   Wszystkie wartości mapowane z globalnych tokenów na lokalne
+   zmienne --ef-* (gęstość UI i motywy sterowalne per strona).
+============================================================ */
+
+/* ============ 1. LOKALNE ZMIENNE KOMPONENTU ============
+   Deklarowane RÓWNIEŻ na samym .csel — selektor działa także
+   samodzielnie (filtry pulpitu, formularz inline paska meczu),
+   poza obrębem .editor-form. Bez tego var(--ef-*) nie rozwiązuje
+   się i panel traci tło oraz zaokrąglenia. */
+.editor-form,
+.csel {
+  --ef-gap:           var(--space-md);
+  --ef-field-h:       52px;
+  --ef-radius:        var(--r-md);
+  --ef-input-bg:      var(--surface);
+  --ef-input-border:  var(--border-strong);
+  --ef-panel-bg:      var(--bg-elev);
+  --ef-panel-shadow:  var(--shadow);
+  --ef-option-h:      44px;
+  --ef-submit-h:      54px;
+}
+
+/* ============ 2. BLOK FORMULARZA ============ */
+.editor-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ef-gap);
+}
+
+.editor-form__field { display: flex; flex-direction: column; gap: var(--space-2xs); }
+
+.editor-form__label {
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  color: var(--text-muted);
+}
+
+/* ---- 2a. Input URL z ikoną ---- */
+.editor-form__input-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+.editor-form__input-wrap > svg {
+  position: absolute; left: 16px;
+  width: 18px; height: 18px;
+  stroke: var(--text-faint); fill: none;
+  stroke-width: 2; stroke-linecap: round; stroke-linejoin: round;
+  pointer-events: none;
+}
+.editor-form__input {
+  width: 100%;
+  height: var(--ef-field-h);
+  padding: 0 16px 0 46px;
+  border-radius: var(--ef-radius);
+  background: var(--ef-input-bg);
+  border: 1px solid var(--ef-input-border);
+  color: var(--text);
+  font-weight: 600;
+  transition: border-color var(--t-fast), background var(--t-fast);
+}
+.editor-form__input::placeholder { color: var(--text-faint); font-weight: 500; }
+.editor-form__input:focus { outline: none; border-color: var(--accent); }
+.editor-form__input.is-invalid { border-color: var(--live); }
+
+.editor-form__hint { font-size: 12px; font-weight: 600; color: var(--text-faint); }
+
+/* ---- 2b. Przycisk akcji ---- */
+.editor-form__submit {
+  height: var(--ef-submit-h);
+  display: inline-flex; align-items: center; justify-content: center; gap: 10px;
+  border-radius: var(--r-pill);
+  background: var(--accent);
+  color: var(--accent-ink);
+  font-size: 15.5px; font-weight: 800; letter-spacing: -0.01em;
+  transition: filter var(--t-fast), transform var(--t-fast);
+}
+.editor-form__submit svg { width: 18px; height: 18px; stroke: currentColor; fill: none; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
+.editor-form__submit:hover { filter: brightness(1.05); }
+.editor-form__submit:active { transform: scale(0.985); }
+
+/* ---- 2c. Komunikat po publikacji ---- */
+.editor-form__success {
+  display: flex; align-items: center; gap: 10px;
+  padding: 14px 18px;
+  border-radius: var(--ef-radius);
+  background: var(--accent-soft);
+  color: var(--accent-strong);
+  font-size: 14px; font-weight: 700;
+}
+[data-theme="dark"] .editor-form__success { color: var(--accent); }
+.editor-form__success svg { flex: 0 0 auto; width: 18px; height: 18px; stroke: currentColor; fill: none; stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; }
+.editor-form__success[hidden] { display: none; }
+
+/* ============ 3. SEARCHABLE SELECT (.csel) ============ */
+.csel { position: relative; }
+
+/* ---- 3a. Trigger (zamknięty stan pola) ---- */
+.csel__trigger {
+  width: 100%;
+  height: var(--ef-field-h);
+  display: flex; align-items: center; justify-content: space-between; gap: var(--space-xs);
+  padding: 0 16px;
+  border-radius: var(--ef-radius);
+  background: var(--ef-input-bg);
+  border: 1px solid var(--ef-input-border);
+  color: var(--text);
+  font-weight: 700;
+  text-align: left;
+  transition: border-color var(--t-fast);
+}
+.csel__trigger:focus-visible, .csel.is-open .csel__trigger { border-color: var(--accent); outline: none; }
+.csel__current { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.csel__current--placeholder { color: var(--text-faint); font-weight: 500; }
+.csel__chev { flex: 0 0 auto; width: 16px; height: 16px; stroke: var(--text-faint); fill: none; stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; transition: transform var(--t-fast); }
+.csel.is-open .csel__chev { transform: rotate(180deg); }
+
+/* ---- 3b. Panel rozwijany: wyszukiwarka + lista opcji ---- */
+.csel__panel {
+  position: absolute;
+  top: calc(100% + 6px); left: 0; right: 0;
+  z-index: 30;
+  border-radius: var(--ef-radius);
+  background: var(--ef-panel-bg);
+  border: 1px solid var(--border-strong);
+  box-shadow: var(--ef-panel-shadow);
+  overflow: hidden;
+}
+.csel__panel[hidden] { display: none; }
+
+.csel__search {
+  display: flex; align-items: center; gap: 10px;
+  padding: 0 14px;
+  border-bottom: 1px solid var(--border);
+}
+.csel__search svg { flex: 0 0 auto; width: 15px; height: 15px; stroke: var(--text-faint); fill: none; stroke-width: 2.2; stroke-linecap: round; }
+.csel__search-input {
+  flex: 1; min-width: 0;
+  height: 46px;
+  background: none; border: none;
+  color: var(--text);
+  font-weight: 600; font-size: 14px;
+}
+.csel__search-input::placeholder { color: var(--text-faint); font-weight: 500; }
+.csel__search-input:focus { outline: none; }
+
+.csel__list {
+  max-height: calc(var(--ef-option-h) * 5.5);
+  overflow-y: auto;
+  padding: 6px;
+}
+.csel__option {
+  display: flex; align-items: center; justify-content: space-between; gap: 10px;
+  height: var(--ef-option-h);
+  padding: 0 12px;
+  border-radius: var(--r-sm);
+  font-size: 14px; font-weight: 700;
+  cursor: pointer;
+  transition: background var(--t-fast);
+}
+.csel__option:hover, .csel__option.is-hl { background: var(--surface-2); }
+.csel__option.is-selected { color: var(--accent-strong); }
+[data-theme="dark"] .csel__option.is-selected { color: var(--accent); }
+.csel__option .csel__check { width: 15px; height: 15px; stroke: currentColor; fill: none; stroke-width: 2.6; stroke-linecap: round; stroke-linejoin: round; opacity: 0; }
+.csel__option.is-selected .csel__check { opacity: 1; }
+.csel__option[hidden] { display: none; }
+
+.csel__empty {
+  padding: 14px 16px;
+  font-size: 13px; font-weight: 600;
+  color: var(--text-faint);
+}
+.csel__empty[hidden] { display: none; }

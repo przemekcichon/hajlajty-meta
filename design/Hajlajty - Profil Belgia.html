@@ -1,0 +1,2110 @@
+<!DOCTYPE html>
+<html lang="pl" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Hajlajty — Belgia · Profil reprezentacji · Mundial 2026</title>
+  <meta name="description" content="Belgia na Mundialu 2026 — profil reprezentacji: terminarz Grupy G, skróty z eliminacji, pełna kadra 26 zawodników, tabela grupy i statystyki. Hajlajty.pl." />
+
+  <!-- ==========================================================
+       FONTY — Manrope (neutralny groteskowy)
+  =========================================================== -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+
+  <style>
+  /* ============================================================
+     1. TOKENY / ZMIENNE — wspólne
+  ============================================================ */
+  :root {
+    /* Akcent „Mundial 2026" — boiskowa zieleń (identyczny w obu motywach) */
+    --accent:        oklch(0.72 0.17 160);
+    --accent-strong: oklch(0.66 0.18 160);
+    --accent-soft:   oklch(0.72 0.17 160 / 0.14);
+    --accent-ink:    oklch(0.22 0.06 160);   /* tekst na zielonym tle */
+
+    /* Kolor LIVE */
+    --live:          oklch(0.63 0.22 25);
+    --live-soft:     oklch(0.63 0.22 25 / 0.16);
+
+    /* Kontener — JEDNA spójna szerokość dla całej strony */
+    --container: 1320px;
+    --gutter: clamp(16px, 3vw, 40px);
+    --topbar-h: 72px;
+    --sidebar-w: 288px;
+
+    /* Skala odstępów (oddech) */
+    --space-3xs: 4px;
+    --space-2xs: 8px;
+    --space-xs:  12px;
+    --space-sm:  16px;
+    --space-md:  24px;
+    --space-lg:  40px;
+    --space-xl:  64px;
+    --space-2xl: 96px;
+    /* Pionowy oddech wiersza chipsów — wspólne źródło prawdy: ten sam offset
+       stosuje sidebar, by górna krawędź 1. pozycji menu licowała z chipsami. */
+    --chips-pad-y: 14px;
+
+    /* Promienie */
+    --r-sm: 10px;
+    --r-md: 16px;
+    --r-lg: 22px;
+    --r-pill: 999px;
+
+    /* Typografia */
+    --font: "Manrope", system-ui, -apple-system, "Segoe UI", sans-serif;
+    /* Stos emoji: webfont kolorowy najpierw → spójne flagi na wszystkich OS-ach */
+    --font-emoji: "Noto Color Emoji", "Apple Color Emoji", "Segoe UI Emoji", "Twemoji Mozilla", sans-serif;
+
+    /* Przejścia */
+    --ease: cubic-bezier(0.22, 1, 0.36, 1);
+    --t-fast: 140ms var(--ease);
+    --t-med:  240ms var(--ease);
+  }
+
+  /* ---- MOTYW CIEMNY (domyślny) ---- */
+  [data-theme="dark"] {
+    --bg:          oklch(0.17 0.008 250);
+    --bg-elev:     oklch(0.205 0.009 250);
+    --surface:     oklch(0.225 0.01 250);
+    --surface-2:   oklch(0.27 0.011 250);
+    --surface-hover: oklch(0.30 0.012 250);
+    --border:      oklch(1 0 0 / 0.09);
+    --border-strong: oklch(1 0 0 / 0.16);
+    --text:        oklch(0.96 0.003 250);
+    --text-muted:  oklch(0.72 0.006 250);
+    --text-faint:  oklch(0.56 0.006 250);
+    --shadow: 0 1px 2px oklch(0 0 0 / 0.4), 0 12px 32px -12px oklch(0 0 0 / 0.55);
+    --thumb-a: oklch(0.26 0.012 250);
+    --thumb-b: oklch(0.235 0.01 250);
+    --scrim: oklch(0 0 0 / 0.62);
+    --scrollthumb: oklch(1 0 0 / 0.22);
+  }
+
+  /* ---- MOTYW JASNY ---- */
+  [data-theme="light"] {
+    --bg:          oklch(0.985 0.003 250);
+    --bg-elev:     oklch(1 0 0);
+    --surface:     oklch(1 0 0);
+    --surface-2:   oklch(0.975 0.004 250);
+    --surface-hover: oklch(0.955 0.005 250);
+    --border:      oklch(0.2 0.01 250 / 0.1);
+    --border-strong: oklch(0.2 0.01 250 / 0.2);
+    --text:        oklch(0.24 0.012 250);
+    --text-muted:  oklch(0.46 0.01 250);
+    --text-faint:  oklch(0.6 0.008 250);
+    --shadow: 0 1px 2px oklch(0.2 0.02 250 / 0.06), 0 14px 34px -16px oklch(0.2 0.04 250 / 0.18);
+    --thumb-a: oklch(0.93 0.006 250);
+    --thumb-b: oklch(0.96 0.004 250);
+    --scrim: oklch(0.2 0.02 250 / 0.4);
+    --scrollthumb: oklch(0.3 0.02 250 / 0.32);
+  }
+
+  /* ============================================================
+     2. RESET / BAZA
+  ============================================================ */
+  *, *::before, *::after { box-sizing: border-box; }
+  * { margin: 0; }
+
+  html { -webkit-text-size-adjust: 100%; scroll-behavior: smooth; }
+
+  body {
+    font-family: var(--font);
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.6;
+    font-weight: 500;
+    letter-spacing: -0.005em;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+    min-height: 100vh;
+    transition: background var(--t-med), color var(--t-med);
+  }
+
+  img, svg { display: block; }
+  button { font: inherit; color: inherit; cursor: pointer; border: none; background: none; }
+  input { font: inherit; }
+  a { color: inherit; text-decoration: none; }
+  ul { list-style: none; padding: 0; }
+
+  :focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+
+  /* ---- KONTENER (spójna szerokość: nagłówek = main = stopka) ---- */
+  .container {
+    width: 100%;
+    max-width: var(--container);
+    margin-inline: auto;
+    padding-inline: var(--gutter);
+  }
+
+  /* ============================================================
+     3. TOP BAR
+  ============================================================ */
+  .topbar {
+    position: sticky;
+    top: 0;
+    z-index: 60;
+    height: var(--topbar-h);
+    display: flex;
+    align-items: center;
+    background: var(--bg);
+  }
+  /* Header w 3 strefach: [logo+menu] [wyszukiwarka — wyśrodkowana] [akcje].
+     Grid 1fr auto 1fr gwarantuje, że środkowa strefa jest idealnie
+     wyśrodkowana względem okna, niezależnie od szerokości stref bocznych. */
+  .topbar__inner {
+    display: grid;
+    grid-template-columns: 1fr minmax(0, 640px) 1fr;
+    align-items: center;
+    gap: var(--space-md);
+    height: 100%;
+    max-width: none;            /* header edge-to-edge */
+    /* Padding ciasno przy krawędziach — i tak dobrany, by GLIF hamburgera
+       (btn 44 / ikona 22 → wcięcie 11px) licował się w pionie z ikonami
+       nawigacji w sidebarze: sidebar pad-left 8 + nav-link pad 16 = 24px,
+       a tu 12 + 11 = 23px → ta sama oś. Po prawej ten sam dystans = czysta
+       domykająca linia. */
+    padding-inline: var(--space-xs);
+  }
+
+  .topbar__left  { display: flex; align-items: center; gap: var(--space-sm); justify-self: start; }
+  .topbar__right { display: flex; align-items: center; gap: var(--space-2xs); justify-self: end; }
+
+  /* ---- MOBILNY NAGŁÓWEK: flex space-between + licowanie do krawędzi ----
+     Lewa strona: logo tuż przy hamburgerze. Prawa: ikony dosunięte tak,
+     by GLIF skrajnych ikon (btn 44 / ikona 22 → wcięcie 11px) licował się
+     z krawędziami treści poniżej (pigułka filtra, karty). Ujemne marginesy
+     kompensują wewnętrzne wcięcie okrągłych przycisków — działa też na
+     stronach bez lupy: flex space-between rozpycha grupy bez dziur. */
+  @media (max-width: 768px) {
+    .topbar__inner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0;
+      padding-inline: var(--gutter);
+    }
+    .topbar__left  { gap: var(--space-3xs); }
+    .topbar__left > .icon-btn:first-child { margin-left: -11px; }
+    .topbar__right { gap: var(--space-3xs); }
+    .topbar__right > .icon-btn:last-child { margin-right: -11px; }
+  }
+
+  /* Okrągłe przyciski ikon */
+  .icon-btn {
+    width: 44px; height: 44px;
+    display: grid; place-items: center;
+    border-radius: var(--r-pill);
+    color: var(--text);
+    transition: background var(--t-fast), color var(--t-fast), transform var(--t-fast);
+  }
+  .icon-btn:hover  { background: var(--surface-2); }
+  .icon-btn:active { transform: scale(0.92); }
+  .icon-btn svg { width: 22px; height: 22px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+
+  /* ---- LOGO: play OBOK tekstu (po „y"), „y" + play w akcencie ---- */
+  .logo {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-3xs);
+    padding-inline: 6px;
+    font-weight: 800;
+    font-size: 25px;
+    letter-spacing: -0.04em;
+    line-height: 1;
+    color: var(--text);
+  }
+  .logo__text { display: inline-flex; }
+  .logo__y { color: var(--accent); }
+  /* play stoi tuż za „y" jako czyste domknięcie logotypu — żadnego overlapu */
+  .logo__play {
+    flex: 0 0 auto;
+    width: 20px; height: 20px;
+    color: var(--accent);
+    transition: transform var(--t-med);
+  }
+  .logo:hover .logo__play { transform: scale(1.12); }
+
+  /* ---- WYSZUKIWARKA ---- */
+  .search {
+    justify-self: center;
+    width: 100%;
+    max-width: 640px;
+    display: flex;
+    align-items: center;
+    gap: var(--space-2xs);
+    height: 46px;
+    padding-inline: var(--space-sm);
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--r-pill);
+    transition: border-color var(--t-fast), background var(--t-fast);
+  }
+  .search:focus-within { border-color: var(--accent); background: var(--bg-elev); }
+  .search svg { width: 20px; height: 20px; stroke: var(--text-muted); fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; flex: 0 0 auto; }
+  .search input {
+    flex: 1 1 auto;
+    min-width: 0;
+    border: none;
+    background: none;
+    color: var(--text);
+    font-size: 15px;
+    font-weight: 500;
+  }
+  .search input::placeholder { color: var(--text-faint); }
+  .search input:focus { outline: none; }
+
+  /* Theme toggle — ikona zmienia się wg motywu */
+  [data-theme="dark"]  .theme-toggle .sun  { display: block; }
+  [data-theme="dark"]  .theme-toggle .moon { display: none; }
+  [data-theme="light"] .theme-toggle .sun  { display: none; }
+  [data-theme="light"] .theme-toggle .moon { display: block; }
+
+  /* ============================================================
+     4. SIDEBAR (off-canvas) + SCRIM
+  ============================================================ */
+  .scrim {
+    position: fixed; inset: 0;
+    z-index: 70;
+    background: var(--scrim);
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity var(--t-med), visibility var(--t-med);
+  }
+  .scrim.is-open { opacity: 1; visibility: visible; }
+
+  .sidebar {
+    position: fixed;
+    top: 0; left: 0;
+    z-index: 80;
+    width: var(--sidebar-w);
+    max-width: 84vw;
+    height: 100dvh;
+    background: var(--bg);
+    box-shadow: var(--shadow);
+    transform: translateX(-100%);
+    transition: transform var(--t-med);
+    display: flex;
+    flex-direction: column;
+    padding: var(--space-sm) var(--space-sm) var(--space-lg);
+    overflow-y: auto;
+  }
+  .sidebar.is-open { transform: translateX(0); }
+
+  .sidebar__head {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    height: calc(var(--topbar-h) - 16px);
+    padding-inline: var(--space-2xs);
+    margin-bottom: var(--space-sm);
+  }
+
+  .sidebar__group { padding: var(--space-sm) 0; border-top: 1px solid var(--border); }
+  .sidebar__group:first-of-type { border-top: none; padding-top: 0; }
+  .sidebar__label {
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-faint);
+    padding: var(--space-2xs) var(--space-sm);
+  }
+
+  .nav-link {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    padding: var(--space-xs) var(--space-sm);
+    border-radius: var(--r-sm);
+    color: var(--text);
+    font-weight: 600;
+    font-size: 15px;
+    transition: background var(--t-fast), color var(--t-fast);
+  }
+  .nav-link svg { width: 21px; height: 21px; stroke: currentColor; fill: none; stroke-width: 1.9; stroke-linecap: round; stroke-linejoin: round; flex: 0 0 auto; }
+  .nav-link:hover { background: var(--surface-2); }
+  .nav-link.is-active { background: var(--accent-soft); color: var(--accent-strong); }
+  [data-theme="dark"] .nav-link.is-active { color: var(--accent); }
+  .nav-link .badge-live {
+    margin-left: auto;
+    font-size: 11px; font-weight: 800; letter-spacing: 0.06em;
+    color: var(--live);
+  }
+
+  /* ============================================================
+     5. PASEK CHIPSÓW (reprezentacje)
+  ============================================================ */
+  .chipsbar {
+    position: sticky;
+    top: var(--topbar-h);
+    z-index: 50;
+    background: var(--bg);
+  }
+  .chipsbar__inner { position: relative; }
+
+  .chips-scroll {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2xs);
+    overflow-x: auto;
+    scroll-behavior: smooth;
+    padding-block: var(--chips-pad-y);
+    /* miękkie wygaszenie krawędzi */
+    -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 28px, #000 calc(100% - 28px), transparent 100%);
+            mask-image: linear-gradient(90deg, transparent 0, #000 28px, #000 calc(100% - 28px), transparent 100%);
+  }
+
+  /* ---- Dyskretne scrollbary: niewidoczne w spoczynku, cienka linia
+     podczas scrollowania, bez strzałek (górnej/dolnej). ---- */
+  .sidebar, .content, .chips-scroll {
+    scrollbar-width: thin;
+    scrollbar-color: transparent transparent;      /* Firefox: ukryty w spoczynku */
+    transition: scrollbar-color var(--t-med);
+  }
+  .sidebar.is-scrolling, .content.is-scrolling, .chips-scroll.is-scrolling {
+    scrollbar-color: var(--scrollthumb) transparent;
+  }
+  .sidebar::-webkit-scrollbar,
+  .content::-webkit-scrollbar,
+  .chips-scroll::-webkit-scrollbar { width: 8px; height: 8px; }
+  .sidebar::-webkit-scrollbar-track,
+  .content::-webkit-scrollbar-track,
+  .chips-scroll::-webkit-scrollbar-track { background: transparent; }
+  .sidebar::-webkit-scrollbar-thumb,
+  .content::-webkit-scrollbar-thumb,
+  .chips-scroll::-webkit-scrollbar-thumb {
+    background: transparent;
+    border-radius: var(--r-pill);
+    border: 2px solid transparent;
+    background-clip: padding-box;
+    transition: background var(--t-med);
+  }
+  .sidebar.is-scrolling::-webkit-scrollbar-thumb,
+  .content.is-scrolling::-webkit-scrollbar-thumb,
+  .chips-scroll.is-scrolling::-webkit-scrollbar-thumb {
+    background: var(--scrollthumb);
+    background-clip: padding-box;
+  }
+  /* Brak strzałek (przyciski scrollbara) — czysta linia */
+  .sidebar::-webkit-scrollbar-button,
+  .content::-webkit-scrollbar-button,
+  .chips-scroll::-webkit-scrollbar-button { display: none; width: 0; height: 0; }
+
+  .chip {
+    flex: 0 0 auto;
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-xs);
+    height: 40px;
+    padding: 0 16px;
+    border-radius: var(--r-pill);
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--text);
+    font-size: 14px;
+    font-weight: 600;
+    white-space: nowrap;
+    transition: background var(--t-fast), border-color var(--t-fast), color var(--t-fast), transform var(--t-fast);
+  }
+  .chip:hover { background: var(--surface-hover); border-color: var(--border-strong); }
+  .chip:active { transform: scale(0.96); }
+  /* ---- FLAGI: jednolite obrazy SVG (flagcdn) zamiast emoji ----
+     Renderują się PIKSEL W PIKSEL identycznie na Windows / macOS / iOS /
+     Android, bo to zwykłe <img>. Stała wysokość + szerokość auto = poprawne
+     proporcje każdego kraju; delikatny radius i cień dają premium look. */
+  /* ---- FLAGI: błyszczące, „falujące" ikony (FlagsAPI shiny / GoSquared) ----
+     Glossy, lekko wypukłe flagi z delikatną animacją powiewu. To zwykłe <img>,
+     więc renderują się identycznie na Windows / macOS / iOS / Android. */
+  /* ---- FLAGI: jednolite, płaskie obrazy SVG (flagcdn) ----
+     Zwykłe <img> → identyczne na każdym systemie. Bez animacji. */
+  .country-flag {
+    flex: 0 0 auto;
+    width: auto;
+    border-radius: 2px;
+    box-shadow: 0 0 0 0.5px rgba(0,0,0,0.10), 0 1px 2px rgba(0,0,0,0.22);
+    object-fit: cover;
+    -webkit-user-select: none;
+    user-select: none;
+  }
+  .chip .country-flag { height: 18px; }
+  .chip__check {
+    width: 0; height: 16px; overflow: hidden;
+    display: inline-flex; align-items: center;
+    opacity: 0;
+    transition: width var(--t-fast), opacity var(--t-fast);
+  }
+  .chip__check svg { width: 16px; height: 16px; stroke: var(--accent-ink); fill: none; stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; }
+
+  .chip.is-active {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: var(--accent-ink);
+  }
+  .chip.is-active .chip__check { width: 16px; opacity: 1; }
+
+  /* ---- CHIP PRZEŁĄCZNIK: Wszystkie / Obserwowane ----
+     Bazuje na .chip (te same zmienne: wysokość, promień, obramowanie, tło),
+     a wewnątrz renderuje dwa segmenty w stylu segmented control. Nie zmienia
+     reguł istniejących chipsów — to wyłącznie nowe klasy. */
+  .chip--toggle {
+    padding: 3px;
+    gap: 3px;
+    align-items: stretch;
+    cursor: default;
+  }
+  .chip--toggle:hover { background: var(--surface); border-color: var(--border); }
+  .chip--toggle:active { transform: none; }
+  .chip-seg {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 0 13px;
+    border-radius: var(--r-pill);
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-muted);
+    white-space: nowrap;
+    transition: background var(--t-fast), color var(--t-fast);
+  }
+  .chip-seg svg { width: 15px; height: 15px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+  .chip-seg:hover { color: var(--text); }
+  .chip-seg.is-on { background: var(--accent); color: var(--accent-ink); }
+  .chip-seg.is-on:hover { color: var(--accent-ink); }
+
+  /* Zawężanie paska przez wyszukiwarkę w nagłówku */
+  .chip.is-hidden { display: none !important; }
+
+  /* Strzałki przewijania */
+  .chips-arrow {
+    position: absolute;
+    /* 43% (nie 50%): optyczne centrum względem samych chipsów,
+       z pominięciem dolnego paddingu paska */
+    top: 43%; transform: translateY(-50%);
+    width: 38px; height: 38px;
+    display: grid; place-items: center;
+    border-radius: var(--r-pill);
+    background: var(--bg-elev);
+    border: 1px solid var(--border);
+    box-shadow: var(--shadow);
+    color: var(--text);
+    z-index: 2;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity var(--t-fast);
+  }
+  .chips-arrow.is-visible { opacity: 1; pointer-events: auto; }
+  .chips-arrow:hover { background: var(--surface-2); }
+  .chips-arrow.prev { left: 0; }
+  .chips-arrow.next { right: 0; }
+  .chips-arrow svg { width: 18px; height: 18px; stroke: currentColor; fill: none; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
+
+  /* ============================================================
+     6. MAIN / SEKCJE
+  ============================================================ */
+  main { padding-block: var(--space-xl) var(--space-2xl); }
+
+  .section { margin-bottom: var(--space-2xl); }
+  .section:last-child { margin-bottom: 0; }
+
+  .section__head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 0;
+    margin-bottom: var(--space-sm);
+  }
+  /* Mobile: nagłówek sekcji w kolumnie — tytuł, pod nim link „więcej" */
+  @media (max-width: 768px) {
+    .section__head {
+      flex-direction: column;
+      justify-content: space-evenly;
+      margin-bottom: var(--space-xs);
+    }
+  }
+  .section__title {
+    display: flex;
+    align-items: center;
+    gap: var(--space-xs);
+    font-size: clamp(20px, 3vw, 26px);
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    line-height: 1.1;
+  }
+  .section__title .kicker-dot {
+    width: 10px; height: 10px; border-radius: 50%;
+    background: var(--accent);
+    flex: 0 0 auto;
+  }
+  .section__title.live .kicker-dot { background: var(--live); animation: pulse 1.6s var(--ease) infinite; }
+  .section__more {
+    flex: 0 0 auto;
+    display: inline-flex; align-items: center; gap: 6px;
+    font-size: 14px; font-weight: 700;
+    color: var(--text-muted);
+    padding: 8px 22px;
+    border-radius: var(--r-sm);
+    transition: color var(--t-fast);
+  }
+  .section__more:hover { color: var(--accent); }
+  .section__more svg { width: 16px; height: 16px; stroke: currentColor; fill: none; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
+  /* Mobile override PO regule bazowej (ta sama specyficzność — wygrywa kolejność) */
+  @media (max-width: 768px) { .section__more { font-size: 13px; } }
+
+  @keyframes pulse {
+    0%, 100% { box-shadow: 0 0 0 0 var(--live-soft); }
+    50%      { box-shadow: 0 0 0 7px transparent; }
+  }
+
+  /* ---- Wiersz przewijany poziomo (LIVE + Zapowiedzi) ---- */
+  .row-scroll {
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: min(86vw, 408px);
+    gap: var(--space-md);
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    padding-bottom: var(--space-2xs);
+    scrollbar-width: none;
+    margin-inline: calc(-1 * var(--gutter));
+    padding-inline: var(--gutter);
+  }
+  .row-scroll::-webkit-scrollbar { display: none; }
+  .row-scroll > * { scroll-snap-align: start; }
+
+  /* ============================================================
+     7. KARTY — wspólne / miniatury
+  ============================================================ */
+  .thumb {
+    position: relative;
+    aspect-ratio: 16 / 9;
+    border-radius: var(--r-md);
+    overflow: hidden;
+    background:
+      repeating-linear-gradient(135deg, var(--thumb-a) 0 14px, var(--thumb-b) 14px 28px);
+  }
+  .thumb__dur {
+    position: absolute;
+    right: 10px; bottom: 10px;
+    padding: 3px 8px;
+    border-radius: 6px;
+    background: oklch(0 0 0 / 0.72);
+    color: #fff;
+    font-size: 12px; font-weight: 700;
+    letter-spacing: 0.02em;
+  }
+  .thumb__play {
+    position: absolute;
+    inset: 0;
+    margin: auto;
+    width: 60px; height: 60px;
+    display: grid; place-items: center;
+    border-radius: 50%;
+    background: oklch(0 0 0 / 0.45);
+    backdrop-filter: blur(2px);
+    border: 1.5px solid oklch(1 0 0 / 0.5);
+    transition: transform var(--t-med), background var(--t-med);
+  }
+  .thumb__play svg { width: 24px; height: 24px; fill: #fff; transform: translateX(1px); }
+
+  .card-video { display: block; }
+  .card-video:hover .thumb__play { transform: scale(1.08); background: var(--accent); }
+  .card-video:hover .thumb__play svg { fill: var(--accent-ink); }
+
+  /* ---- KARTA LIVE ---- */
+  .live-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--r-lg);
+    padding: var(--space-sm);
+    transition: transform var(--t-med), border-color var(--t-med), box-shadow var(--t-med);
+  }
+  .live-card:hover { transform: translateY(-4px); border-color: var(--border-strong); box-shadow: var(--shadow); }
+
+  .live-card .thumb {
+    background:
+      radial-gradient(120% 120% at 50% -10%, var(--accent-soft), transparent 55%),
+      repeating-linear-gradient(135deg, var(--thumb-a) 0 14px, var(--thumb-b) 14px 28px);
+  }
+  .live-badge {
+    position: absolute;
+    left: 12px; top: 12px;
+    display: inline-flex; align-items: center; gap: 7px;
+    padding: 5px 11px 5px 9px;
+    border-radius: var(--r-pill);
+    background: var(--live);
+    color: #fff;
+    font-size: 12px; font-weight: 800; letter-spacing: 0.08em;
+  }
+  .live-badge .dot { width: 7px; height: 7px; border-radius: 50%; background: #fff; animation: pulse-live 1.4s ease-in-out infinite; }
+  @keyframes pulse-live { 0%,100%{opacity:1;} 50%{opacity:0.35;} }
+
+  .live-minute {
+    position: absolute;
+    right: 12px; top: 12px;
+    padding: 5px 10px;
+    border-radius: var(--r-pill);
+    background: oklch(0 0 0 / 0.62);
+    color: #fff;
+    font-size: 12px; font-weight: 800;
+  }
+  .live-score {
+    position: absolute;
+    inset: auto 0 0 0;
+    display: flex; align-items: center; justify-content: center; gap: 14px;
+    padding: 16px;
+    background: linear-gradient(0deg, oklch(0 0 0 / 0.78), transparent);
+    color: #fff;
+  }
+  .live-score .team { display: flex; align-items: center; gap: 8px; font-weight: 700; font-size: 15px; }
+  .live-score .team.away { flex-direction: row-reverse; }
+  .live-score .country-flag { height: 18px; vertical-align: -0.18em; }
+  .live-score .num {
+    font-size: 26px; font-weight: 800; letter-spacing: 0.02em;
+    min-width: 26px; text-align: center;
+  }
+  .live-score .sep { opacity: 0.6; font-weight: 700; }
+
+  .live-events {
+    list-style: none;
+    margin-top: var(--space-sm);
+    display: flex; flex-direction: column; gap: 8px;
+  }
+  .live-events li {
+    display: flex; align-items: center; gap: 10px;
+    font-size: 14px; color: var(--text-muted); font-weight: 600;
+  }
+  .live-events .min {
+    flex: 0 0 auto;
+    min-width: 34px;
+    font-variant-numeric: tabular-nums;
+    font-weight: 800; color: var(--text);
+  }
+  .live-events .ball { font-size: 14px; }
+  .live-events .who { color: var(--text); }
+
+  /* ---- KARTA ZAPOWIEDZI (countdown) ---- */
+  .up-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--r-lg);
+    padding: var(--space-md);
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-md);
+    transition: transform var(--t-med), border-color var(--t-med), box-shadow var(--t-med);
+  }
+  .up-card:hover { transform: translateY(-4px); border-color: var(--border-strong); box-shadow: var(--shadow); }
+
+  .up-card__phase {
+    align-self: flex-start;
+    display: inline-flex; align-items: center; gap: 7px;
+    padding: 6px 12px;
+    border-radius: var(--r-pill);
+    background: var(--accent-soft);
+    color: var(--accent-strong);
+    font-size: 12px; font-weight: 800; letter-spacing: 0.03em;
+    white-space: nowrap;
+    max-width: 100%;
+  }
+  [data-theme="dark"] .up-card__phase { color: var(--accent); }
+
+  .up-card__teams {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    align-items: center;
+    gap: var(--space-sm);
+  }
+  .up-team { display: flex; flex-direction: column; align-items: center; gap: 8px; text-align: center; }
+  .up-team .country-flag { height: 30px; border-radius: 3px; }
+  .up-team .name { font-weight: 700; font-size: 15px; }
+  .up-vs { font-size: 13px; font-weight: 800; color: var(--text-faint); letter-spacing: 0.1em; }
+
+  .up-card__when { font-size: 13px; color: var(--text-muted); font-weight: 600; text-align: center; }
+
+  .countdown {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: var(--space-2xs);
+    text-align: center;
+  }
+  .countdown .unit {
+    background: var(--surface-2);
+    border-radius: var(--r-sm);
+    padding: 12px 6px 9px;
+  }
+  .countdown .val {
+    display: block;
+    font-size: 26px; font-weight: 800;
+    font-variant-numeric: tabular-nums;
+    line-height: 1;
+    letter-spacing: 0.01em;
+  }
+  .countdown .lab {
+    display: block;
+    margin-top: 6px;
+    font-size: 10px; font-weight: 700; letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-faint);
+  }
+  .countdown.is-soon .val { color: var(--live); }
+
+  .up-card__btn {
+    margin-top: auto;
+    display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+    height: 46px;
+    border-radius: var(--r-pill);
+    background: var(--surface-2);
+    color: var(--text);
+    font-weight: 700; font-size: 14px;
+    transition: background var(--t-fast), color var(--t-fast);
+  }
+  .up-card__btn svg { width: 18px; height: 18px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+  .up-card__btn:hover { background: var(--accent); color: var(--accent-ink); }
+
+  /* ---- GRID SKRÓTÓW ---- */
+  .grid-videos {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: var(--space-lg) var(--space-md);
+  }
+  .vcard { display: flex; flex-direction: column; gap: var(--space-sm); }
+  .vcard .thumb { transition: transform var(--t-med); }
+  .vcard:hover .thumb { transform: translateY(-3px); }
+  .vcard__body { display: flex; flex-direction: column; gap: 8px; }
+  .vcard__title {
+    font-size: 16px; font-weight: 700;
+    letter-spacing: -0.01em;
+    line-height: 1.35;
+    text-wrap: pretty;
+  }
+  .vcard__meta {
+    display: flex; align-items: center; gap: 8px;
+    flex-wrap: wrap;
+    font-size: 13px; color: var(--text-muted); font-weight: 600;
+  }
+  .vcard__comp {
+    display: inline-flex; align-items: center;
+    padding: 3px 10px;
+    border-radius: var(--r-pill);
+    background: var(--surface-2);
+    color: var(--text-muted);
+    font-size: 12px; font-weight: 700;
+  }
+  .vcard__meta .dot-sep { width: 3px; height: 3px; border-radius: 50%; background: var(--text-faint); }
+
+  /* Aktywny player (po kliknięciu facade) */
+  .thumb.is-playing { background: #000; }
+  .thumb iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
+
+  /* ---- Stan filtra ---- */
+  .filter-note {
+    display: none;
+    align-items: center;
+    gap: var(--space-sm);
+    margin-bottom: var(--space-lg);
+    padding: var(--space-sm) var(--space-md);
+    background: var(--accent-soft);
+    border: 1px solid color-mix(in oklab, var(--accent) 35%, transparent);
+    border-radius: var(--r-md);
+    font-size: 14px; font-weight: 600;
+  }
+  .filter-note.is-visible { display: flex; }
+  .filter-note__txt { color: var(--text); }
+  .filter-note__txt b { color: var(--accent-strong); }
+  [data-theme="dark"] .filter-note__txt b { color: var(--accent); }
+  .filter-note__clear {
+    margin-left: auto;
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 7px 14px;
+    border-radius: var(--r-pill);
+    background: var(--bg-elev);
+    border: 1px solid var(--border);
+    font-weight: 700; font-size: 13px;
+    transition: background var(--t-fast);
+  }
+  .filter-note__clear:hover { background: var(--surface-2); }
+
+  .is-hidden-by-filter { display: none !important; }
+
+  .empty-state {
+    display: none;
+    text-align: center;
+    padding: var(--space-xl) var(--space-md);
+    color: var(--text-muted);
+  }
+  .empty-state.is-visible { display: block; }
+  .empty-state h3 { font-size: 18px; font-weight: 800; color: var(--text); margin-bottom: 8px; }
+
+  /* ============================================================
+     8. STOPKA (ten sam kontener)
+  ============================================================ */
+  .footer {
+    border-top: 1px solid var(--border);
+    background: var(--bg);
+    padding-block: var(--space-xl);
+  }
+  .footer__grid {
+    display: grid;
+    grid-template-columns: 1.4fr repeat(3, 1fr);
+    gap: var(--space-lg);
+  }
+  .footer__brand { display: flex; flex-direction: column; gap: var(--space-sm); max-width: 320px; }
+  .footer__tag { color: var(--text-muted); font-size: 14px; }
+  .footer__col h4 { font-size: 13px; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; color: var(--text-faint); margin-bottom: var(--space-sm); }
+  .footer__col a { display: block; padding: 6px 0; color: var(--text-muted); font-weight: 600; font-size: 14px; transition: color var(--t-fast); }
+  .footer__col a:hover { color: var(--accent); }
+  .footer__bottom {
+    display: flex; align-items: center; justify-content: space-between; gap: var(--space-md);
+    flex-wrap: wrap;
+    margin-top: var(--space-xl);
+    padding-top: var(--space-lg);
+    border-top: 1px solid var(--border);
+    color: var(--text-faint);
+    font-size: 13px; font-weight: 600;
+  }
+
+  /* ============================================================
+     9. RESPONSYWNOŚĆ
+  ============================================================ */
+  @media (max-width: 860px) {
+    .search { max-width: none; }
+    .footer__grid { grid-template-columns: 1fr 1fr; gap: var(--space-lg) var(--space-md); }
+    .footer__brand { grid-column: 1 / -1; }
+  }
+  @media (max-width: 620px) {
+    :root { --topbar-h: 64px; }
+    .search { display: none; }            /* na mobile chowamy pole, zostaje ikona */
+    .search-mobile-btn { display: grid; }
+    .logo { font-size: 22px; }
+    .footer__grid { grid-template-columns: 1fr; }
+    main { padding-block: var(--space-lg) var(--space-xl); }
+    .section { margin-bottom: var(--space-xl); }
+  }
+  @media (min-width: 621px) { .search-mobile-btn { display: none; } }
+
+  /* ============================================================
+     APP SHELL (desktop ≥1100px)
+     Header na górze (pełna szerokość, treść do max-width).
+     Poniżej CSS Grid: [sidebar] [content] — dwa NIEZALEŻNE panele
+     scrolla. body nie scrolluje (overflow:hidden) → menu i treść
+     przewijają się osobno, a sidebar zaczyna się pod headerem.
+  ============================================================ */
+  .shell { display: block; }            /* mobile: zwykły blok */
+  .content { display: block; }
+
+  @media (min-width: 1100px) {
+    html, body { height: 100%; }
+    body {
+      height: 100dvh;
+      overflow: hidden;                 /* scroll przejmują panele */
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Header: w potoku, pełna szerokość (edge-to-edge) */
+    .topbar { position: static; flex: 0 0 auto; }
+
+    /* Dwie kolumny pod headerem — FLUID, pełna szerokość ekranu.
+       Sidebar przylega do lewej krawędzi, treść wypełnia resztę. */
+    .shell {
+      flex: 1 1 auto;
+      min-height: 0;
+      width: 100%;
+      display: grid;
+      grid-template-columns: var(--sidebar-w) minmax(0, 1fr);
+      transition: grid-template-columns var(--t-med);
+    }
+    /* Zwinięte menu (hamburger) — kolumna sidebara chowa się do 0 */
+    body.nav-collapsed .shell { grid-template-columns: 0px minmax(0, 1fr); }
+    body.nav-collapsed .sidebar { opacity: 0; pointer-events: none; }
+
+    /* SIDEBAR: statyczna kolumna z własnym scrollem (zaczyna się pod headerem),
+       przylega do lewej krawędzi okna. */
+    .sidebar {
+      position: static;
+      transform: none;
+      width: auto;
+      max-width: none;
+      height: 100%;
+      box-shadow: none;
+      overflow-y: auto;
+      /* Góra = dokładnie offset wiersza chipsów (var) → 1. pozycja menu licuje
+         z paskiem chipsów. Boki/dół bez zmian. Brak magic numbers. */
+      padding: var(--chips-pad-y) var(--space-2xs) var(--space-xl);
+      transition: opacity var(--t-med);
+    }
+    .sidebar__head { display: none; }   /* logo żyje w headerze nad sidebarem */
+
+    /* CONTENT: prawa kolumna z własnym scrollem */
+    .content {
+      height: 100%;
+      overflow-y: auto;
+      overflow-x: hidden;
+    }
+
+    /* W kolumnie .content nie nakładamy drugi raz max-width/centrowania */
+    .content .chipsbar__inner,
+    .content main.container,
+    .content .footer > .container {
+      max-width: none;
+      margin-inline: 0;
+      padding-inline: var(--gutter);
+    }
+
+    /* Chipsy: sticky w obrębie scrolla treści */
+    .chipsbar { top: 0; }
+
+    .scrim { display: none !important; }
+
+    main { padding-block: var(--space-lg) var(--space-2xl); }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation-duration: 0.001ms !important; transition-duration: 0.001ms !important; scroll-behavior: auto !important; }
+  }
+
+  /* Delikatne wejście sekcji — czysto CSS, odpalane raz po załadowaniu.
+     Stan spoczynkowy elementu jest WIDOCZNY (opacity:1), animacja jedynie
+     „domalowuje” wejście. Bez JS / przy druku / reduced-motion treść jest
+     zawsze widoczna — bezpieczne dla produkcji (WordPress, SEO, no-JS). */
+  @media (prefers-reduced-motion: no-preference) {
+    html.js-anim .reveal { animation: revealIn 560ms var(--ease) backwards; }
+    html.js-anim .reveal:nth-of-type(2) { animation-delay: 70ms; }
+    html.js-anim .reveal:nth-of-type(3) { animation-delay: 140ms; }
+  }
+  @keyframes revealIn {
+    from { transform: translateY(16px); }
+    to   { transform: none; }
+  }
+
+  /* ============================================================
+     10. TERMINARZ — nagłówek strony + chronologiczne sekcje dni
+     Buduje na istniejących tokenach (:root) i kartach. Zero nowych
+     kolorów/fontów — wyłącznie layout kalendarza.
+  ============================================================ */
+  .page-head { margin-bottom: var(--space-xl); }
+  .page-head__eyebrow {
+    display: inline-flex; align-items: center; gap: 8px;
+    font-size: 13px; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase;
+    color: var(--accent-strong);
+  }
+  [data-theme="dark"] .page-head__eyebrow { color: var(--accent); }
+  .page-head__eyebrow .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); }
+  .page-head__title {
+    margin-top: var(--space-xs);
+    font-size: clamp(30px, 5vw, 46px);
+    font-weight: 800; letter-spacing: -0.035em; line-height: 1.05;
+  }
+  .page-head__sub { margin-top: var(--space-sm); color: var(--text-muted); font-size: 16px; max-width: 58ch; text-wrap: pretty; }
+
+  /* Legenda stanów meczu (skrót / live / zapowiedź) */
+  .legend { display: flex; flex-wrap: wrap; gap: var(--space-md); margin-top: var(--space-lg); }
+  .legend__item { display: inline-flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 700; color: var(--text-muted); }
+  .legend__dot { width: 9px; height: 9px; border-radius: 50%; flex: 0 0 auto; }
+  .legend__dot.skrot { background: var(--text-faint); }
+  .legend__dot.live  { background: var(--live); animation: pulse-live 1.4s ease-in-out infinite; }
+  .legend__dot.soon  { background: var(--accent); }
+
+  /* ============================================================
+     11. REPREZENTACJE — sekcje grup + karty drużyn
+     Buduje wyłącznie na istniejących tokenach (:root). Zero nowych
+     kolorów/fontów — wyłącznie layout katalogu drużyn.
+  ============================================================ */
+  /* Odznaka grupy (reużyta w nagłówku sekcji) */
+  .group-badge {
+    width: 34px; height: 34px; flex: 0 0 auto;
+    display: grid; place-items: center;
+    border-radius: 11px;
+    background: var(--accent-soft); color: var(--accent-strong);
+    font-weight: 800; font-size: 16px; letter-spacing: -0.02em;
+  }
+  [data-theme="dark"] .group-badge { color: var(--accent); }
+  /* Ukrycie chipsa poza bieżącym trybem paska (Wszystkie / Obserwowane) */
+  .chip.is-mode-hidden { display: none !important; }
+
+  .team-section { margin-bottom: var(--space-xl); scroll-margin-top: 96px; }
+  .team-section:last-of-type { margin-bottom: 0; }
+  .team-section.is-hidden-by-filter { display: none !important; }
+
+  .team-section__head {
+    display: flex; align-items: center; gap: var(--space-sm);
+    margin-bottom: var(--space-md);
+  }
+  .team-section__title {
+    display: flex; align-items: center; gap: var(--space-xs);
+    font-size: clamp(20px, 2.4vw, 26px); font-weight: 800; letter-spacing: -0.03em; line-height: 1.1;
+  }
+  .team-section__meta {
+    margin-left: auto;
+    font-size: 11px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase;
+    color: var(--text-faint);
+  }
+
+  .teams-grid {
+    display: grid; gap: var(--space-md);
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+  @media (max-width: 1400px) { .teams-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+  @media (max-width: 1100px) { .teams-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+  @media (max-width: 620px)  { .teams-grid { grid-template-columns: 1fr; } }
+
+  .team-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--r-lg);
+    padding: var(--space-md);
+    display: flex; flex-direction: column; gap: var(--space-md);
+    transition: transform var(--t-med), border-color var(--t-med), box-shadow var(--t-med);
+  }
+  .team-card:hover { transform: translateY(-4px); border-color: var(--border-strong); box-shadow: var(--shadow); }
+  .team-card.is-hidden-by-filter { display: none !important; }
+
+  .team-card__head { display: flex; align-items: center; gap: var(--space-sm); }
+  .team-card__flag { height: 34px; border-radius: 4px; }
+  .team-card__id { min-width: 0; flex: 1 1 auto; }
+  .team-card__name {
+    display: block; min-width: 0;
+    font-size: 17px; font-weight: 800; letter-spacing: -0.02em; line-height: 1.15;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .team-seed {
+    flex: 0 0 auto;
+    display: inline-grid; place-items: center;
+    min-width: 36px; height: 26px; padding: 0 9px;
+    border-radius: var(--r-pill);
+    background: var(--accent-soft); color: var(--accent-strong);
+    font-size: 12px; font-weight: 800; letter-spacing: 0.02em;
+  }
+  [data-theme="dark"] .team-seed { color: var(--accent); }
+
+  .team-card__body { padding-top: var(--space-sm); border-top: 1px solid var(--border); }
+  .team-coach { display: flex; align-items: center; gap: 12px; }
+  .team-coach__ic {
+    width: 38px; height: 38px; flex: 0 0 auto;
+    display: grid; place-items: center;
+    border-radius: 11px;
+    background: var(--surface-2); color: var(--text-muted);
+  }
+  .team-coach__ic svg { width: 19px; height: 19px; stroke: currentColor; fill: none; stroke-width: 1.9; stroke-linecap: round; stroke-linejoin: round; }
+  .team-coach__txt { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
+  .team-coach__txt .lab { font-size: 11px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--text-faint); }
+  .team-coach__txt .nm { font-size: 14px; font-weight: 700; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+  .team-card__foot { margin-top: auto; display: flex; gap: var(--space-2xs); }
+  .team-btn {
+    flex: 1 1 auto;
+    display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+    height: 44px; border-radius: var(--r-pill);
+    background: var(--surface-2); color: var(--text);
+    font-weight: 700; font-size: 14px;
+    transition: background var(--t-fast), color var(--t-fast);
+  }
+  .team-btn svg { width: 17px; height: 17px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; transition: transform var(--t-fast); }
+  .team-btn:hover { background: var(--accent); color: var(--accent-ink); }
+  .team-btn:hover svg { transform: translateX(2px); }
+
+  .team-fav {
+    flex: 0 0 auto; width: 44px; height: 44px;
+    display: grid; place-items: center;
+    border-radius: var(--r-pill);
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--text-muted);
+    transition: background var(--t-fast), color var(--t-fast), border-color var(--t-fast), transform var(--t-fast);
+  }
+  .team-fav svg { width: 20px; height: 20px; stroke: currentColor; fill: none; stroke-width: 1.9; stroke-linecap: round; stroke-linejoin: round; }
+  .team-fav:hover { border-color: var(--border-strong); color: var(--text); }
+  .team-fav:active { transform: scale(0.92); }
+  .team-fav.is-active { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+  .team-fav.is-active:hover { color: var(--accent-ink); }
+
+  
+  /* ============================================================
+     12. PROFIL REPREZENTACJI — hero + układ 2-kolumnowy + kadra
+        + widżety (tabela grupy, statystyki). Wyłącznie na tokenach.
+  ============================================================ */
+  /* ---- HERO ---- */
+  .profile-hero {
+    position: relative;
+    overflow: hidden;
+    border: 1px solid var(--border);
+    border-radius: var(--r-lg);
+    margin-bottom: var(--space-xl);
+    background:
+      radial-gradient(120% 150% at 0% 0%, oklch(0.63 0.22 25 / 0.16), transparent 52%),
+      radial-gradient(120% 150% at 100% 8%, oklch(0.84 0.15 92 / 0.16), transparent 52%),
+      var(--surface);
+  }
+  .profile-hero__stripe {
+    position: absolute; left: 0; top: 0; bottom: 0; width: 6px;
+    background: linear-gradient(180deg, oklch(0.28 0.02 60) 0 33%, oklch(0.84 0.15 92) 33% 66%, var(--live) 66% 100%);
+  }
+  .profile-hero__inner {
+    display: flex; align-items: center; gap: var(--space-lg);
+    padding: clamp(20px, 3vw, 36px) clamp(20px, 3vw, 40px);
+    padding-left: clamp(28px, 3.5vw, 52px);
+  }
+  .profile-hero__flag {
+    height: clamp(64px, 8vw, 92px); width: auto; flex: 0 0 auto;
+    border-radius: 8px;
+    box-shadow: 0 0 0 1px oklch(0 0 0 / 0.12), 0 14px 34px -14px oklch(0 0 0 / 0.5);
+  }
+  .profile-hero__id { min-width: 0; flex: 1 1 auto; display: flex; flex-direction: column; gap: 8px; }
+  .profile-hero__eyebrow {
+    display: inline-flex; align-items: center; gap: 8px;
+    font-size: 12px; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase;
+    color: var(--accent-strong);
+  }
+  [data-theme="dark"] .profile-hero__eyebrow { color: var(--accent); }
+  .profile-hero__eyebrow .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); }
+  .profile-hero__name { font-size: clamp(34px, 5.5vw, 56px); font-weight: 800; letter-spacing: -0.04em; line-height: 1; }
+  .profile-hero__coach { display: inline-flex; align-items: center; gap: 8px; font-size: 15px; color: var(--text-muted); font-weight: 600; white-space: nowrap; }
+  .profile-hero__coach .country-flag { height: 14px; }
+  .profile-hero__coach b { color: var(--text); font-weight: 800; }
+  .hero-meta { display: flex; flex-wrap: wrap; gap: var(--space-2xs); margin-top: 6px; }
+  .hero-chip {
+    display: inline-flex; align-items: center; height: 30px; padding: 0 13px;
+    border-radius: var(--r-pill); background: var(--surface-2); border: 1px solid var(--border);
+    font-size: 12.5px; font-weight: 700; color: var(--text-muted); white-space: nowrap;
+  }
+
+  .hero-follow {
+    flex: 0 0 auto; align-self: center;
+    display: inline-flex; align-items: center; gap: 10px;
+    height: 54px; padding: 0 22px;
+    border-radius: var(--r-pill);
+    background: var(--accent-soft); border: 1px solid color-mix(in oklab, var(--accent) 32%, transparent);
+    color: var(--accent-strong); font-weight: 800; font-size: 15px;
+    transition: background var(--t-fast), color var(--t-fast), border-color var(--t-fast), transform var(--t-fast);
+  }
+  [data-theme="dark"] .hero-follow { color: var(--accent); }
+  .hero-follow__ic { display: grid; place-items: center; }
+  .hero-follow__ic svg { width: 21px; height: 21px; stroke: currentColor; fill: none; stroke-width: 1.9; stroke-linecap: round; stroke-linejoin: round; }
+  .hero-follow:hover { border-color: var(--accent); }
+  .hero-follow:active { transform: scale(0.97); }
+  .hero-follow.is-active { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+  [data-theme="dark"] .hero-follow.is-active { color: var(--accent-ink); }
+
+  /* ---- UKŁAD 2 KOLUMNY ---- */
+  .profile-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 350px;
+    gap: var(--space-xl) var(--space-lg);
+    align-items: start;
+  }
+  .profile-col--main { min-width: 0; display: flex; flex-direction: column; gap: var(--space-2xl); }
+  .profile-col--side { display: flex; flex-direction: column; gap: var(--space-lg); }
+  .profile-col--main .section { margin-bottom: 0; }
+
+  /* podnagłówek podsekcji (Nadchodzące / Ostatnie wyniki) */
+  .subhead {
+    display: flex; align-items: center; gap: 10px;
+    font-size: 14px; font-weight: 800; letter-spacing: 0.02em; text-transform: uppercase;
+    color: var(--text-muted);
+    margin-bottom: var(--space-md);
+  }
+  .subhead--mt { margin-top: var(--space-xl); }
+  .subhead__dot { width: 9px; height: 9px; border-radius: 50%; background: var(--text-faint); flex: 0 0 auto; }
+  .subhead__dot.soon { background: var(--accent); }
+
+  .matches-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(270px, 1fr)); gap: var(--space-md); }
+
+  /* ---- KADRA ---- */
+  .squad { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-lg) var(--space-md); }
+  .squad-block { display: flex; flex-direction: column; gap: var(--space-sm); }
+  .squad-block__head { display: flex; align-items: center; gap: 10px; }
+  .squad-block__title { font-size: 13px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-faint); }
+  .squad-count {
+    display: inline-grid; place-items: center; min-width: 22px; height: 22px; padding: 0 7px;
+    border-radius: var(--r-pill); background: var(--surface-2); color: var(--text-muted);
+    font-size: 11px; font-weight: 800;
+  }
+  .squad-list { display: flex; flex-direction: column; gap: var(--space-2xs); }
+  .player-row {
+    display: flex; align-items: center; gap: 14px;
+    padding: 10px 14px;
+    background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-md);
+    transition: background var(--t-fast), border-color var(--t-fast), transform var(--t-fast);
+  }
+  .player-row:hover { background: var(--surface-hover); border-color: var(--border-strong); transform: translateX(2px); }
+  .player-num {
+    flex: 0 0 auto; width: 32px; height: 32px;
+    display: grid; place-items: center; border-radius: 9px;
+    background: var(--surface-2); color: var(--text-muted);
+    font-size: 13px; font-weight: 800; font-variant-numeric: tabular-nums;
+  }
+  .player-id { min-width: 0; display: flex; flex-direction: column; gap: 1px; }
+  .player-name { display: flex; align-items: center; gap: 7px; font-size: 14px; font-weight: 700; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .player-ball { display: inline-flex; align-items: center; gap: 2px; flex: 0 0 auto; font-size: 11px; font-weight: 800; color: var(--accent-strong); }
+  [data-theme="dark"] .player-ball { color: var(--accent); }
+  .player-ball svg { stroke: currentColor; }
+  .player-meta { font-size: 12px; font-weight: 600; color: var(--text-faint); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+  /* ---- WIDŻETY (prawa kolumna) ---- */
+  .widget { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-lg); padding: var(--space-md); }
+  .widget__head { display: flex; align-items: center; gap: var(--space-sm); margin-bottom: var(--space-sm); }
+  .widget__title { font-size: 15px; font-weight: 800; letter-spacing: -0.01em; }
+  .widget__sub { margin-left: auto; font-size: 11px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; color: var(--text-faint); }
+  .widget__link { margin-left: auto; display: inline-flex; align-items: center; gap: 4px; font-size: 12.5px; font-weight: 700; color: var(--text-muted); transition: color var(--t-fast); }
+  .widget__link svg { width: 14px; height: 14px; stroke: currentColor; fill: none; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
+  .widget__link:hover { color: var(--accent); }
+  .widget__cap { margin-top: var(--space-sm); font-size: 12px; color: var(--text-faint); font-weight: 600; text-wrap: pretty; line-height: 1.5; }
+
+  /* mini-tabela grupy */
+  .gtable { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+  .gtable thead th { font-size: 10px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; color: var(--text-faint); text-align: center; padding: 0 4px 9px; }
+  .gtable thead th.pos { width: 22px; }
+  .gtable thead th.team { text-align: left; padding-left: 6px; }
+  .gtable tbody td { padding: 9px 4px; font-size: 13px; font-weight: 600; text-align: center; color: var(--text-muted); border-top: 1px solid var(--border); }
+  .gtable td.pos { position: relative; width: 22px; font-weight: 800; color: var(--text-muted); }
+  .gtable td.pos::before { content: ""; position: absolute; left: -3px; top: 50%; transform: translateY(-50%); width: 3px; height: 20px; border-radius: 3px; background: transparent; }
+  .gtable tr.qual td.pos { color: var(--text); }
+  .gtable tr.qual td.pos::before { background: var(--accent); }
+  .gtable tr.play td.pos::before { background: repeating-linear-gradient(to bottom, oklch(0.8 0.14 92) 0 4px, transparent 4px 8px); }
+  .gtable td.team { text-align: left; padding-left: 6px; }
+  .gt-team { display: flex; align-items: center; gap: 8px; min-width: 0; }
+  .gt-team .country-flag { height: 14px; }
+  .gt-team .nm { font-weight: 700; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .gtable td.pts { font-weight: 800; color: var(--text); }
+  .gtable tr.is-target td { background: var(--accent-soft); }
+  .gtable tr.is-target .nm, .gtable tr.is-target td.pos { color: var(--accent-strong); }
+  [data-theme="dark"] .gtable tr.is-target .nm, [data-theme="dark"] .gtable tr.is-target td.pos { color: var(--accent); }
+  .gtable tr.is-target td:first-child { border-top-left-radius: 7px; border-bottom-left-radius: 7px; }
+  .gtable tr.is-target td:last-child { border-top-right-radius: 7px; border-bottom-right-radius: 7px; }
+  .gt-zones { display: flex; flex-wrap: wrap; gap: var(--space-md); margin-top: var(--space-sm); }
+  .gt-zone { display: inline-flex; align-items: center; gap: 7px; font-size: 11.5px; font-weight: 700; color: var(--text-muted); }
+  .gt-zone__dot { width: 8px; height: 8px; border-radius: 50%; flex: 0 0 auto; }
+  .gt-zone__dot.qual { background: var(--accent); }
+  .gt-zone__dot.play { background: oklch(0.8 0.14 92); }
+
+  /* paski statystyk */
+  .stats { display: flex; flex-direction: column; gap: var(--space-md); }
+  .stat-row { display: flex; flex-direction: column; gap: 8px; }
+  .stat-row__top { display: flex; align-items: baseline; justify-content: space-between; gap: var(--space-sm); }
+  .stat-row__lab { font-size: 13px; font-weight: 600; color: var(--text-muted); }
+  .stat-row__val { font-size: 15px; font-weight: 800; color: var(--text); font-variant-numeric: tabular-nums; }
+  .stat-bar { height: 8px; border-radius: var(--r-pill); background: var(--surface-2); overflow: hidden; }
+  .stat-bar__fill { display: block; height: 100%; border-radius: var(--r-pill); background: var(--accent); }
+  .stat-bar__fill.is-warn { background: oklch(0.8 0.14 92); }
+
+  /* ---- RESPONSYWNOŚĆ PROFILU ---- */
+  @media (max-width: 1100px) {
+    .profile-grid { grid-template-columns: 1fr; gap: var(--space-xl); }
+    .profile-col--main { gap: var(--space-xl); }
+  }
+  @media (max-width: 760px) {
+    .squad { grid-template-columns: 1fr; }
+  }
+  @media (max-width: 620px) {
+    .profile-hero__inner { flex-wrap: wrap; gap: var(--space-md); }
+    .hero-follow { width: 54px; padding: 0; justify-content: center; }
+    .hero-follow__txt { display: none; }
+    .profile-hero__coach { white-space: normal; }
+    .profile-hero__id { flex-basis: 100%; order: 3; }
+  }
+
+</style>
+  <!-- MODUŁ: wskaźnik obserwowania na chipsach (stan .is-followed) -->
+  <link rel="stylesheet" href="components/chip-follow.css" />
+</head>
+
+<body>
+
+  <!-- ============================ TOP BAR (header na górze, pełna szerokość) ============================ -->
+  <header class="topbar">
+    <div class="topbar__inner container">
+      <div class="topbar__left">
+        <button class="icon-btn" id="menuBtn" aria-label="Otwórz menu" aria-expanded="false" aria-controls="sidebar">
+          <svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+        </button>
+        <a class="logo" href="Hajlajty - Strona Główna.html" aria-label="Hajlajty — strona główna">
+          <span class="logo__text">hajlajt<span class="logo__y">y</span></span>
+          <svg class="logo__play" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" stroke="currentColor" stroke-width="3" stroke-linejoin="round" stroke-linecap="round" d="M7 5.8 18 12 7 18.2Z"/></svg>
+        </a>
+      </div>
+
+      <form class="search" role="search" onsubmit="return false">
+        <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.2-3.2"/></svg>
+        <input type="search" placeholder="Szukaj meczu, reprezentacji, fazy turnieju…" aria-label="Szukaj" />
+      </form>
+
+      <div class="topbar__right">
+        <button class="icon-btn search-mobile-btn" aria-label="Szukaj">
+          <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.2-3.2"/></svg>
+        </button>
+        <button class="icon-btn theme-toggle" id="themeBtn" aria-label="Przełącz motyw jasny/ciemny">
+          <svg class="sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4.2"/><path d="M12 2v2.5M12 19.5V22M2 12h2.5M19.5 12H22M4.9 4.9l1.8 1.8M17.3 17.3l1.8 1.8M19.1 4.9l-1.8 1.8M6.7 17.3l-1.8 1.8"/></svg>
+          <svg class="moon" viewBox="0 0 24 24"><path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z"/></svg>
+        </button>
+        <button class="icon-btn" aria-label="Profil">
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="8.5" r="3.8"/><path d="M4.5 20a7.5 7.5 0 0 1 15 0"/></svg>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <div class="scrim" id="scrim" hidden></div>
+
+  <!-- ===================== APP SHELL: sidebar + treść (poniżej headera) ===================== -->
+  <div class="shell">
+
+  <!-- ============================ SIDEBAR ============================ -->
+  <aside class="sidebar" id="sidebar" aria-label="Menu główne">
+    <div class="sidebar__head">
+      <button class="icon-btn" id="sidebarClose" aria-label="Zamknij menu">
+        <svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+      </button>
+      <a class="logo" href="Hajlajty - Strona Główna.html" aria-label="Hajlajty — strona główna">
+        <span class="logo__text">hajlajt<span class="logo__y">y</span></span>
+        <svg class="logo__play" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" stroke="currentColor" stroke-width="3" stroke-linejoin="round" stroke-linecap="round" d="M7 5.8 18 12 7 18.2Z"/></svg>
+      </a>
+    </div>
+
+    <nav class="sidebar__group">
+      <a class="nav-link" href="Hajlajty - Strona Główna.html"><svg viewBox="0 0 24 24"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V21h14V9.5"/></svg> Strona główna</a>
+      <a class="nav-link" href="Hajlajty - Na Żywo.html"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M5.6 5.6a9 9 0 0 0 0 12.8M18.4 5.6a9 9 0 0 1 0 12.8"/></svg> Na żywo <span class="badge-live">● LIVE</span></a>
+      <a class="nav-link" href="Hajlajty - Zapowiedzi.html"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg> Zapowiedzi</a>
+      <a class="nav-link" href="Hajlajty - Skróty.html"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="3"/><path d="M10 9.5v5l4-2.5z"/></svg> Skróty</a>
+    </nav>
+
+    <nav class="sidebar__group">
+      <p class="sidebar__label">Mundial 2026</p>
+      <a class="nav-link" href="Hajlajty - Terminarz Turnieju.html"><svg viewBox="0 0 24 24"><path d="M6 4h12v3a6 6 0 0 1-12 0z"/><path d="M9 14h6M10 14v4M14 14v4M8 21h8"/></svg> Terminarz turnieju</a>
+      <a class="nav-link" href="Hajlajty - Tabele Grup.html"><svg viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h10"/></svg> Tabele grup</a>
+      <a class="nav-link is-active" href="Hajlajty - Reprezentacje.html"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 3a14 14 0 0 0 0 18M12 3a14 14 0 0 1 0 18M3 12h18"/></svg> Reprezentacje</a>
+    </nav>
+
+    <nav class="sidebar__group">
+      <p class="sidebar__label">Twoje</p>
+      <a class="nav-link" href="Hajlajty - Obserwowane.html"><svg viewBox="0 0 24 24"><path d="M2 12s3.6-6.5 10-6.5S22 12 22 12s-3.6 6.5-10 6.5S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg> Obserwowane</a>
+      <a class="nav-link" href="Hajlajty - Ulubione.html"><svg viewBox="0 0 24 24"><path d="M12 20.5 4.2 12.7a4.7 4.7 0 0 1 6.6-6.6l1.2 1.2 1.2-1.2a4.7 4.7 0 0 1 6.6 6.6z"/></svg> Ulubione</a>
+      <a class="nav-link" href="Hajlajty - Ustawienia.html"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 12a7.4 7.4 0 0 0-.1-1.2l2-1.5-2-3.4-2.3 1a7.3 7.3 0 0 0-2-1.2L16.6 2h-4l-.4 2.5a7.3 7.3 0 0 0-2 1.2l-2.3-1-2 3.4 2 1.5a7.4 7.4 0 0 0 0 2.4l-2 1.5 2 3.4 2.3-1a7.3 7.3 0 0 0 2 1.2l.4 2.5h4l.4-2.5a7.3 7.3 0 0 0 2-1.2l2.3 1 2-3.4-2-1.5c.07-.4.1-.8.1-1.2z"/></svg> Ustawienia</a>
+    </nav>
+  </aside>
+
+  <!-- ============================ TREŚĆ (prawa kolumna) ============================ -->
+  <div class="content" id="content">
+
+  <!-- ========================= PASEK CHIPSÓW ========================= -->
+  <div class="chipsbar">
+    <div class="chipsbar__inner container">
+      <button class="chips-arrow prev" id="chipsPrev" aria-label="Przewiń w lewo">
+        <svg viewBox="0 0 24 24"><path d="m15 5-7 7 7 7"/></svg>
+      </button>
+
+      <div class="chips-scroll" id="chips">
+        <!-- PRZEŁĄCZNIK trybu paska: Wszystkie / Obserwowane (styl .chip) -->
+        <div class="chip chip--toggle" id="chipToggle" role="group" aria-label="Tryb paska reprezentacji">
+          <button type="button" class="chip-seg is-on" data-mode="all" aria-pressed="true">Wszystkie</button>
+          <button type="button" class="chip-seg" data-mode="observed" aria-pressed="false">
+            <svg viewBox="0 0 24 24"><path d="M2 12s3.6-6.5 10-6.5S22 12 22 12s-3.6 6.5-10 6.5S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>
+            Obserwowane
+          </button>
+        </div>
+        <!-- chip: data-team = kod reprezentacji -->
+        <button class="chip" data-team="POL"><img class="country-flag" src="https://flagcdn.com/pl.svg" alt="Polska" /> Polska <span class="chip__eye-indicator" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M2 12s3.6-6.5 10-6.5S22 12 22 12s-3.6 6.5-10 6.5S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></span> <span class="chip__check"><svg viewBox="0 0 24 24"><path d="m5 12 5 5 9-11"/></svg></span></button>
+        <button class="chip" data-team="BRA"><img class="country-flag" src="https://flagcdn.com/br.svg" alt="Brazylia" /> Brazylia <span class="chip__eye-indicator" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M2 12s3.6-6.5 10-6.5S22 12 22 12s-3.6 6.5-10 6.5S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></span> <span class="chip__check"><svg viewBox="0 0 24 24"><path d="m5 12 5 5 9-11"/></svg></span></button>
+        <button class="chip" data-team="ARG"><img class="country-flag" src="https://flagcdn.com/ar.svg" alt="Argentyna" /> Argentyna <span class="chip__eye-indicator" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M2 12s3.6-6.5 10-6.5S22 12 22 12s-3.6 6.5-10 6.5S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></span> <span class="chip__check"><svg viewBox="0 0 24 24"><path d="m5 12 5 5 9-11"/></svg></span></button>
+        <button class="chip" data-team="FRA"><img class="country-flag" src="https://flagcdn.com/fr.svg" alt="Francja" /> Francja <span class="chip__eye-indicator" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M2 12s3.6-6.5 10-6.5S22 12 22 12s-3.6 6.5-10 6.5S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></span> <span class="chip__check"><svg viewBox="0 0 24 24"><path d="m5 12 5 5 9-11"/></svg></span></button>
+        <button class="chip" data-team="ESP"><img class="country-flag" src="https://flagcdn.com/es.svg" alt="Hiszpania" /> Hiszpania <span class="chip__eye-indicator" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M2 12s3.6-6.5 10-6.5S22 12 22 12s-3.6 6.5-10 6.5S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></span> <span class="chip__check"><svg viewBox="0 0 24 24"><path d="m5 12 5 5 9-11"/></svg></span></button>
+        <button class="chip" data-team="GER"><img class="country-flag" src="https://flagcdn.com/de.svg" alt="Niemcy" /> Niemcy <span class="chip__eye-indicator" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M2 12s3.6-6.5 10-6.5S22 12 22 12s-3.6 6.5-10 6.5S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></span> <span class="chip__check"><svg viewBox="0 0 24 24"><path d="m5 12 5 5 9-11"/></svg></span></button>
+        <button class="chip" data-team="POR"><img class="country-flag" src="https://flagcdn.com/pt.svg" alt="Portugalia" /> Portugalia <span class="chip__eye-indicator" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M2 12s3.6-6.5 10-6.5S22 12 22 12s-3.6 6.5-10 6.5S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></span> <span class="chip__check"><svg viewBox="0 0 24 24"><path d="m5 12 5 5 9-11"/></svg></span></button>
+        <button class="chip" data-team="NED"><img class="country-flag" src="https://flagcdn.com/nl.svg" alt="Holandia" /> Holandia <span class="chip__eye-indicator" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M2 12s3.6-6.5 10-6.5S22 12 22 12s-3.6 6.5-10 6.5S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></span> <span class="chip__check"><svg viewBox="0 0 24 24"><path d="m5 12 5 5 9-11"/></svg></span></button>
+        <button class="chip" data-team="MAR"><img class="country-flag" src="https://flagcdn.com/ma.svg" alt="Maroko" /> Maroko <span class="chip__eye-indicator" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M2 12s3.6-6.5 10-6.5S22 12 22 12s-3.6 6.5-10 6.5S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></span> <span class="chip__check"><svg viewBox="0 0 24 24"><path d="m5 12 5 5 9-11"/></svg></span></button>
+        <button class="chip" data-team="MEX"><img class="country-flag" src="https://flagcdn.com/mx.svg" alt="Meksyk" /> Meksyk <span class="chip__eye-indicator" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M2 12s3.6-6.5 10-6.5S22 12 22 12s-3.6 6.5-10 6.5S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></span> <span class="chip__check"><svg viewBox="0 0 24 24"><path d="m5 12 5 5 9-11"/></svg></span></button>
+        <button class="chip" data-team="USA"><img class="country-flag" src="https://flagcdn.com/us.svg" alt="USA" /> USA <span class="chip__eye-indicator" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M2 12s3.6-6.5 10-6.5S22 12 22 12s-3.6 6.5-10 6.5S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></span> <span class="chip__check"><svg viewBox="0 0 24 24"><path d="m5 12 5 5 9-11"/></svg></span></button>
+        <button class="chip" data-team="JPN"><img class="country-flag" src="https://flagcdn.com/jp.svg" alt="Japonia" /> Japonia <span class="chip__eye-indicator" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M2 12s3.6-6.5 10-6.5S22 12 22 12s-3.6 6.5-10 6.5S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></span> <span class="chip__check"><svg viewBox="0 0 24 24"><path d="m5 12 5 5 9-11"/></svg></span></button>
+        <button class="chip" data-team="CRO"><img class="country-flag" src="https://flagcdn.com/hr.svg" alt="Chorwacja" /> Chorwacja <span class="chip__eye-indicator" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M2 12s3.6-6.5 10-6.5S22 12 22 12s-3.6 6.5-10 6.5S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></span> <span class="chip__check"><svg viewBox="0 0 24 24"><path d="m5 12 5 5 9-11"/></svg></span></button>
+        <button class="chip" data-team="URU"><img class="country-flag" src="https://flagcdn.com/uy.svg" alt="Urugwaj" /> Urugwaj <span class="chip__eye-indicator" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M2 12s3.6-6.5 10-6.5S22 12 22 12s-3.6 6.5-10 6.5S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></span> <span class="chip__check"><svg viewBox="0 0 24 24"><path d="m5 12 5 5 9-11"/></svg></span></button>
+        <button class="chip" data-team="BEL"><img class="country-flag" src="https://flagcdn.com/be.svg" alt="Belgia" /> Belgia <span class="chip__eye-indicator" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M2 12s3.6-6.5 10-6.5S22 12 22 12s-3.6 6.5-10 6.5S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></span> <span class="chip__check"><svg viewBox="0 0 24 24"><path d="m5 12 5 5 9-11"/></svg></span></button>
+        <button class="chip" data-team="KOR"><img class="country-flag" src="https://flagcdn.com/kr.svg" alt="Korea Płd." /> Korea Płd. <span class="chip__eye-indicator" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M2 12s3.6-6.5 10-6.5S22 12 22 12s-3.6 6.5-10 6.5S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></span> <span class="chip__check"><svg viewBox="0 0 24 24"><path d="m5 12 5 5 9-11"/></svg></span></button>
+      </div>
+
+      <button class="chips-arrow next" id="chipsNext" aria-label="Przewiń w prawo">
+        <svg viewBox="0 0 24 24"><path d="m9 5 7 7-7 7"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- ============================== MAIN ============================== -->
+  <main class="container">
+
+    <!-- ===== HERO PROFILU ===== -->
+    <section class="profile-hero reveal">
+      <span class="profile-hero__stripe" aria-hidden="true"></span>
+      <div class="profile-hero__inner">
+        <img class="profile-hero__flag" src="https://flagcdn.com/be.svg" alt="Flaga Belgii" />
+        <div class="profile-hero__id">
+          <span class="profile-hero__eyebrow"><span class="dot"></span> Reprezentacja · Mundial 2026</span>
+          <h1 class="profile-hero__name">Belgia</h1>
+          <span class="profile-hero__coach"><img class="country-flag" src="https://flagcdn.com/fr.svg" alt="Francja" /> Selekcjoner: <b>Rudi Garcia</b></span>
+          <div class="hero-meta">
+            <span class="hero-chip">Grupa G</span>
+            <span class="hero-chip">26 zawodników</span>
+            <span class="hero-chip">FIFA #8</span>
+          </div>
+        </div>
+        <button class="hero-follow" id="heroFollow" data-team="BEL" aria-pressed="false" aria-label="Obserwuj reprezentację Belgii">
+          <span class="hero-follow__ic"><svg viewBox="0 0 24 24"><path d="M2 12s3.6-6.5 10-6.5S22 12 22 12s-3.6 6.5-10 6.5S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></span>
+          <span class="hero-follow__txt">Obserwuj reprezentację</span>
+        </button>
+      </div>
+    </section>
+
+    <!-- ===== UKŁAD DWUKOLUMNOWY ===== -->
+    <div class="profile-grid">
+
+      <!-- KOLUMNA LEWA -->
+      <div class="profile-col profile-col--main">
+
+        <section class="section reveal">
+          <div class="section__head">
+            <h2 class="section__title"><span class="kicker-dot"></span> Mecze reprezentacji</h2>
+          </div>
+
+          <h3 class="subhead"><span class="subhead__dot soon"></span> Nadchodzące · faza grupowa</h3>
+          <div class="matches-grid">
+        <article class="up-card" data-kickoff="2026-06-15T19:00:00+00:00">
+          <span class="up-card__phase">⚽ Grupa G · 1. kolejka</span>
+          <div class="up-card__teams">
+            <div class="up-team"><img class="country-flag" src="https://flagcdn.com/be.svg" alt="Belgia" /><span class="name">Belgia</span></div>
+            <span class="up-vs">VS</span>
+            <div class="up-team"><img class="country-flag" src="https://flagcdn.com/eg.svg" alt="Egipt" /><span class="name">Egipt</span></div>
+          </div>
+          <p class="up-card__when"></p>
+          <div class="countdown" data-countdown>
+            <div class="unit"><span class="val" data-d>00</span><span class="lab">dni</span></div>
+            <div class="unit"><span class="val" data-h>00</span><span class="lab">godz</span></div>
+            <div class="unit"><span class="val" data-m>00</span><span class="lab">min</span></div>
+            <div class="unit"><span class="val" data-s>00</span><span class="lab">sek</span></div>
+          </div>
+          <button class="up-card__btn"><svg viewBox="0 0 24 24"><path d="M12 8v8M8 12h8"/><circle cx="12" cy="12" r="9"/></svg> Przypomnij mi</button>
+        </article>
+
+        <article class="up-card" data-kickoff="2026-06-21T19:00:00+00:00">
+          <span class="up-card__phase">⚽ Grupa G · 2. kolejka</span>
+          <div class="up-card__teams">
+            <div class="up-team"><img class="country-flag" src="https://flagcdn.com/be.svg" alt="Belgia" /><span class="name">Belgia</span></div>
+            <span class="up-vs">VS</span>
+            <div class="up-team"><img class="country-flag" src="https://flagcdn.com/ir.svg" alt="Iran" /><span class="name">Iran</span></div>
+          </div>
+          <p class="up-card__when"></p>
+          <div class="countdown" data-countdown>
+            <div class="unit"><span class="val" data-d>00</span><span class="lab">dni</span></div>
+            <div class="unit"><span class="val" data-h>00</span><span class="lab">godz</span></div>
+            <div class="unit"><span class="val" data-m>00</span><span class="lab">min</span></div>
+            <div class="unit"><span class="val" data-s>00</span><span class="lab">sek</span></div>
+          </div>
+          <button class="up-card__btn"><svg viewBox="0 0 24 24"><path d="M12 8v8M8 12h8"/><circle cx="12" cy="12" r="9"/></svg> Przypomnij mi</button>
+        </article>
+
+        <article class="up-card" data-kickoff="2026-06-27T03:00:00+00:00">
+          <span class="up-card__phase">⚽ Grupa G · 3. kolejka</span>
+          <div class="up-card__teams">
+            <div class="up-team"><img class="country-flag" src="https://flagcdn.com/nz.svg" alt="Nowa Zelandia" /><span class="name">Nowa Zelandia</span></div>
+            <span class="up-vs">VS</span>
+            <div class="up-team"><img class="country-flag" src="https://flagcdn.com/be.svg" alt="Belgia" /><span class="name">Belgia</span></div>
+          </div>
+          <p class="up-card__when"></p>
+          <div class="countdown" data-countdown>
+            <div class="unit"><span class="val" data-d>00</span><span class="lab">dni</span></div>
+            <div class="unit"><span class="val" data-h>00</span><span class="lab">godz</span></div>
+            <div class="unit"><span class="val" data-m>00</span><span class="lab">min</span></div>
+            <div class="unit"><span class="val" data-s>00</span><span class="lab">sek</span></div>
+          </div>
+          <button class="up-card__btn"><svg viewBox="0 0 24 24"><path d="M12 8v8M8 12h8"/><circle cx="12" cy="12" r="9"/></svg> Przypomnij mi</button>
+        </article>
+          </div>
+
+          <h3 class="subhead subhead--mt"><span class="subhead__dot"></span> Ostatnie wyniki · eliminacje</h3>
+          <div class="grid-videos">
+        <article class="vcard">
+          <a class="thumb card-video" href="#" aria-label="Odtwórz skrót: Belgia 6–0 Liechtenstein · skrót i wszystkie bramki">
+            <span class="thumb__dur">8:12</span>
+            <span class="thumb__play"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></span>
+          </a>
+          <div class="vcard__body">
+            <h3 class="vcard__title">Belgia 6–0 Liechtenstein · skrót i wszystkie bramki</h3>
+            <div class="vcard__meta">
+              <span class="vcard__comp">El. MŚ 2026</span>
+              <span class="dot-sep"></span> 3 dni temu
+            </div>
+          </div>
+        </article>
+
+        <article class="vcard">
+          <a class="thumb card-video" href="#" aria-label="Odtwórz skrót: Belgia 2–0 Walia · komplet punktów na Heysel">
+            <span class="thumb__dur">9:05</span>
+            <span class="thumb__play"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></span>
+          </a>
+          <div class="vcard__body">
+            <h3 class="vcard__title">Belgia 2–0 Walia · komplet punktów na Heysel</h3>
+            <div class="vcard__meta">
+              <span class="vcard__comp">El. MŚ 2026</span>
+              <span class="dot-sep"></span> 6 dni temu
+            </div>
+          </div>
+        </article>
+
+        <article class="vcard">
+          <a class="thumb card-video" href="#" aria-label="Odtwórz skrót: Macedonia Płn. 1–4 Belgia · recital Diabłów">
+            <span class="thumb__dur">10:20</span>
+            <span class="thumb__play"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></span>
+          </a>
+          <div class="vcard__body">
+            <h3 class="vcard__title">Macedonia Płn. 1–4 Belgia · recital Diabłów</h3>
+            <div class="vcard__meta">
+              <span class="vcard__comp">El. MŚ 2026</span>
+              <span class="dot-sep"></span> 2 tyg. temu
+            </div>
+          </div>
+        </article>
+
+        <article class="vcard">
+          <a class="thumb card-video" href="#" aria-label="Odtwórz skrót: Kazachstan 0–3 Belgia · pewny wyjazdowy komplet">
+            <span class="thumb__dur">7:48</span>
+            <span class="thumb__play"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></span>
+          </a>
+          <div class="vcard__body">
+            <h3 class="vcard__title">Kazachstan 0–3 Belgia · pewny wyjazdowy komplet</h3>
+            <div class="vcard__meta">
+              <span class="vcard__comp">El. MŚ 2026</span>
+              <span class="dot-sep"></span> 3 tyg. temu
+            </div>
+          </div>
+        </article>
+
+        <article class="vcard">
+          <a class="thumb card-video" href="#" aria-label="Odtwórz skrót: Belgia 4–1 Macedonia Płn. · show De Bruyne i Doku">
+            <span class="thumb__dur">9:33</span>
+            <span class="thumb__play"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></span>
+          </a>
+          <div class="vcard__body">
+            <h3 class="vcard__title">Belgia 4–1 Macedonia Płn. · show De Bruyne i Doku</h3>
+            <div class="vcard__meta">
+              <span class="vcard__comp">El. MŚ 2026</span>
+              <span class="dot-sep"></span> miesiąc temu
+            </div>
+          </div>
+        </article>
+
+        <article class="vcard">
+          <a class="thumb card-video" href="#" aria-label="Odtwórz skrót: Walia 1–1 Belgia · zacięty remis w Cardiff">
+            <span class="thumb__dur">8:50</span>
+            <span class="thumb__play"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></span>
+          </a>
+          <div class="vcard__body">
+            <h3 class="vcard__title">Walia 1–1 Belgia · zacięty remis w Cardiff</h3>
+            <div class="vcard__meta">
+              <span class="vcard__comp">El. MŚ 2026</span>
+              <span class="dot-sep"></span> miesiąc temu
+            </div>
+          </div>
+        </article>
+          </div>
+        </section>
+
+        <section class="section reveal">
+          <div class="section__head">
+            <h2 class="section__title"><span class="kicker-dot"></span> Kadra na Mundial 2026</h2>
+            <span class="section__more" style="cursor:default">26 powołanych</span>
+          </div>
+          <div class="squad">
+        <div class="squad-block">
+          <div class="squad-block__head">
+            <h3 class="squad-block__title">Bramkarze</h3>
+            <span class="squad-count">3</span>
+          </div>
+          <div class="squad-list">
+            <div class="player-row">
+              <span class="player-num">1</span>
+              <span class="player-id">
+                <span class="player-name">T. Courtois</span>
+                <span class="player-meta">33 lata · Real Madryt</span>
+              </span>
+            </div>
+            <div class="player-row">
+              <span class="player-num">12</span>
+              <span class="player-id">
+                <span class="player-name">S. Lammens</span>
+                <span class="player-meta">23 lata · Manchester Utd</span>
+              </span>
+            </div>
+            <div class="player-row">
+              <span class="player-num">13</span>
+              <span class="player-id">
+                <span class="player-name">M. Penders</span>
+                <span class="player-meta">20 lat · RC Strasbourg</span>
+              </span>
+            </div>
+          </div>
+        </div>
+        <div class="squad-block">
+          <div class="squad-block__head">
+            <h3 class="squad-block__title">Obrońcy</h3>
+            <span class="squad-count">9</span>
+          </div>
+          <div class="squad-list">
+            <div class="player-row">
+              <span class="player-num">3</span>
+              <span class="player-id">
+                <span class="player-name">A. Theate</span>
+                <span class="player-meta">25 lat · Eintracht Frankfurt</span>
+              </span>
+            </div>
+            <div class="player-row">
+              <span class="player-num">2</span>
+              <span class="player-id">
+                <span class="player-name">Z. Debast</span>
+                <span class="player-meta">22 lata · Sporting CP</span>
+              </span>
+            </div>
+            <div class="player-row">
+              <span class="player-num">4</span>
+              <span class="player-id">
+                <span class="player-name">B. Mechele</span>
+                <span class="player-meta">32 lata · Club Brugge</span>
+              </span>
+            </div>
+            <div class="player-row">
+              <span class="player-num">5</span>
+              <span class="player-id">
+                <span class="player-name">M. De Cuyper</span>
+                <span class="player-meta">25 lat · Brighton</span>
+              </span>
+            </div>
+            <div class="player-row">
+              <span class="player-num">15</span>
+              <span class="player-id">
+                <span class="player-name">T. Meunier</span>
+                <span class="player-meta">34 lata · LOSC Lille</span>
+              </span>
+            </div>
+            <div class="player-row">
+              <span class="player-num">16</span>
+              <span class="player-id">
+                <span class="player-name">K. De Winter</span>
+                <span class="player-meta">23 lata · AC Milan</span>
+              </span>
+            </div>
+            <div class="player-row">
+              <span class="player-num">21</span>
+              <span class="player-id">
+                <span class="player-name">T. Castagne</span>
+                <span class="player-meta">30 lat · Fulham</span>
+              </span>
+            </div>
+            <div class="player-row">
+              <span class="player-num">25</span>
+              <span class="player-id">
+                <span class="player-name">N. Ngoy</span>
+                <span class="player-meta">22 lata · Toulouse FC</span>
+              </span>
+            </div>
+            <div class="player-row">
+              <span class="player-num">18</span>
+              <span class="player-id">
+                <span class="player-name">J. Seys</span>
+                <span class="player-meta">20 lat · Club Brugge</span>
+              </span>
+            </div>
+          </div>
+        </div>
+        <div class="squad-block">
+          <div class="squad-block__head">
+            <h3 class="squad-block__title">Pomocnicy</h3>
+            <span class="squad-count">8</span>
+          </div>
+          <div class="squad-list">
+            <div class="player-row">
+              <span class="player-num">7</span>
+              <span class="player-id">
+                <span class="player-name">K. De Bruyne <span class="player-ball" title="Bramki w eliminacjach"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7.5l3 2.2-1.1 3.5h-3.8L9 9.7z"/></svg>3</span></span>
+                <span class="player-meta">34 lata · Napoli</span>
+              </span>
+            </div>
+            <div class="player-row">
+              <span class="player-num">8</span>
+              <span class="player-id">
+                <span class="player-name">Y. Tielemans <span class="player-ball" title="Bramki w eliminacjach"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7.5l3 2.2-1.1 3.5h-3.8L9 9.7z"/></svg>1</span></span>
+                <span class="player-meta">28 lat · Aston Villa</span>
+              </span>
+            </div>
+            <div class="player-row">
+              <span class="player-num">11</span>
+              <span class="player-id">
+                <span class="player-name">J. Doku <span class="player-ball" title="Bramki w eliminacjach"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7.5l3 2.2-1.1 3.5h-3.8L9 9.7z"/></svg>3</span></span>
+                <span class="player-meta">23 lata · Manchester City</span>
+              </span>
+            </div>
+            <div class="player-row">
+              <span class="player-num">10</span>
+              <span class="player-id">
+                <span class="player-name">L. Trossard <span class="player-ball" title="Bramki w eliminacjach"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7.5l3 2.2-1.1 3.5h-3.8L9 9.7z"/></svg>2</span></span>
+                <span class="player-meta">31 lat · Arsenal</span>
+              </span>
+            </div>
+            <div class="player-row">
+              <span class="player-num">6</span>
+              <span class="player-id">
+                <span class="player-name">A. Witsel</span>
+                <span class="player-meta">36 lat · Girona FC</span>
+              </span>
+            </div>
+            <div class="player-row">
+              <span class="player-num">20</span>
+              <span class="player-id">
+                <span class="player-name">H. Vanaken</span>
+                <span class="player-meta">33 lata · Club Brugge</span>
+              </span>
+            </div>
+            <div class="player-row">
+              <span class="player-num">24</span>
+              <span class="player-id">
+                <span class="player-name">A. Onana</span>
+                <span class="player-meta">24 lata · Aston Villa</span>
+              </span>
+            </div>
+            <div class="player-row">
+              <span class="player-num">23</span>
+              <span class="player-id">
+                <span class="player-name">N. Raskin</span>
+                <span class="player-meta">24 lata · Rangers FC</span>
+              </span>
+            </div>
+          </div>
+        </div>
+        <div class="squad-block">
+          <div class="squad-block__head">
+            <h3 class="squad-block__title">Napastnicy</h3>
+            <span class="squad-count">6</span>
+          </div>
+          <div class="squad-list">
+            <div class="player-row">
+              <span class="player-num">9</span>
+              <span class="player-id">
+                <span class="player-name">R. Lukaku <span class="player-ball" title="Bramki w eliminacjach"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7.5l3 2.2-1.1 3.5h-3.8L9 9.7z"/></svg>5</span></span>
+                <span class="player-meta">32 lata · Napoli</span>
+              </span>
+            </div>
+            <div class="player-row">
+              <span class="player-num">14</span>
+              <span class="player-id">
+                <span class="player-name">D. Lukebakio</span>
+                <span class="player-meta">28 lat · Sevilla FC</span>
+              </span>
+            </div>
+            <div class="player-row">
+              <span class="player-num">17</span>
+              <span class="player-id">
+                <span class="player-name">C. De Ketelaere <span class="player-ball" title="Bramki w eliminacjach"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7.5l3 2.2-1.1 3.5h-3.8L9 9.7z"/></svg>2</span></span>
+                <span class="player-meta">24 lata · Atalanta</span>
+              </span>
+            </div>
+            <div class="player-row">
+              <span class="player-num">22</span>
+              <span class="player-id">
+                <span class="player-name">A. Saelemaekers <span class="player-ball" title="Bramki w eliminacjach"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7.5l3 2.2-1.1 3.5h-3.8L9 9.7z"/></svg>2</span></span>
+                <span class="player-meta">26 lat · AS Roma</span>
+              </span>
+            </div>
+            <div class="player-row">
+              <span class="player-num">19</span>
+              <span class="player-id">
+                <span class="player-name">D. Moreira</span>
+                <span class="player-meta">21 lat · RC Strasbourg</span>
+              </span>
+            </div>
+            <div class="player-row">
+              <span class="player-num">26</span>
+              <span class="player-id">
+                <span class="player-name">M. Fernandez-Pardo</span>
+                <span class="player-meta">20 lat · KAA Gent</span>
+              </span>
+            </div>
+          </div>
+        </div>
+          </div>
+        </section>
+
+      </div>
+
+      <!-- KOLUMNA PRAWA -->
+      <aside class="profile-col profile-col--side">
+
+        <div class="widget reveal">
+          <div class="widget__head">
+            <h3 class="widget__title">Tabela · Grupa G</h3>
+            <a class="widget__link" href="Hajlajty - Tabele Grup.html">Pełna <svg viewBox="0 0 24 24"><path d="m9 5 7 7-7 7"/></svg></a>
+          </div>
+          <table class="gtable">
+            <thead><tr><th class="pos">#</th><th class="team">Drużyna</th><th title="Rozegrane">M</th><th title="Bramki">Br.</th><th title="Punkty">Pkt</th></tr></thead>
+            <tbody>
+            <tr class="qual is-target">
+              <td class="pos">1</td>
+              <td class="team"><span class="gt-team"><img class="country-flag" src="https://flagcdn.com/be.svg" alt="Belgia"><span class="nm">Belgia</span></span></td>
+              <td>0</td><td class="gf">0:0</td><td class="pts">0</td>
+            </tr>
+            <tr class="qual">
+              <td class="pos">2</td>
+              <td class="team"><span class="gt-team"><img class="country-flag" src="https://flagcdn.com/eg.svg" alt="Egipt"><span class="nm">Egipt</span></span></td>
+              <td>0</td><td class="gf">0:0</td><td class="pts">0</td>
+            </tr>
+            <tr class="play">
+              <td class="pos">3</td>
+              <td class="team"><span class="gt-team"><img class="country-flag" src="https://flagcdn.com/ir.svg" alt="Iran"><span class="nm">Iran</span></span></td>
+              <td>0</td><td class="gf">0:0</td><td class="pts">0</td>
+            </tr>
+            <tr class="">
+              <td class="pos">4</td>
+              <td class="team"><span class="gt-team"><img class="country-flag" src="https://flagcdn.com/nz.svg" alt="Nowa Zelandia"><span class="nm">Nowa Zelandia</span></span></td>
+              <td>0</td><td class="gf">0:0</td><td class="pts">0</td>
+            </tr>
+            </tbody>
+          </table>
+          <div class="gt-zones">
+            <span class="gt-zone"><span class="gt-zone__dot qual"></span> 1–2 · awans</span>
+            <span class="gt-zone"><span class="gt-zone__dot play"></span> 3 · baraż</span>
+          </div>
+          <p class="widget__cap">Faza grupowa rusza 15 czerwca — tabela ożyje po 1. kolejce.</p>
+        </div>
+
+        <div class="widget reveal">
+          <div class="widget__head">
+            <h3 class="widget__title">Statystyki drużyny</h3>
+            <span class="widget__sub">eliminacje · 10 meczów</span>
+          </div>
+          <div class="stats">
+          <div class="stat-row">
+            <div class="stat-row__top"><span class="stat-row__lab">Średnia goli na mecz</span><span class="stat-row__val">2,6</span></div>
+            <div class="stat-bar"><span class="stat-bar__fill" style="width:72%"></span></div>
+          </div>
+          <div class="stat-row">
+            <div class="stat-row__top"><span class="stat-row__lab">Posiadanie piłki</span><span class="stat-row__val">61%</span></div>
+            <div class="stat-bar"><span class="stat-bar__fill" style="width:61%"></span></div>
+          </div>
+          <div class="stat-row">
+            <div class="stat-row__top"><span class="stat-row__lab">Czyste konta</span><span class="stat-row__val">6 / 10</span></div>
+            <div class="stat-bar"><span class="stat-bar__fill" style="width:60%"></span></div>
+          </div>
+          <div class="stat-row">
+            <div class="stat-row__top"><span class="stat-row__lab">Kartki (żółte)</span><span class="stat-row__val">13</span></div>
+            <div class="stat-bar"><span class="stat-bar__fill is-warn" style="width:42%"></span></div>
+          </div>
+          </div>
+        </div>
+
+      </aside>
+
+    </div>
+
+  </main>
+
+  <!-- ============================= STOPKA ============================= -->
+  <footer class="footer">
+    <div class="container">
+      <div class="footer__grid">
+        <div class="footer__brand">
+          <a class="logo" href="Hajlajty - Strona Główna.html" aria-label="Hajlajty">
+            <svg class="logo__play" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M8 5v14l11-7z"/></svg>
+            <span class="logo__text">hajlajt<span class="logo__y">y</span></span>
+          </a>
+          <p class="footer__tag">Portal Młodego Kibica. Wszystkie skróty reprezentacji w jednym miejscu — prosto z oficjalnych kanałów.</p>
+        </div>
+        <div class="footer__col">
+          <h4>Serwis</h4>
+          <a href="Hajlajty - Na Żywo.html">Na żywo</a>
+          <a href="Hajlajty - Zapowiedzi.html">Zapowiedzi</a>
+          <a href="Hajlajty - Skróty.html">Skróty</a>
+          <a href="#">Reprezentacje</a>
+        </div>
+        <div class="footer__col">
+          <h4>Mundial 2026</h4>
+          <a href="#">Terminarz</a>
+          <a href="#">Grupy</a>
+          <a href="#">Faza pucharowa</a>
+          <a href="#">Strzelcy</a>
+        </div>
+        <div class="footer__col">
+          <h4>Hajlajty</h4>
+          <a href="#">O nas</a>
+          <a href="#">Kontakt</a>
+          <a href="#">Polityka prywatności</a>
+          <a href="#">Regulamin</a>
+        </div>
+      </div>
+      <div class="footer__bottom">
+        <span>© 2026 Hajlajty.pl — wszystkie prawa zastrzeżone.</span>
+        <span>Skróty pochodzą z oficjalnych kanałów YouTube.</span>
+      </div>
+    </div>
+  </footer>
+
+  </div><!-- /.content -->
+  </div><!-- /.shell -->
+
+  <!-- ============================== SKRYPT ============================== -->
+  <script>
+  (function () {
+    "use strict";
+    var STORE = { theme: "hajlajty:theme", follows: "hajlajty:follows", mode: "hajlajty:chipmode" };
+    var $  = function (s, c) { return (c || document).querySelector(s); };
+    var $$ = function (s, c) { return Array.prototype.slice.call((c || document).querySelectorAll(s)); };
+    function norm(s){ return (s || "").toLowerCase().replace(/\u0142/g,"l").normalize("NFD").replace(/[\u0300-\u036f]/g,""); }
+
+    /* ---------------- MOTYW ---------------- */
+    var root = document.documentElement;
+    try { var saved = localStorage.getItem(STORE.theme); if (saved) root.setAttribute("data-theme", saved); } catch (e) {}
+    $("#themeBtn").addEventListener("click", function () {
+      var next = root.getAttribute("data-theme") === "dark" ? "light" : "dark";
+      root.setAttribute("data-theme", next);
+      try { localStorage.setItem(STORE.theme, next); } catch (e) {}
+    });
+
+    /* ---------------- SIDEBAR ---------------- */
+    var sidebar = $("#sidebar"), scrim = $("#scrim"), menuBtn = $("#menuBtn");
+    function openSidebar(){ sidebar.classList.add("is-open"); scrim.hidden = false; requestAnimationFrame(function(){ scrim.classList.add("is-open"); }); menuBtn.setAttribute("aria-expanded","true"); document.body.style.overflow = "hidden"; }
+    function closeSidebar(){ sidebar.classList.remove("is-open"); scrim.classList.remove("is-open"); menuBtn.setAttribute("aria-expanded","false"); document.body.style.overflow = ""; setTimeout(function(){ if(!scrim.classList.contains("is-open")) scrim.hidden = true; },260); }
+    menuBtn.addEventListener("click", function(){
+      if (window.matchMedia("(min-width: 1100px)").matches) {
+        document.body.classList.toggle("nav-collapsed");
+        menuBtn.setAttribute("aria-expanded", String(!document.body.classList.contains("nav-collapsed")));
+      } else { openSidebar(); }
+    });
+    $("#sidebarClose").addEventListener("click", closeSidebar);
+    scrim.addEventListener("click", closeSidebar);
+    document.addEventListener("keydown", function(e){ if (e.key === "Escape") closeSidebar(); });
+    $$(".sidebar .nav-link").forEach(function(a){ a.addEventListener("click", function(){ if (!window.matchMedia("(min-width: 1100px)").matches) closeSidebar(); }); });
+    var mqDesktop = window.matchMedia("(min-width: 1100px)");
+    function syncSidebarMode(e){ if (e.matches) { sidebar.classList.remove("is-open"); scrim.classList.remove("is-open"); scrim.hidden = true; document.body.style.overflow = ""; menuBtn.setAttribute("aria-expanded","false"); } }
+    mqDesktop.addEventListener("change", syncSidebarMode); syncSidebarMode(mqDesktop);
+
+    /* ---------------- CHIPSY + GLOBALNY SYSTEM OBSERWOWANYCH ---------------- */
+    var chips = $$("#chips .chip[data-team]");
+    var chipToggle = $("#chipToggle");
+    var modeSegs = chipToggle ? $$(".chip-seg", chipToggle) : [];
+    var heroFollow = $("#heroFollow");
+
+    var observed = new Set(); var hadStore = false;
+    try { var rawF = localStorage.getItem(STORE.follows); if (rawF !== null) { hadStore = true; JSON.parse(rawF).forEach(function(t){ observed.add(t); }); } } catch (e) {}
+    if (!hadStore) { ["POL","BRA","ARG","ESP"].forEach(function(t){ observed.add(t); }); }
+    function persistObserved(){ try { localStorage.setItem(STORE.follows, JSON.stringify(Array.from(observed))); } catch (e) {} }
+
+    var mode = "all";
+    try { var sm = localStorage.getItem(STORE.mode); if (sm === "all" || sm === "observed") mode = sm; } catch (e) {}
+
+    /* Strzałki przewijania paska */
+    var chipsScroll = $("#chips"), prevBtn = $("#chipsPrev"), nextBtn = $("#chipsNext");
+    function updateArrows(){ var max = chipsScroll.scrollWidth - chipsScroll.clientWidth - 2; prevBtn.classList.toggle("is-visible", chipsScroll.scrollLeft > 4); nextBtn.classList.toggle("is-visible", chipsScroll.scrollLeft < max); }
+    prevBtn.addEventListener("click", function(){ chipsScroll.scrollBy({ left:-280, behavior:"smooth" }); });
+    nextBtn.addEventListener("click", function(){ chipsScroll.scrollBy({ left:280, behavior:"smooth" }); });
+    chipsScroll.addEventListener("scroll", updateArrows, { passive:true });
+    window.addEventListener("resize", updateArrows);
+
+    /* Dyskretne scrollbary */
+    function discreteScroll(el){ if(!el) return; var t=null; el.addEventListener("scroll", function(){ el.classList.add("is-scrolling"); if(t) clearTimeout(t); t=setTimeout(function(){ el.classList.remove("is-scrolling"); },650); }, { passive:true }); }
+    [sidebar, $("#content"), chipsScroll].forEach(discreteScroll);
+
+    /* Tryb paska: Wszystkie / Obserwowane */
+    function renderMode(){ modeSegs.forEach(function(seg){ var on = seg.dataset.mode === mode; seg.classList.toggle("is-on", on); seg.setAttribute("aria-pressed", String(on)); }); }
+    function applyMode(){ renderMode(); chips.forEach(function(c){ var show = (mode === "all") || observed.has(c.dataset.team); c.classList.toggle("is-mode-hidden", !show); }); updateArrows(); }
+    function setMode(nextMode){ if (nextMode === mode) return; mode = nextMode; try { localStorage.setItem(STORE.mode, mode); } catch (e) {} applyMode(); }
+    modeSegs.forEach(function(seg){ seg.addEventListener("click", function(){ setMode(seg.dataset.mode); }); });
+
+    /* Render stanu „obserwowane” na chipsach + przycisku hero */
+    function renderObserved(){
+      chips.forEach(function(c){ var on = observed.has(c.dataset.team); c.classList.toggle("is-active", on); });
+      if (heroFollow) {
+        var on = observed.has(heroFollow.dataset.team);
+        heroFollow.classList.toggle("is-active", on);
+        heroFollow.setAttribute("aria-pressed", String(on));
+        var txt = $(".hero-follow__txt", heroFollow);
+        if (txt) txt.textContent = on ? "Obserwujesz" : "Obserwuj reprezentację";
+      }
+    }
+    function toggleObserve(code){
+      if (observed.has(code)) observed.delete(code); else observed.add(code);
+      persistObserved();
+      renderObserved();
+      applyMode();
+    }
+    /* Klik chipsa → obserwuj/odobserwuj daną reprezentację (globalnie) */
+    chips.forEach(function(chip){ chip.addEventListener("click", function(){ toggleObserve(chip.dataset.team); }); });
+    /* Przycisk hero „Obserwuj reprezentację” */
+    if (heroFollow) heroFollow.addEventListener("click", function(){ toggleObserve(heroFollow.dataset.team); });
+
+    /* Wyszukiwarka w nagłówku → zawęża pasek chipsów */
+    var searchInput = $(".search input");
+    if (searchInput) {
+      searchInput.addEventListener("input", function(){
+        var q = norm(searchInput.value.trim());
+        chips.forEach(function(chip){ var hay = norm(chip.textContent) + " " + norm(chip.dataset.team); chip.classList.toggle("is-hidden", q !== "" && hay.indexOf(q) === -1); });
+        updateArrows();
+      });
+    }
+
+    /* ---------------- COUNTDOWN (nadchodzące mecze) ---------------- */
+    var months = ["stycznia","lutego","marca","kwietnia","maja","czerwca","lipca","sierpnia","września","października","listopada","grudnia"];
+    function pad(n){ return n < 10 ? "0" + n : "" + n; }
+    var counters = $$("[data-kickoff]").map(function(card){
+      var when = $(".up-card__when", card);
+      var box = $("[data-countdown]", card);
+      var d = new Date(card.dataset.kickoff);
+      if (when) { when.textContent = "Pierwszy gwizdek · " + d.getDate() + " " + months[d.getMonth()] + ", godz. " + pad(d.getHours()) + ":" + pad(d.getMinutes()); }
+      return { target: d.getTime(), box: box, d: $("[data-d]", box), h: $("[data-h]", box), m: $("[data-m]", box), s: $("[data-s]", box) };
+    });
+    function tick(){
+      var now = Date.now();
+      counters.forEach(function(c){
+        var diff = Math.max(0, c.target - now);
+        var sec = Math.floor(diff / 1000);
+        c.d.textContent = pad(Math.floor(sec / 86400));
+        c.h.textContent = pad(Math.floor((sec % 86400) / 3600));
+        c.m.textContent = pad(Math.floor((sec % 3600) / 60));
+        c.s.textContent = pad(sec % 60);
+        c.box.classList.toggle("is-soon", diff > 0 && diff < 86400000);
+      });
+    }
+    tick(); setInterval(tick, 1000);
+
+    /* ---------------- PLAYER: facade → iframe (skróty) ---------------- */
+    $$(".card-video").forEach(function(el){
+      el.addEventListener("click", function(e){
+        e.preventDefault();
+        var id = el.dataset.yt;
+        if (id) {
+          var iframe = document.createElement("iframe");
+          iframe.src = "https://www.youtube-nocookie.com/embed/" + id + "?autoplay=1&rel=0";
+          iframe.title = el.getAttribute("aria-label") || "Odtwarzacz wideo";
+          iframe.allow = "accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture";
+          iframe.allowFullscreen = true;
+          el.classList.add("is-playing"); el.innerHTML = ""; el.appendChild(iframe);
+        } else {
+          var play = $(".thumb__play", el);
+          if (play) { play.style.transform = "scale(0.92)"; setTimeout(function(){ play.style.transform = ""; }, 160); }
+        }
+      });
+    });
+
+    /* ---------------- INIT ---------------- */
+    renderMode();
+    renderObserved();
+    applyMode();
+    updateArrows();
+    root.classList.add("js-anim");
+  })();
+  </script>
+  <script src="hajlajty-fav.js" defer></script>
+  <!-- MODUŁ: synchronizacja stanu obserwowania → chipsy (dwukierunkowa) -->
+  <script src="components/chip-follow.js" defer></script>
+  <!-- MODUŁ: przesuwanie paska chipsów myszką (drag-to-scroll) -->
+  <script src="components/chips-drag.js" defer></script>
+</body>
+</html>

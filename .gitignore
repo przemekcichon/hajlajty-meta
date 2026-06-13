@@ -1,0 +1,22 @@
+# Sekrety / środowisko
+.env
+.env.*
+*.key
+*.pem
+secrets/
+
+# Klucz api-football i inne poświadczenia — NIGDY do repo
+**/credentials*
+**/*secret*
+
+# Śmieci systemowe
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# IDE / edytory
+.idea/
+.vscode/
+*.swp
+*~
+# .code-workspace zostaje wersjonowany — to punkt wejścia do multi-repo

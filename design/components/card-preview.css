@@ -1,0 +1,204 @@
+/* ============================================================
+   HAJLAJTY — components/card-preview.css
+   ------------------------------------------------------------
+   KOMPONENT: KARTA ZAPOWIEDZI MECZU  (BEM: .card--preview)
+
+   JEDYNE miejsce w projekcie, w którym wolno stylować kartę
+   zapowiedzi. Pliki stron (pages/*.css) odpowiadają wyłącznie
+   za siatkę i pozycjonowanie — nigdy za wygląd tej karty.
+
+   KONTRAKT LOKALNYCH ZMIENNYCH (sekcja 1):
+   Wszystkie wartości wizualne przechodzą przez zmienne --card-*,
+   które dziedziczą z globalnych tokenów (styles/tokens.css).
+   Strona może przestroić gęstość/skalę BEZ dotykania tego pliku:
+
+       .schedule--compact .card--preview {
+         --card-padding: var(--space-xs);
+         --card-gap: var(--space-sm);
+         --card-countdown-val: 20px;
+       }
+
+   Light/Dark dzieje się samo: lokalne zmienne wskazują tokeny
+   motywu, więc komponent nie zawiera ani jednej reguły
+   [data-theme] poza akcentem tekstu fazy.
+
+   STRUKTURA HTML (wzorzec):
+     <article class="card--preview" data-card-id="up-POL-BRA"
+              data-teams="POL BRA" data-kickoff="2026-06-11T20:00:00">
+       <button class="card__fav" data-card-fav aria-pressed="false">…serce…</button>
+       <span class="card__phase">⚽ Faza grupowa · Grupa C</span>
+       <div class="card__countdown" data-countdown> 4 × .card__unit </div>
+       <p class="card__when" data-when></p>
+       <div class="card__teams"> .card__team / .card__vs / .card__team </div>
+       <button class="card__bell" data-card-bell aria-pressed="false">…dzwonek…</button>
+     </article>
+
+   INTERAKTYWNOŚĆ: components/cards.js (delegacja zdarzeń).
+   Hooki stanu są atrybutami danych (data-card-fav / data-card-bell
+   / data-kickoff) — gotowe do mapowania 1:1 na dyrektywy
+   WP Interactivity API (data-wp-on--click, data-wp-class--is-on).
+============================================================ */
+
+/* ============ 1. LOKALNE ZMIENNE KOMPONENTU ============ */
+.card--preview {
+  /* powierzchnia */
+  --card-bg:            var(--surface);
+  --card-border:        var(--border);
+  --card-border-hover:  var(--border-strong);
+  --card-radius:        var(--r-lg);
+  --card-shadow-hover:  var(--shadow);
+
+  /* rytm wewnętrzny */
+  --card-padding:       var(--space-sm);
+  --card-gap:           var(--space-md);
+
+  /* mini-flagi drużyn */
+  --card-flag-h:        30px;
+
+  /* zegar odliczający */
+  --card-countdown-bg:  var(--surface-2);
+  --card-countdown-val: 26px;
+
+  /* kontrolki (serce / dzwonek) */
+  --card-ctl-bg:        var(--surface-2);
+  --card-ctl-bg-hover:  var(--surface-hover);
+  --card-ctl-fg:        var(--text-muted);
+  --card-ctl-on:        var(--live);          /* serce po włączeniu */
+  --card-bell-h:        46px;
+
+  /* ruch */
+  --card-lift:          -4px;
+}
+
+/* ============ 2. BLOK ============ */
+.card--preview {
+  position: relative;                /* kotwica dla serca w rogu */
+  display: flex;
+  flex-direction: column;
+  gap: var(--card-gap);
+  padding: var(--card-padding);
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: var(--card-radius);
+  transition: transform var(--t-med), border-color var(--t-med), box-shadow var(--t-med);
+}
+.card--preview:hover {
+  transform: translateY(var(--card-lift));
+  border-color: var(--card-border-hover);
+  box-shadow: var(--card-shadow-hover);
+}
+
+/* ============ 3. ELEMENTY ============ */
+
+/* ---- 3a. Serce „Ulubione” — mały, miękki przycisk w rogu ---- */
+.card--preview .card__fav {
+  position: absolute;
+  top: var(--card-padding);
+  right: var(--card-padding);
+  z-index: 2;
+  width: 34px; height: 34px;
+  display: grid; place-items: center;
+  border-radius: var(--r-pill);
+  background: var(--card-ctl-bg);
+  border: 1px solid var(--card-border);
+  color: var(--card-ctl-fg);
+  transition: background var(--t-fast), color var(--t-fast), transform var(--t-fast);
+}
+.card--preview .card__fav svg { width: 18px; height: 18px; stroke: currentColor; fill: none; stroke-width: 1.9; stroke-linecap: round; stroke-linejoin: round; }
+.card--preview .card__fav:hover { background: var(--card-ctl-bg-hover); color: var(--text); }
+.card--preview .card__fav:active { transform: scale(0.9); }
+.card--preview .card__fav.is-on { background: var(--accent-soft); border-color: transparent; color: var(--card-ctl-on); }
+.card--preview .card__fav.is-on svg { fill: currentColor; }
+
+/* ---- 3b. Badge fazy turnieju ---- */
+.card--preview .card__phase {
+  align-self: flex-start;
+  display: inline-flex; align-items: center; gap: 7px;
+  padding: 6px 12px;
+  border-radius: var(--r-pill);
+  background: var(--accent-soft);
+  color: var(--accent-strong);
+  font-size: 12px; font-weight: 800; letter-spacing: 0.03em;
+  white-space: nowrap;
+  max-width: calc(100% - 42px);     /* nie wjeżdża pod serce */
+  overflow: hidden; text-overflow: ellipsis;
+}
+[data-theme="dark"] .card--preview .card__phase { color: var(--accent); }
+
+/* ---- 3c. Zegar odliczający (dni/godz/min/sek) ---- */
+.card--preview .card__countdown {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--space-2xs);
+  text-align: center;
+}
+.card--preview .card__unit {
+  background: var(--card-countdown-bg);
+  border-radius: var(--r-sm);
+  padding: 12px 6px 9px;
+}
+.card--preview .card__val {
+  display: block;
+  font-size: var(--card-countdown-val);
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+  letter-spacing: 0.01em;
+}
+.card--preview .card__lab {
+  display: block;
+  margin-top: 6px;
+  font-size: 10px; font-weight: 700; letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-faint);
+}
+/* < 24h do gwizdka → wartości w kolorze LIVE (klasa nadawana przez cards.js) */
+.card--preview .card__countdown.is-soon .card__val { color: var(--live); }
+
+/* ---- 3d. Termin słowny ---- */
+.card--preview .card__when {
+  font-size: 13px;
+  color: var(--text-muted);
+  font-weight: 600;
+  text-align: center;
+}
+
+/* ---- 3e. Drużyny: flaga + nazwa | VS | flaga + nazwa ---- */
+.card--preview .card__teams {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: var(--space-sm);
+}
+.card--preview .card__team {
+  display: flex; flex-direction: column; align-items: center;
+  gap: 8px;
+  text-align: center;
+}
+.card--preview .card__team .country-flag { height: var(--card-flag-h); border-radius: 3px; }
+.card--preview .card__team-name { font-weight: 700; font-size: 15px; }
+.card--preview .card__vs {
+  font-size: 13px; font-weight: 800;
+  color: var(--text-faint);
+  letter-spacing: 0.1em;
+}
+
+/* ---- 3f. Dzwonek „Przypomnij mi” ---- */
+.card--preview .card__bell {
+  margin-top: auto;                  /* dociska do dołu przy wyrównanej siatce */
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  height: var(--card-bell-h);
+  border-radius: var(--r-pill);
+  background: var(--card-ctl-bg);
+  color: var(--text);
+  font-weight: 700; font-size: 14px;
+  transition: background var(--t-fast), color var(--t-fast);
+}
+.card--preview .card__bell svg { width: 18px; height: 18px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.card--preview .card__bell:hover { background: var(--accent); color: var(--accent-ink); }
+.card--preview .card__bell.is-on {
+  background: var(--accent-soft);
+  color: var(--accent-strong);
+}
+[data-theme="dark"] .card--preview .card__bell.is-on { color: var(--accent); }
+.card--preview .card__bell.is-on svg { fill: currentColor; }

@@ -1,0 +1,482 @@
+// Response | GET : https://v3.football.api-sports.io/fixtures/lineups?fixture=1539000
+{
+    get: "fixtures/lineups"
+    parameters: {
+        fixture: "1539000"
+    }
+    errors: []
+    results: 2
+    paging: {
+        current: 1
+        total: 1
+    }
+    response: [{
+        team: {
+            id: 5529
+            name: "Canada"
+            logo: "https://media.api-sports.io/football/teams/5529.png"
+            colors: {
+                player: {
+                    primary: "a70115"
+                    number: "ffffff"
+                    border: "a70115"
+                }
+                goalkeeper: {
+                    primary: "1b3186"
+                    number: "ffffff"
+                    border: "1b3186"
+                }
+            }
+        }
+        formation: "4-4-2"
+        startXI: [{
+            player: {
+                id: 51274
+                name: "Maxime Crépeau"
+                number: 16
+                pos: "G"
+                grid: "1:1"
+            }
+        } {
+            player: {
+                id: 78547
+                name: "Alistair Johnston"
+                number: 2
+                pos: "D"
+                grid: "2:4"
+            }
+        } {
+            player: {
+                id: 327738
+                name: "Luc De Fougerolles"
+                number: 4
+                pos: "D"
+                grid: "2:3"
+            }
+        } {
+            player: {
+                id: 51295
+                name: "Derek Cornelius"
+                number: 13
+                pos: "D"
+                grid: "2:2"
+            }
+        } {
+            player: {
+                id: 50816
+                name: "Richie Laryea"
+                number: 22
+                pos: "D"
+                grid: "2:1"
+            }
+        } {
+            player: {
+                id: 51016
+                name: "Tajon Buchanan"
+                number: 17
+                pos: "M"
+                grid: "3:4"
+            }
+        } {
+            player: {
+                id: 328046
+                name: "Ismael Koné"
+                number: 8
+                pos: "M"
+                grid: "3:3"
+            }
+        } {
+            player: {
+                id: 35570
+                name: "Stephen Eustaquio"
+                number: 7
+                pos: "M"
+                grid: "3:2"
+            }
+        } {
+            player: {
+                id: 44798
+                name: "Liam Millar"
+                number: 11
+                pos: "M"
+                grid: "3:1"
+            }
+        } {
+            player: {
+                id: 8489
+                name: "Jonathan David"
+                number: 10
+                pos: "F"
+                grid: "4:2"
+            }
+        } {
+            player: {
+                id: 351587
+                name: "Tani Oluwaseyi"
+                number: 12
+                pos: "F"
+                grid: "4:1"
+            }
+        }]
+        substitutes: [{
+            player: {
+                id: 51148
+                name: "Dayne St. Clair"
+                number: 1
+                pos: "G"
+                grid: null
+            }
+        } {
+            player: {
+                id: 284554
+                name: "Owen Goodman"
+                number: 18
+                pos: "G"
+                grid: null
+            }
+        } {
+            player: {
+                id: 416901
+                name: "Niko Sigur"
+                number: 23
+                pos: "M"
+                grid: null
+            }
+        } {
+            player: {
+                id: 18938
+                name: "Alfie Jones"
+                number: 3
+                pos: "D"
+                grid: null
+            }
+        } {
+            player: {
+                id: 78494
+                name: "Joel Waterman"
+                number: 5
+                pos: "D"
+                grid: null
+            }
+        } {
+            player: {
+                id: 407017
+                name: "Moise Bombito"
+                number: 15
+                pos: "D"
+                grid: null
+            }
+        } {
+            player: {
+                id: 509
+                name: "Alphonso Davies"
+                number: 19
+                pos: "D"
+                grid: null
+            }
+        } {
+            player: {
+                id: 362145
+                name: "Ali Ahmed"
+                number: 20
+                pos: "M"
+                grid: null
+            }
+        } {
+            player: {
+                id: 294824
+                name: "Nathan-Dylan Saliba"
+                number: 25
+                pos: "M"
+                grid: null
+            }
+        } {
+            player: {
+                id: 50788
+                name: "Mathieu Choinière"
+                number: 6
+                pos: "M"
+                grid: null
+            }
+        } {
+            player: {
+                id: 50817
+                name: "Jonathan Osorio"
+                number: 21
+                pos: "M"
+                grid: null
+            }
+        } {
+            player: {
+                id: 50826
+                name: "Jacob Shaffelburg"
+                number: 14
+                pos: "F"
+                grid: null
+            }
+        } {
+            player: {
+                id: 313353
+                name: "Promise David"
+                number: 24
+                pos: "F"
+                grid: null
+            }
+        } {
+            player: {
+                id: 193279
+                name: "Jayden Nelson"
+                number: 26
+                pos: "F"
+                grid: null
+            }
+        } {
+            player: {
+                id: 2001
+                name: "Cyle Larin"
+                number: 9
+                pos: "F"
+                grid: null
+            }
+        }]
+        coach: {
+            id: 28218
+            name: "Jesse Marsch"
+            photo: "https://media.api-sports.io/football/coachs/28218.png"
+        }
+    } {
+        team: {
+            id: 1113
+            name: "Bosnia & Herzegovina"
+            logo: "https://media.api-sports.io/football/teams/1113.png"
+            colors: {
+                player: {
+                    primary: "ffffff"
+                    number: "0000ff"
+                    border: "ffffff"
+                }
+                goalkeeper: {
+                    primary: "000000"
+                    number: "ffffff"
+                    border: "000000"
+                }
+            }
+        }
+        formation: "4-4-2"
+        startXI: [{
+            player: {
+                id: 9026
+                name: "Nikola Vasilj"
+                number: 1
+                pos: "G"
+                grid: "1:1"
+            }
+        } {
+            player: {
+                id: 7318
+                name: "Amar Dedić"
+                number: 7
+                pos: "D"
+                grid: "2:4"
+            }
+        } {
+            player: {
+                id: 1741
+                name: "Nikola Katić"
+                number: 18
+                pos: "D"
+                grid: "2:3"
+            }
+        } {
+            player: {
+                id: 271350
+                name: "Tarik Muharemović"
+                number: 4
+                pos: "D"
+                grid: "2:2"
+            }
+        } {
+            player: {
+                id: 1442
+                name: "Sead Kolašinac"
+                number: 5
+                pos: "D"
+                grid: "2:1"
+            }
+        } {
+            player: {
+                id: 329409
+                name: "Esmir Bajraktarević"
+                number: 20
+                pos: "M"
+                grid: "3:4"
+            }
+        } {
+            player: {
+                id: 264094
+                name: "Benjamin Tahirović"
+                number: 6
+                pos: "M"
+                grid: "3:3"
+            }
+        } {
+            player: {
+                id: 162222
+                name: "Ivan Bašić"
+                number: 13
+                pos: "M"
+                grid: "3:2"
+            }
+        } {
+            player: {
+                id: 322101
+                name: "Amar Memić"
+                number: 15
+                pos: "M"
+                grid: "3:1"
+            }
+        } {
+            player: {
+                id: 46930
+                name: "Ermedin Demirović"
+                number: 10
+                pos: "F"
+                grid: "4:2"
+            }
+        } {
+            player: {
+                id: 77037
+                name: "Jovo Lukić"
+                number: 25
+                pos: "F"
+                grid: "4:1"
+            }
+        }]
+        substitutes: [{
+            player: {
+                id: 446130
+                name: "Mladen Jurkas"
+                number: 12
+                pos: "G"
+                grid: null
+            }
+        } {
+            player: {
+                id: 108370
+                name: "Martin Zlomislić"
+                number: 22
+                pos: "G"
+                grid: null
+            }
+        } {
+            player: {
+                id: 409670
+                name: "Arjan Malić"
+                number: 24
+                pos: "D"
+                grid: null
+            }
+        } {
+            player: {
+                id: 14301
+                name: "Stjepan Radeljić"
+                number: 21
+                pos: "D"
+                grid: null
+            }
+        } {
+            player: {
+                id: 53517
+                name: "Dennis Hadžikadunić"
+                number: 3
+                pos: "D"
+                grid: null
+            }
+        } {
+            player: {
+                id: 76867
+                name: "Nihad Mujakić"
+                number: 2
+                pos: "D"
+                grid: null
+            }
+        } {
+            player: {
+                id: 50006
+                name: "Amir Hadžiahmetović"
+                number: 16
+                pos: "M"
+                grid: null
+            }
+        } {
+            player: {
+                id: 1324
+                name: "Ivan Šunjić"
+                number: 14
+                pos: "M"
+                grid: null
+            }
+        } {
+            player: {
+                id: 70514
+                name: "Armin Gigović"
+                number: 8
+                pos: "M"
+                grid: null
+            }
+        } {
+            player: {
+                id: 25129
+                name: "Dženis Burnić"
+                number: 17
+                pos: "M"
+                grid: null
+            }
+        } {
+            player: {
+                id: 395559
+                name: "Kerim Alajbegović"
+                number: 19
+                pos: "F"
+                grid: null
+            }
+        } {
+            player: {
+                id: 340173
+                name: "Ermin Mahmic"
+                number: 26
+                pos: "M"
+                grid: null
+            }
+        } {
+            player: {
+                id: 314377
+                name: "Samed Baždar"
+                number: 9
+                pos: "F"
+                grid: null
+            }
+        } {
+            player: {
+                id: 790
+                name: "Edin Džeko"
+                number: 11
+                pos: "F"
+                grid: null
+            }
+        } {
+            player: {
+                id: 28382
+                name: "Haris Tabaković"
+                number: 23
+                pos: "F"
+                grid: null
+            }
+        }]
+        coach: {
+            id: 22538
+            name: "Sergej Barbarez"
+            photo: "https://media.api-sports.io/football/coachs/22538.png"
+        }
+    }]
+}

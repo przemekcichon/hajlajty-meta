@@ -1,0 +1,98 @@
+// Response | GET : https://v3.football.api-sports.io/fixtures/events?fixture=1539000
+{
+    get: "fixtures/events"
+    parameters: {
+        fixture: "1539000"
+    }
+    errors: []
+    results: 4
+    paging: {
+        current: 1
+        total: 1
+    }
+    response: [{
+        time: {
+            elapsed: 11
+            extra: null
+        }
+        team: {
+            id: 5529
+            name: "Canada"
+            logo: "https://media.api-sports.io/football/teams/5529.png"
+        }
+        player: {
+            id: 78547
+            name: "A. Johnston"
+        }
+        assist: {
+            id: null
+            name: null
+        }
+        type: "Card"
+        detail: "Yellow Card"
+        comments: "Tripping"
+    } {
+        time: {
+            elapsed: 21
+            extra: null
+        }
+        team: {
+            id: 1113
+            name: "Bosnia & Herzegovina"
+            logo: "https://media.api-sports.io/football/teams/1113.png"
+        }
+        player: {
+            id: 77037
+            name: "J. Lukic"
+        }
+        assist: {
+            id: 1442
+            name: "S. Kolasinac"
+        }
+        type: "Goal"
+        detail: "Normal Goal"
+        comments: null
+    } {
+        time: {
+            elapsed: 44
+            extra: null
+        }
+        team: {
+            id: 1113
+            name: "Bosnia & Herzegovina"
+            logo: "https://media.api-sports.io/football/teams/1113.png"
+        }
+        player: {
+            id: 46930
+            name: "E. Demirovic"
+        }
+        assist: {
+            id: null
+            name: null
+        }
+        type: "Card"
+        detail: "Yellow Card"
+        comments: "Roughing"
+    } {
+        time: {
+            elapsed: 45
+            extra: 1
+        }
+        team: {
+            id: 1113
+            name: "Bosnia & Herzegovina"
+            logo: "https://media.api-sports.io/football/teams/1113.png"
+        }
+        player: {
+            id: 77037
+            name: "J. Lukic"
+        }
+        assist: {
+            id: null
+            name: null
+        }
+        type: "Card"
+        detail: "Yellow Card"
+        comments: "Roughing"
+    }]
+}

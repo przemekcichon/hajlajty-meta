@@ -1,0 +1,58 @@
+/* ============================================================
+   HAJLAJTY — components/chip-follow.css
+   ------------------------------------------------------------
+   KOMPONENT: WSKAŹNIK OBSERWOWANIA NA CHIPSIE  (.chip__eye-indicator)
+
+   Subtelna warstwa informacyjna paska .chips-scroll (desktop +
+   klony w mobilnym modalu wyszukiwania): chips reprezentacji,
+   którą użytkownik OBSERWUJE, nosi stałą, małą ikonę oka.
+
+   ROZRÓŻNIENIE STANÓW (czystość stanów):
+     .is-active   → chips działa jako AKTYWNY FILTR (akcent + .chip__check)
+     .is-followed → drużyna jest OBSERWOWANA (subtelne oko, zawsze widoczne)
+   Stany są niezależne i mogą współistnieć na jednym chipsie.
+
+   STEROWANIE DEKLARATYWNE (WP Interactivity API ready):
+   widoczność wskaźnika wynika WYŁĄCZNIE z klasy .is-followed lub
+   atrybutu data-followed="true" na chipsie — zero JS w warstwie
+   prezentacji. Docelowo w WordPressie:
+       data-wp-class--is-followed="state.isFollowed"
+   Synchronizację stanu zapewnia components/chip-follow.js.
+============================================================ */
+
+/* ---- Domyślnie: wskaźnik zwinięty (zero szerokości, niewidoczny) ----
+   Animujemy width+opacity jak w .chip__check, żeby pasek nie skakał. */
+.chip .chip__eye-indicator {
+  width: 0;
+  height: 13px;
+  overflow: hidden;
+  display: inline-flex;
+  align-items: center;
+  opacity: 0;
+  transition: width var(--t-fast), opacity var(--t-fast);
+}
+.chip .chip__eye-indicator svg {
+  width: 13px;
+  height: 13px;
+  flex: 0 0 auto;
+  stroke: currentColor;
+  fill: none;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* ---- Stan obserwowania: oko widoczne, zgaszone (nie dominuje
+        nad flagą i nazwą kraju) ---- */
+.chip.is-followed .chip__eye-indicator,
+.chip[data-followed="true"] .chip__eye-indicator {
+  width: 13px;
+  opacity: 0.55;
+}
+
+/* Na aktywnym (akcentowym) filtrze oko dziedziczy kolor tekstu
+   chipsa (--accent-ink) — lekko mocniejsze, bo tło jest jasne. */
+.chip.is-active.is-followed .chip__eye-indicator,
+.chip.is-active[data-followed="true"] .chip__eye-indicator {
+  opacity: 0.7;
+}

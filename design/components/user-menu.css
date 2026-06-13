@@ -1,0 +1,74 @@
+/* ============================================================
+   HAJLAJTY — components/user-menu.css
+   ------------------------------------------------------------
+   KOMPONENT: DROPDOWN UŻYTKOWNIKA (BEM: .user-menu)
+
+   Rozwijane menu pod ikoną profilu w globalnym nagłówku.
+   • Pozycja „Panel publikacji" (link do Pulpitu Redaktora) jest
+     widoczna WYŁĄCZNIE w trybie redaktora — gating klasą
+     .is-admin / .user-role-editor na <body> (wzorzec pod
+     data-wp-bind--hidden po stronie WP).
+   • „Wyloguj się" zawsze na samym dole, za separatorem.
+   Logika: components/user-menu.js (toggle + klik poza + Esc).
+============================================================ */
+
+/* ============ 1. LOKALNE ZMIENNE KOMPONENTU ============ */
+.user-menu {
+  --um-panel-w:   232px;
+  --um-item-h:    44px;
+  --um-radius:    var(--r-md);
+  --um-panel-bg:  var(--bg-elev);
+}
+
+/* ============ 2. BLOK ============ */
+.user-menu { position: relative; }
+
+/* ---- 2a. Panel rozwijany ---- */
+.user-menu__panel {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  z-index: 60;
+  min-width: var(--um-panel-w);
+  padding: 6px;
+  border-radius: var(--um-radius);
+  background: var(--um-panel-bg);
+  border: 1px solid var(--border-strong);
+  box-shadow: var(--shadow);
+}
+.user-menu__panel[hidden] { display: none; }
+
+/* ---- 2b. Pozycje menu ---- */
+.user-menu__item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  height: var(--um-item-h);
+  padding: 0 12px;
+  border-radius: var(--r-sm);
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-muted);
+  white-space: nowrap;
+  transition: background var(--t-fast), color var(--t-fast);
+}
+.user-menu__item:hover { background: var(--surface-2); color: var(--text); }
+.user-menu__item svg {
+  flex: 0 0 auto;
+  width: 17px; height: 17px;
+  stroke: currentColor; fill: none;
+  stroke-width: 2; stroke-linecap: round; stroke-linejoin: round;
+}
+
+/* Pozycja redaktorska — ukryta dla zwykłego użytkownika */
+.user-menu__item--editor { display: none; }
+.is-admin .user-menu__item--editor,
+.user-role-editor .user-menu__item--editor { display: flex; }
+
+/* Wylogowanie: za separatorem, akcent ostrzegawczy na hover */
+.user-menu__divider {
+  height: 1px;
+  margin: 6px 4px;
+  background: var(--border);
+}
+.user-menu__item--logout:hover { color: var(--live); }

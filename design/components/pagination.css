@@ -1,0 +1,88 @@
+/* ============================================================
+   HAJLAJTY — components/pagination.css
+   ------------------------------------------------------------
+   KOMPONENT: PAGINACJA LISTY (BEM: .pagination)
+
+   Klasyczna paginacja pod listami wpisów (Pulpit Redaktora).
+   Aktywna strona = kolor akcentowy (aria-current="page").
+   Markup statyczny — docelowo generowany przez WP_Query /
+   paginate_links(); stany przygotowane pod data-wp-* .
+============================================================ */
+
+/* ============ 1. LOKALNE ZMIENNE KOMPONENTU ============ */
+.pagination {
+  --pg-item-h:  40px;
+  --pg-radius:  var(--r-pill);
+}
+
+/* ============ 2. BLOK ============ */
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding-top: var(--space-xs);
+}
+
+/* ---- 2a. Numer strony ---- */
+.pagination__page {
+  min-width: var(--pg-item-h);
+  height: var(--pg-item-h);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 8px;
+  border-radius: var(--pg-radius);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  font-size: 13.5px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-muted);
+  transition: background var(--t-fast), color var(--t-fast), border-color var(--t-fast);
+}
+.pagination__page:hover { background: var(--surface-hover); color: var(--text); border-color: var(--border-strong); }
+.pagination__page.is-active {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--accent-ink);
+  font-weight: 800;
+}
+.pagination__page.is-active:hover { filter: brightness(1.05); }
+
+/* ---- 2b. Wielokropek ---- */
+.pagination__gap {
+  min-width: 28px;
+  text-align: center;
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--text-faint);
+  user-select: none;
+}
+
+/* ---- 2c. Strzałki Poprzednia / Następna ---- */
+.pagination__arrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  height: var(--pg-item-h);
+  padding: 0 16px;
+  border-radius: var(--pg-radius);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--text-muted);
+  white-space: nowrap;
+  transition: background var(--t-fast), color var(--t-fast), border-color var(--t-fast);
+}
+.pagination__arrow:hover { background: var(--surface-hover); color: var(--text); border-color: var(--border-strong); }
+.pagination__arrow svg { width: 14px; height: 14px; stroke: currentColor; fill: none; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
+.pagination__arrow[aria-disabled="true"] { opacity: 0.45; pointer-events: none; }
+
+/* ============ 3. RESPONSYWNOŚĆ ============ */
+@media (max-width: 560px) {
+  .pagination { flex-wrap: wrap; }
+  .pagination__arrow .pagination__arrow-txt { display: none; }
+  .pagination__arrow { width: var(--pg-item-h); padding: 0; justify-content: center; }
+}

@@ -1,0 +1,87 @@
+# hajlajty.pl — kontekst projektu
+
+Serwis z zapowiedziami, live'ami i skrótami wideo meczów (start: Mundial 2026,
+potem piłka klubowa). "Spotify dla skrótów meczowych". Dane meczowe z api-football,
+linki do YouTube i kanał dodawane ręcznie.
+
+## Decyzje architektoniczne (NIE zmieniaj ich bez pytania)
+1. WordPress jako baza danych + klasyczny motyw PHP. ŻADNEGO FSE, bloków
+   Gutenberga z danymi, Elementora ani Timbera.
+2. Podział: plugin `hajlajty-core` (CPT, taksonomie, import z api-football,
+   funkcje pomocnicze) + klasyczny motyw (tylko szablony i style).
+3. Dane meczowe (oś czasu, składy, statystyki) trzymamy w JEDNYM polu meta
+   jako JSON (surowy/przycięty payload z api-football). Bez repeaterów ACF,
+   bez rozbijania na dziesiątki pól meta. Szablony robią json_decode i renderują.
+4. Filtrowanie TYLKO po: drużyny, rozgrywki, sezon, status wideo → wszystko
+   jako taksonomie. Link do YouTube → pole ACF (nie filtrujemy po nim).
+5. Post content zostaje na ręczne opisy/zapowiedzi, nie na dane.
+6. Przyszła migracja do Next.js + WPGraphQL: rejestruj CPT/taksonomie
+   z `show_in_graphql => true`, dane mają być czytelne bez parsowania HTML.
+7. Permalinki ustalamy raz i na zawsze (przeżyją migrację headless).
+8. Prostota > elastyczność. Nie dodawaj abstrakcji "na przyszłość".
+
+## Stack
+WordPress, ACF PRO, klasyczny motyw PHP, frontend przeniesiony z Claude Design.
+
+## Git workflow (przestrzegaj ZAWSZE)
+1. Nigdy nie commituj bezpośrednio do main. Każda faza/zadanie = osobny branch
+   o nazwie typu: feature/faza-1-cpt-taksonomie, fix/import-duplikaty.
+2. Commity małe i atomowe — jedna logiczna zmiana = jeden commit. Nie łącz
+   refaktoru z nową funkcjonalnością w jednym commicie.
+3. Format komunikatów: Conventional Commits po angielsku
+   (feat:, fix:, refactor:, docs:, chore:). Pierwsza linia max ~70 znaków,
+   potem pusta linia i opis: CO zmieniono i DLACZEGO (decyzje, odrzucone
+   alternatywy). Komunikat ma być zrozumiały bez czytania diffa.
+4. Po pierwszym commicie na branchu utwórz PR przez `gh pr create` (draft).
+   Po KAŻDYM kolejnym commicie zaktualizuj opis PR przez `gh pr edit` tak,
+   aby zawsze odzwierciedlał aktualny pełny stan brancha: cel, lista zmian,
+   decyzje podjęte po drodze, co pozostało do zrobienia (checklista).
+5. Przed rozpoczęciem pracy: `git status` i upewnij się, że jesteś na
+   właściwym branchu wyciągniętym z aktualnego main.
+6. Nie mergujesz PR-ek samodzielnie — merge to zawsze moja decyzja.
+7. Nigdy: force push na współdzielone branche, `git add .` bez sprawdzenia
+   co wchodzi, commitowanie sekretów (klucz api-football → .env / wp-config,
+   plik w .gitignore).
+
+## Wtyczka hajlajty-user (ulubione / obserwowane / powiadomienia)
+1. Osobny plugin, niezależny od hajlajty-core i od motywu.
+2. Trwała wartość = backend: model danych użytkownika + REST API endpointy
+  (z autoryzacją przez nonce). To przeżywa migrację do Next.js.
+3. Warstwa frontowa (reakcja na kliknięcie) jest TYMCZASOWA i wymienna.
+  Wybór tech: Interactivity API (WP 6.5+, uwaga: nazwa to "Interactivity API",
+  NIE "Interactions API") vs minimalny vanilla JS — DO DECYZJI po researchu.
+  Domyślnie preferuj prostszą i spójniejszą z klasycznym motywem opcję.
+4. Rozważyć: czy "obserwowane" i "powiadomienia" są w MVP, czy w fazie późniejszej.
+
+## Architektura kodu: Vertical Slice (obowiązuje w każdym repo)
+Organizujemy kod według FUNKCJI (feature), nie według typów technicznych.
+Powód: czytelność dla człowieka i spójny kontekst dla LLM-a — cała jedna
+funkcja w jednym miejscu.
+
+ROBIMY TAK:
+- Katalog = funkcja/slice, np. features/match-import/, features/favorites/.
+  W slice'u leży WSZYSTKO, czego ta funkcja potrzebuje: rejestracja hooków,
+  logika, ewentualny REST controller, zapis do bazy, szablony pomocnicze.
+- Slice jest właścicielem swoich rzeczy: slice "match" rejestruje własny CPT
+  i taksonomie; slice "favorites" jest właścicielem swojej tabeli/meta i
+  swoich endpointów REST.
+
+NIE ROBIMY TAK:
+- Podziału na katalogi-warstwy typu /hooks, /post-types, /rest, /helpers,
+  gdzie jedna funkcja jest rozsmarowana po wielu katalogach.
+
+GRANICE I REALIA WORDPRESSA (przestrzegaj):
+- Slice'y żyją WEWNĄTRZ pojedynczego artefaktu (plugin albo motyw).
+  hajlajty-core, hajlajty-user i motyw to osobne repozytoria/artefakty —
+  to jest granica nadrzędna wobec slice'ów, nie łam jej w imię "czystości".
+- Każdy plugin ma cienki bootstrap (główny plik wtyczki), który tylko ładuje
+  slice'y. Żadnej logiki biznesowej w bootstrapie.
+- Rejestracja CPT/taksonomii/REST i tak musi wisieć na właściwych hookach WP
+  (init, rest_api_init) — slice rejestruje swoje rzeczy SAM, na tych hookach.
+- Wspólny, naprawdę współdzielony util może istnieć (np. shared/), ale to
+  wyjątek — domyślnie kod należy do slice'a. Nie twórz "shared" na zapas.
+- Jeśli używamy autoloadingu (composer PSR-4), namespace musi odwzorowywać
+  podział na slice'y.
+
+Zasada rozstrzygająca wątpliwość: "czy ten kod zniknie razem z tą funkcją?"
+Jeśli tak — należy do jej slice'a. Jeśli służy wszystkim — dopiero wtedy shared.

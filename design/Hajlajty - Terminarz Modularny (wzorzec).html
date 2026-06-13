@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="pl" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Hajlajty — Terminarz (wzorzec modularny)</title>
+  <meta name="description" content="Wzorzec architektury komponentowej Hajlajty.pl: layout strony odseparowany od autonomicznych modułów kart." />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+
+  <!-- ==========================================================
+       ARCHITEKTURA MODULARNA — kolejność ładowania warstw:
+       1. tokens.css  → globalne zmienne (Single Source of Truth)
+       2. base.css    → reset + prymitywy (kontener, flagi, focus)
+       3. komponenty  → autonomiczne moduły kart (BEM, lokalne --card-*)
+       4. pages/*.css → WYŁĄCZNIE layout tej strony (siatka, sekcje)
+       W WordPressie każdy plik = osobny wp_enqueue_style z warunkiem
+       obecności komponentu na stronie (conditional loading).
+  =========================================================== -->
+  <link rel="stylesheet" href="styles/tokens.css" />
+  <link rel="stylesheet" href="styles/base.css" />
+  <link rel="stylesheet" href="components/card-preview.css" />
+  <link rel="stylesheet" href="components/card-live.css" />
+  <link rel="stylesheet" href="components/card-highlight.css" />
+  <link rel="stylesheet" href="pages/terminarz.css" />
+
+  <style>
+  /* Minimalny chrome strony-wzorca (pasek + przełącznik motywu).
+     Docelowy Terminarz używa pełnego App Shella serwisu. */
+  .demo-bar {
+    height: var(--topbar-h);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-sm);
+  }
+  .demo-bar .logo {
+    display: inline-flex; align-items: center; gap: var(--space-3xs);
+    font-weight: 800; font-size: 25px; letter-spacing: -0.04em; line-height: 1;
+  }
+  .demo-bar .logo .logo__y { color: var(--accent); }
+  .demo-bar .logo svg { width: 20px; height: 20px; color: var(--accent); }
+  .icon-btn {
+    width: 44px; height: 44px;
+    display: grid; place-items: center;
+    border-radius: var(--r-pill);
+    color: var(--text);
+    transition: background var(--t-fast), transform var(--t-fast);
+  }
+  .icon-btn:hover { background: var(--surface-2); }
+  .icon-btn:active { transform: scale(0.92); }
+  .icon-btn svg { width: 22px; height: 22px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+  [data-theme="dark"]  .theme-toggle .sun  { display: block; }
+  [data-theme="dark"]  .theme-toggle .moon { display: none; }
+  [data-theme="light"] .theme-toggle .sun  { display: none; }
+  [data-theme="light"] .theme-toggle .moon { display: block; }
+  main { padding-block: var(--space-lg) var(--space-2xl); }
+  </style>
+</head>
+
+<body class="is-admin">
+<!-- ^ .is-admin: symulacja zalogowanego redaktora — odkrywa przyciski [Edytuj]
+     na kartach skrótów. Usunięcie klasy = widok zwykłego użytkownika (zero zmian). -->
+
+  <header class="demo-bar container">
+    <a class="logo" href="Hajlajty - Strona Główna.html" aria-label="Hajlajty — strona główna">
+      <span>hajlajt<span class="logo__y">y</span></span>
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" stroke="currentColor" stroke-width="3" stroke-linejoin="round" stroke-linecap="round" d="M7 5.8 18 12 7 18.2Z"/></svg>
+    </a>
+    <button class="icon-btn theme-toggle" id="themeBtn" aria-label="Przełącz motyw jasny/ciemny">
+      <svg class="sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4.2"/><path d="M12 2v2.5M12 19.5V22M2 12h2.5M19.5 12H22M4.9 4.9l1.8 1.8M17.3 17.3l1.8 1.8M19.1 4.9l-1.8 1.8M6.7 17.3l-1.8 1.8"/></svg>
+      <svg class="moon" viewBox="0 0 24 24"><path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z"/></svg>
+    </button>
+  </header>
+
+  <!-- ====================================================================
+       MAIN — czysty LAYOUT (pages/terminarz.css). Sekcje dni + siatki.
+       Karty wewnątrz to autonomiczne komponenty: ich wygląd pochodzi
+       w 100% z components/card-*.css, a logika z components/cards.js.
+       data-card-region = granica delegacji zdarzeń (i przyszłego
+       data-wp-interactive store'a).
+  ===================================================================== -->
+  <main class="container" data-card-region>
+
+    <div class="page-head">
+      <h1 class="page-head__title"><span class="kicker-dot"></span> Terminarz turnieju</h1>
+      <p class="page-head__sub">Wzorzec modularny: ta strona dostarcza wyłącznie siatkę i sekcje dni — zapowiedź, mecz live i skrót renderują się z odizolowanych modułów kart, piksel w piksel tak samo jak na stronie głównej.</p>
+    </div>
+
+    <div class="schedule">
+
+      <!-- ============ DZIEŃ 1: chronologia naturalnie miesza stany ============ -->
+      <section class="schedule-day" data-screen-label="Dziś, 11 czerwca">
+        <div class="schedule-day__head">
+          <h2 class="schedule-day__date">Dziś · czwartek, 11 czerwca</h2>
+          <span class="schedule-day__count">3 mecze</span>
+        </div>
+
+        <div class="schedule-day__grid">
+
+          <!-- KOMPONENT: karta skrótu (mecz zakończony) -->
+          <article class="card--highlight" data-card-id="skrot-FRA-CRO" data-teams="FRA CRO">
+            <div class="card__media">
+              <span class="card__dur">7:21</span>
+              <span class="card__channel">TVP Sport</span>
+              <button class="card__fav" data-card-fav aria-pressed="false" aria-label="Dodaj do ulubionych">
+                <svg viewBox="0 0 24 24"><path d="M12 20.5 4.2 12.7a4.7 4.7 0 0 1 6.6-6.6l1.2 1.2 1.2-1.2a4.7 4.7 0 0 1 6.6 6.6z"/></svg>
+              </button>
+              <span class="card__play"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></span>
+            </div>
+            <div class="card__body">
+              <div class="card__result">
+                <span class="card__side"><img class="country-flag" src="https://flagcdn.com/fr.svg" alt="FR" /> FRA</span>
+                <span class="card__final">1 : 0</span>
+                <span class="card__side card__side--away"><img class="country-flag" src="https://flagcdn.com/hr.svg" alt="HR" /> CRO</span>
+                <!-- TRYB REDAKTORA (.is-admin na <body>): link do formularza edycji skrótu -->
+                <a class="card__edit" href="Hajlajty - Panel Redaktora.html" aria-label="Edytuj skrót: Francja – Chorwacja">
+                  <svg viewBox="0 0 24 24"><path d="M17 3a2.8 2.8 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5z"/></svg>
+                  Edytuj
+                </a>
+              </div>
+              <h3 class="card__title">Francja 1–0 Chorwacja · rewanż za finał</h3>
+              <div class="card__meta">
+                <span class="card__comp">Faza grupowa · Grupa A</span>
+                <span class="card__dot"></span> dziś, 14:00
+              </div>
+            </div>
+          </article>
+
+          <!-- KOMPONENT: karta live (mecz w trakcie) -->
+          <article class="card--live" data-card-id="live-POL-MAR" data-teams="POL MAR">
+            <div class="card__media">
+              <span class="card__badge"><span class="card__badge-dot"></span> LIVE</span>
+              <span class="card__minute">67'</span>
+              <button class="card__fav" data-card-fav aria-pressed="false" aria-label="Dodaj do ulubionych">
+                <svg viewBox="0 0 24 24"><path d="M12 20.5 4.2 12.7a4.7 4.7 0 0 1 6.6-6.6l1.2 1.2 1.2-1.2a4.7 4.7 0 0 1 6.6 6.6z"/></svg>
+              </button>
+              <div class="card__score">
+                <span class="card__side"><img class="country-flag" src="https://flagcdn.com/pl.svg" alt="PL" /> POL</span>
+                <span class="card__num">1</span><span class="card__sep">:</span><span class="card__num">1</span>
+                <span class="card__side card__side--away"><img class="country-flag" src="https://flagcdn.com/ma.svg" alt="MA" /> MAR</span>
+              </div>
+            </div>
+            <ul class="card__events">
+              <li><span class="card__ev-min">23'</span><span class="card__ev-ic">⚽</span><span class="card__ev-who">Lewandowski</span></li>
+              <li><span class="card__ev-min">51'</span><span class="card__ev-ic">⚽</span><span class="card__ev-who">Ziyech</span></li>
+            </ul>
+          </article>
+
+          <!-- KOMPONENT: karta zapowiedzi (mecz wieczorem) -->
+          <article class="card--preview" data-card-id="up-POL-BRA" data-teams="POL BRA" data-kickoff="2026-06-11T20:00:00">
+            <button class="card__fav" data-card-fav aria-pressed="false" aria-label="Dodaj do ulubionych">
+              <svg viewBox="0 0 24 24"><path d="M12 20.5 4.2 12.7a4.7 4.7 0 0 1 6.6-6.6l1.2 1.2 1.2-1.2a4.7 4.7 0 0 1 6.6 6.6z"/></svg>
+            </button>
+            <span class="card__phase">⚽ Faza grupowa · Grupa C</span>
+            <div class="card__countdown" data-countdown>
+              <div class="card__unit"><span class="card__val" data-d>00</span><span class="card__lab">dni</span></div>
+              <div class="card__unit"><span class="card__val" data-h>00</span><span class="card__lab">godz</span></div>
+              <div class="card__unit"><span class="card__val" data-m>00</span><span class="card__lab">min</span></div>
+              <div class="card__unit"><span class="card__val" data-s>00</span><span class="card__lab">sek</span></div>
+            </div>
+            <p class="card__when" data-when></p>
+            <div class="card__teams">
+              <div class="card__team"><img class="country-flag" src="https://flagcdn.com/pl.svg" alt="PL" /><span class="card__team-name">Polska</span></div>
+              <span class="card__vs">VS</span>
+              <div class="card__team"><img class="country-flag" src="https://flagcdn.com/br.svg" alt="BR" /><span class="card__team-name">Brazylia</span></div>
+            </div>
+            <button class="card__bell" data-card-bell aria-pressed="false">
+              <svg viewBox="0 0 24 24"><path d="M18 8.4A6 6 0 0 0 6 8.4c0 6.6-2.6 8.6-2.6 8.6h17.2S18 15 18 8.4"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg>
+              <span data-bell-text>Przypomnij mi</span>
+            </button>
+          </article>
+
+        </div>
+      </section>
+
+      <!-- ============ DZIEŃ 2 ============ -->
+      <section class="schedule-day" data-screen-label="Jutro, 12 czerwca">
+        <div class="schedule-day__head">
+          <h2 class="schedule-day__date">Jutro · piątek, 12 czerwca</h2>
+          <span class="schedule-day__count">2 mecze</span>
+        </div>
+
+        <div class="schedule-day__grid">
+
+          <article class="card--preview" data-card-id="up-MEX-USA" data-teams="MEX USA" data-kickoff="2026-06-12T17:00:00">
+            <button class="card__fav" data-card-fav aria-pressed="false" aria-label="Dodaj do ulubionych">
+              <svg viewBox="0 0 24 24"><path d="M12 20.5 4.2 12.7a4.7 4.7 0 0 1 6.6-6.6l1.2 1.2 1.2-1.2a4.7 4.7 0 0 1 6.6 6.6z"/></svg>
+            </button>
+            <span class="card__phase">⚽ Faza grupowa · Grupa B</span>
+            <div class="card__countdown" data-countdown>
+              <div class="card__unit"><span class="card__val" data-d>00</span><span class="card__lab">dni</span></div>
+              <div class="card__unit"><span class="card__val" data-h>00</span><span class="card__lab">godz</span></div>
+              <div class="card__unit"><span class="card__val" data-m>00</span><span class="card__lab">min</span></div>
+              <div class="card__unit"><span class="card__val" data-s>00</span><span class="card__lab">sek</span></div>
+            </div>
+            <p class="card__when" data-when></p>
+            <div class="card__teams">
+              <div class="card__team"><img class="country-flag" src="https://flagcdn.com/mx.svg" alt="MX" /><span class="card__team-name">Meksyk</span></div>
+              <span class="card__vs">VS</span>
+              <div class="card__team"><img class="country-flag" src="https://flagcdn.com/us.svg" alt="US" /><span class="card__team-name">USA</span></div>
+            </div>
+            <button class="card__bell" data-card-bell aria-pressed="false">
+              <svg viewBox="0 0 24 24"><path d="M18 8.4A6 6 0 0 0 6 8.4c0 6.6-2.6 8.6-2.6 8.6h17.2S18 15 18 8.4"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg>
+              <span data-bell-text>Przypomnij mi</span>
+            </button>
+          </article>
+
+          <article class="card--preview" data-card-id="up-FRA-GER" data-teams="FRA GER" data-kickoff="2026-06-12T20:45:00">
+            <button class="card__fav" data-card-fav aria-pressed="false" aria-label="Dodaj do ulubionych">
+              <svg viewBox="0 0 24 24"><path d="M12 20.5 4.2 12.7a4.7 4.7 0 0 1 6.6-6.6l1.2 1.2 1.2-1.2a4.7 4.7 0 0 1 6.6 6.6z"/></svg>
+            </button>
+            <span class="card__phase">⚽ Faza grupowa · Grupa A</span>
+            <div class="card__countdown" data-countdown>
+              <div class="card__unit"><span class="card__val" data-d>00</span><span class="card__lab">dni</span></div>
+              <div class="card__unit"><span class="card__val" data-h>00</span><span class="card__lab">godz</span></div>
+              <div class="card__unit"><span class="card__val" data-m>00</span><span class="card__lab">min</span></div>
+              <div class="card__unit"><span class="card__val" data-s>00</span><span class="card__lab">sek</span></div>
+            </div>
+            <p class="card__when" data-when></p>
+            <div class="card__teams">
+              <div class="card__team"><img class="country-flag" src="https://flagcdn.com/fr.svg" alt="FR" /><span class="card__team-name">Francja</span></div>
+              <span class="card__vs">VS</span>
+              <div class="card__team"><img class="country-flag" src="https://flagcdn.com/de.svg" alt="DE" /><span class="card__team-name">Niemcy</span></div>
+            </div>
+            <button class="card__bell" data-card-bell aria-pressed="false">
+              <svg viewBox="0 0 24 24"><path d="M18 8.4A6 6 0 0 0 6 8.4c0 6.6-2.6 8.6-2.6 8.6h17.2S18 15 18 8.4"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg>
+              <span data-bell-text>Przypomnij mi</span>
+            </button>
+          </article>
+
+        </div>
+      </section>
+
+      <!-- ============ DZIEŃ 3 ============ -->
+      <section class="schedule-day" data-screen-label="Sobota, 13 czerwca">
+        <div class="schedule-day__head">
+          <h2 class="schedule-day__date">Sobota · 13 czerwca</h2>
+          <span class="schedule-day__count">2 mecze</span>
+        </div>
+
+        <div class="schedule-day__grid">
+
+          <article class="card--preview" data-card-id="up-ARG-ESP" data-teams="ARG ESP" data-kickoff="2026-06-13T18:00:00">
+            <button class="card__fav" data-card-fav aria-pressed="false" aria-label="Dodaj do ulubionych">
+              <svg viewBox="0 0 24 24"><path d="M12 20.5 4.2 12.7a4.7 4.7 0 0 1 6.6-6.6l1.2 1.2 1.2-1.2a4.7 4.7 0 0 1 6.6 6.6z"/></svg>
+            </button>
+            <span class="card__phase">⚽ Faza grupowa · Grupa F</span>
+            <div class="card__countdown" data-countdown>
+              <div class="card__unit"><span class="card__val" data-d>00</span><span class="card__lab">dni</span></div>
+              <div class="card__unit"><span class="card__val" data-h>00</span><span class="card__lab">godz</span></div>
+              <div class="card__unit"><span class="card__val" data-m>00</span><span class="card__lab">min</span></div>
+              <div class="card__unit"><span class="card__val" data-s>00</span><span class="card__lab">sek</span></div>
+            </div>
+            <p class="card__when" data-when></p>
+            <div class="card__teams">
+              <div class="card__team"><img class="country-flag" src="https://flagcdn.com/ar.svg" alt="AR" /><span class="card__team-name">Argentyna</span></div>
+              <span class="card__vs">VS</span>
+              <div class="card__team"><img class="country-flag" src="https://flagcdn.com/es.svg" alt="ES" /><span class="card__team-name">Hiszpania</span></div>
+            </div>
+            <button class="card__bell" data-card-bell aria-pressed="false">
+              <svg viewBox="0 0 24 24"><path d="M18 8.4A6 6 0 0 0 6 8.4c0 6.6-2.6 8.6-2.6 8.6h17.2S18 15 18 8.4"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg>
+              <span data-bell-text>Przypomnij mi</span>
+            </button>
+          </article>
+
+          <article class="card--preview" data-card-id="up-POR-NED" data-teams="POR NED" data-kickoff="2026-06-13T21:00:00">
+            <button class="card__fav" data-card-fav aria-pressed="false" aria-label="Dodaj do ulubionych">
+              <svg viewBox="0 0 24 24"><path d="M12 20.5 4.2 12.7a4.7 4.7 0 0 1 6.6-6.6l1.2 1.2 1.2-1.2a4.7 4.7 0 0 1 6.6 6.6z"/></svg>
+            </button>
+            <span class="card__phase">⚽ Faza grupowa · Grupa H</span>
+            <div class="card__countdown" data-countdown>
+              <div class="card__unit"><span class="card__val" data-d>00</span><span class="card__lab">dni</span></div>
+              <div class="card__unit"><span class="card__val" data-h>00</span><span class="card__lab">godz</span></div>
+              <div class="card__unit"><span class="card__val" data-m>00</span><span class="card__lab">min</span></div>
+              <div class="card__unit"><span class="card__val" data-s>00</span><span class="card__lab">sek</span></div>
+            </div>
+            <p class="card__when" data-when></p>
+            <div class="card__teams">
+              <div class="card__team"><img class="country-flag" src="https://flagcdn.com/pt.svg" alt="PT" /><span class="card__team-name">Portugalia</span></div>
+              <span class="card__vs">VS</span>
+              <div class="card__team"><img class="country-flag" src="https://flagcdn.com/nl.svg" alt="NL" /><span class="card__team-name">Holandia</span></div>
+            </div>
+            <button class="card__bell" data-card-bell aria-pressed="false">
+              <svg viewBox="0 0 24 24"><path d="M18 8.4A6 6 0 0 0 6 8.4c0 6.6-2.6 8.6-2.6 8.6h17.2S18 15 18 8.4"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg>
+              <span data-bell-text>Przypomnij mi</span>
+            </button>
+          </article>
+
+        </div>
+      </section>
+
+    </div>
+  </main>
+
+  <!-- MODUŁ JS kart: ładowany warunkowo — tylko strony zawierające
+       [data-card-region]. Delegacja zdarzeń na kontenerze regionu. -->
+  <script src="components/cards.js" defer></script>
+
+  <script>
+  /* Chrome strony-wzorca: motyw (ten sam klucz co cały serwis). */
+  (function () {
+    "use strict";
+    var root = document.documentElement;
+    try {
+      var saved = localStorage.getItem("hajlajty:theme");
+      if (saved) root.setAttribute("data-theme", saved);
+    } catch (e) {}
+    document.getElementById("themeBtn").addEventListener("click", function () {
+      var next = root.getAttribute("data-theme") === "dark" ? "light" : "dark";
+      root.setAttribute("data-theme", next);
+      try { localStorage.setItem("hajlajty:theme", next); } catch (e) {}
+    });
+  })();
+  </script>
+</body>
+</html>
