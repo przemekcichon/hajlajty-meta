@@ -26,7 +26,7 @@ Jeden element `response[i]` = jeden mecz.
 | Kod kraju — gość (3-lit.) | **brak** | jw. `teams.away.id` |
 | Flaga/herb — gospodarz | `teams.home.logo` | URL media.api-sports.io. Frontend używa flagcdn.com → patrz „Pola ręczne". |
 | Flaga/herb — gość | `teams.away.logo` | jw. |
-| Slug/ID meczu | `fixture.id` (źródło) | Slug "skrot-FRA-CRO" jest pochodny/ręczny; `fixture.id` to klucz API i identyfikator deduplikacji importu. |
+| Slug/ID meczu | `fixture.id` (źródło) | Slug `gospodarz-gosc-RRRR-MM-DD` (polskie nazwy → ASCII) generowany RAZ — plan D1.1; `fixture.id` NIE wchodzi do slugu, to klucz API i identyfikator deduplikacji importu. |
 
 ### 2. Wynik i status
 | Pole frontendu | Ścieżka w API | Uwagi |
@@ -199,18 +199,20 @@ Pełna decyzja: sekcja „Lokalizacja nazw" w CLAUDE.md.
 | Pole | ACF | Uwagi |
 |---|---|---|
 | URL YouTube / Video ID | `field_skrot_url` | decyzja CLAUDE.md #4 |
-| Czas trwania wideo | ACF | MM:SS; **DO USTALENIA** czy ręcznie czy z YouTube API |
+| Czas trwania wideo | ACF | MM:SS; źródło docelowe: YouTube Data API (slice fazy danych zewnętrznych), do tego czasu ręcznie — CLAUDE.md, plan D1.5 |
 | Kanał / nadawca | **taksonomia** (nie ACF) | decyzja #12: elastyczna taksonomia, nie stałe pole |
 | Data/czas publikacji wideo | ACF | wyświetlana relatywnie |
 
 ### A3. Taksonomie (pola filtrowalne — decyzja CLAUDE.md #4)
-Drużyny, rozgrywki, sezon, status wideo, (kanał). Status meczu enum — pochodny z
-`fixture.status.short`, do rozważenia jako taksonomia lub pole pochodne.
+Drużyny, rozgrywki, sezon, kanał. `status_wideo` NIE jest taksonomią — to
+pochodna obecności `field_skrot_url` (CLAUDE.md decyzja #9); „ma wideo" jako
+kryterium istnieje tylko w adminie (Algolia). Status meczu enum — pochodny
+z `fixture.status.short`, nie taksonomia (listy publiczne stałe per widok).
 
 ### A4. Pola pochodne (wyliczane w PHP, nie przechowywane)
 | Pole | Z czego |
 |---|---|
-| Slug meczu „skrot-FRA-CRO" | z kodów drużyn + kontekstu |
+| Slug meczu „francja-chorwacja-2026-06-12" | z polskich nazw drużyn (ASCII) + daty fixture'a; generowany RAZ — plan D1.1 |
 | Odliczanie dni/godz./min/sek (ZM) | z `fixture.date` |
 | Status enum PL | z `fixture.status.short` (tabela mapująca) |
 | Pozycje Br/O/P/N | z `player.pos` (G/D/M/F) |
@@ -260,7 +262,8 @@ nigdy nie zapisujemy; bierzemy tylko `response`.
 
 Zgodnie z decyzją CLAUDE.md #3: **JEDNO** pole meta `match_data` = przycięty payload
 z api-football; szablony robią `json_decode` i renderują. Pola **filtrowalne**
-(drużyny, rozgrywki, sezon, status wideo, kanał) i **PL nazwy/kody** NIE są tutaj —
+(drużyny, rozgrywki, sezon, kanał; `status_wideo` to pochodna `skrot_url`,
+nie taksonomia — decyzja #9) i **PL nazwy/kody** NIE są tutaj —
 żyją w taksonomiach / term meta / ACF, żeby się nie duplikować i być filtrowalne.
 
 `match_data` trzyma to, co dynamiczne i niefiltrowalne: rdzeń meczu, oś czasu,

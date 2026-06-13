@@ -4,6 +4,16 @@ Serwis z zapowiedziami, live'ami i skrótami wideo meczów (start: Mundial 2026,
 potem piłka klubowa). "Spotify dla skrótów meczowych". Dane meczowe z api-football,
 linki do YouTube i kanał dodawane ręcznie.
 
+## Charakter projektu (czytaj najpierw)
+Hajlajty to projekt EDUKACYJNY — mini-redakcja sportowa prowadzona przez dzieci
+i nastolatków uczących się współpracy z AI. To zmienia kryterium „dobrej" decyzji:
+- Rozwiązanie musi być zrozumiałe i obsługiwalne przez początkujących
+  redaktorów-nastolatków, nie tylko przez dewelopera.
+- Każda funkcja zostawia ścieżkę „najpierw ręcznie, potem z AI" — tryb ręczny
+  to nie tymczasowy hack, tylko docelowy sposób nauki.
+- Prostota ma DWÓCH adresatów: dewelopera (kod) i młodego redaktora (panel).
+  Gdy decyzja jest niejednoznaczna, wybieramy wariant zrozumiały dla redaktora.
+
 ## Decyzje architektoniczne (NIE zmieniaj ich bez pytania)
 1. WordPress jako baza danych + klasyczny motyw PHP. ŻADNEGO FSE, bloków
    Gutenberga z danymi, Elementora ani Timbera.
@@ -12,13 +22,38 @@ linki do YouTube i kanał dodawane ręcznie.
 3. Dane meczowe (oś czasu, składy, statystyki) trzymamy w JEDNYM polu meta
    jako JSON (surowy/przycięty payload z api-football). Bez repeaterów ACF,
    bez rozbijania na dziesiątki pól meta. Szablony robią json_decode i renderują.
-4. Filtrowanie TYLKO po: drużyny, rozgrywki, sezon, status wideo → wszystko
-   jako taksonomie. Link do YouTube → pole ACF (nie filtrujemy po nim).
+4. Publiczne taksonomie (filtry/chipy): drużyna, rozgrywki, sezon, kanał —
+   wszystko jako taksonomie WP. Link do YouTube → pole ACF (nie filtrujemy
+   po nim). `status_wideo` NIE jest tu taksonomią — patrz decyzja #9.
 5. Post content zostaje na ręczne opisy/zapowiedzi, nie na dane.
 6. Przyszła migracja do Next.js + WPGraphQL: rejestruj CPT/taksonomie
    z `show_in_graphql => true`, dane mają być czytelne bez parsowania HTML.
-7. Permalinki ustalamy raz i na zawsze (przeżyją migrację headless).
+7. Permalinki ustalamy raz i na zawsze (przeżyją migrację headless). Schemat
+   meczu: `/mecz/{gospodarz}-{gosc}-{RRRR-MM-DD}`, gdzie {gospodarz}/{gosc} to
+   PEŁNE polskie nazwy serwisowe drużyn (term taksonomii) transliterowane do
+   ASCII, kolejność gospodarz-gość bierzemy z fixture'a, BEZ `fixture.id` w URL.
+   Slug generowany RAZ przy tworzeniu wpisu — NIE regenerujemy go przy
+   re-imporcie ani przy zmianie nazwy drużyny (stabilność linku > aktualność).
 8. Prostota > elastyczność. Nie dodawaj abstrakcji "na przyszłość".
+9. `status_wideo` NIE jest osobnym polem ani taksonomią — to POCHODNA obecności
+   `field_skrot_url` (mecz ma skrót ⟺ pole wypełnione). Wypada z listy
+   publicznych taksonomii (zostają: drużyna, rozgrywki, sezon, kanał).
+   Filtrowanie „ma wideo" istnieje TYLKO w adminie, w ramach narzędzia Algolii
+   (patrz „Wyszukiwanie i filtry").
+
+## Wyszukiwanie i filtry — rozdział publiczne / redakcyjne (trwała decyzja)
+Dwa osobne światy wyszukiwania, świadomie rozdzielone:
+
+- PUBLICZNE (front): celowo proste. Jedna wyszukiwarka tekstowa — TYLKO po
+  DRUŻYNACH. Filtry (chipy) po NATYWNYCH taksonomiach WP + lekki własny JS.
+  BEZ FacetWP, BEZ Algolii. Headless-friendly — te same dane pójdą przez
+  WPGraphQL bez zmian.
+- REDAKCYJNE (admin, tylko zalogowani): Algolia. Rosnące narzędzie kwerend dla
+  redakcji (drużyny, rozgrywki, sezon → docelowo zawodnicy, gole itd.).
+  - Indeks Algolii = POCHODNA, NIGDY źródło prawdy. Źródłem są zawsze
+    CPT / taksonomie / `match_data`.
+  - Synchronizacja do indeksu przy zapisie/imporcie = osobny vertical slice.
+  - Klucze Algolii w `wp-config`/`.env`, nigdy w repo ani na froncie.
 
 ## Stack
 WordPress, ACF PRO, klasyczny motyw PHP, frontend przeniesiony z Claude Design.
