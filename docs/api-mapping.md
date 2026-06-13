@@ -66,3 +66,39 @@ Jeden element `response[i]` = jeden mecz.
 `fixture.referee`, `fixture.timezone`, `fixture.periods`, `fixture.venue` (id/name/city),
 `league.country`, `league.logo`, `league.flag`, `league.standings`,
 `teams.home.winner` / `teams.away.winner` (pochodne od wyniku).
+
+---
+
+## Endpoint: events
+`GET /fixtures/events?fixture={id}` — próbka: [fixtures-events.jsonl](api-samples/fixtures-events.jsonl)
+
+Oś czasu wydarzeń meczu (widok ML). Jeden element `response[i]` = jedno wydarzenie,
+posortowane wg czasu. Frontend renderuje je po stronie drużyny wg `team.id`.
+
+### 4. Wydarzenia meczowe
+| Pole frontendu (data-inventory) | Ścieżka w API | Uwagi |
+|---|---|---|
+| Minuta eventu | `time.elapsed` | int; doliczony czas: `time.extra` (np. 45+1) |
+| Typ eventu (enum) | `type` + `detail` | mapowanie ↓ |
+| Imię i nazwisko — główny zawodnik | `player.name` | "J. Lukic" (skrócone imię z API) |
+| Imię i nazwisko — zawodnik pomocniczy | `assist.name` | `null` gdy brak asysty → nie wyświetlać (decyzja #2) |
+| (przypisanie do drużyny) | `team.id` | po której stronie osi renderować event |
+
+**Mapowanie typu eventu** (`type` + `detail` → enum frontendu):
+| API `type` | API `detail` (przykłady) | Enum frontendu |
+|---|---|---|
+| `Goal` | Normal Goal / Penalty / Own Goal | bramka ⚽ (own goal/karny → DO USTALENIA oznaczenie) |
+| `Goal` | Missed Penalty | DO USTALENIA (czy pokazywać niewykorzystany karny) |
+| `Card` | Yellow Card | żółta kartka 🟨 |
+| `Card` | Red Card | czerwona kartka 🟥 |
+| `subst` | Substitution {n} | zmiana ↔ — **brak w próbce**; dla zmian `player`/`assist` to wchodzący/schodzący → DO USTALENIA który jest który (patrz Pytania) |
+| `Var` | (np. Goal cancelled) | brak w enumie frontendu → pomijać lub DO USTALENIA |
+
+> Dla eventu bramki `assist` bywa wypełniony (`S. Kolasinac`) lub `null` — obsłużyć oba.
+> Pole 6 data-inventory „Eventy zawodnika na karcie składu / Minuta zmiany" jest pochodne:
+> agregujemy te same eventy per `player.id` przy renderowaniu składu (lineups).
+
+### Dane events obecne w API, a NIEUŻYWANE przez frontend
+`team.name`, `team.logo` (redundancja z fixtures — przypisanie po `team.id`),
+`player.id`, `assist.id` (chyba że potrzebne do łączenia z lineups → patrz niżej),
+`comments` (np. "Tripping" — powód kartki; możliwy bonus, ale nie ma go w designie).
