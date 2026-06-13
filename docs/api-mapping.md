@@ -319,6 +319,7 @@ składy, statystyki. Struktura blisko API (przycięta), z dwoma świadomymi odst
 - Sekcje opcjonalne: dla meczu-zapowiedzi `events`/`lineups`/`statistics` mogą nie
   istnieć — szablon sprawdza obecność klucza.
 
-> **Pole do decyzji (patrz Pytania):** czy `match_data` ma trzymać strukturę bliską API
-> (jak wyżej), czy w pełni znormalizowaną/przetłumaczoną. Rekomendacja: jak wyżej —
-> przycięte, blisko API, zgodnie z decyzją #3 i zasadą „zero abstrakcji na zapas".
+> **Decyzja:** `match_data` trzyma strukturę **RAW/przyciętą** (jak wyżej), blisko API —
+> NIE w pełni znormalizowaną/przetłumaczoną. Zgodnie z decyzją CLAUDE.md #3 i zasadą
+> „zero abstrakcji na zapas". PL nazwy/kody i pola filtrowalne tu nie wchodzą — żyją
+> w taksonomiach / term meta / ACF.
