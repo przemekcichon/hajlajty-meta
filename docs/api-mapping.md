@@ -91,7 +91,7 @@ posortowane wg czasu. Frontend renderuje je po stronie drużyny wg `team.id`.
 | `Goal` | Missed Penalty | DO USTALENIA (czy pokazywać niewykorzystany karny) |
 | `Card` | Yellow Card | żółta kartka 🟨 |
 | `Card` | Red Card | czerwona kartka 🟥 |
-| `subst` | Substitution {n} | zmiana ↔ — **brak w próbce**; dla zmian `player`/`assist` to wchodzący/schodzący → DO USTALENIA który jest który (patrz Pytania) |
+| `subst` | Substitution {n} | zmiana ↔ — **brak w próbce**; dla zmian `player`/`assist` = wchodzący/schodzący, ale kierunku NIE zakładamy → ZADANIE: zweryfikować empirycznie na eventach zakończonego meczu ze zmianami |
 | `Var` | (np. Goal cancelled) | brak w enumie frontendu → pomijać lub DO USTALENIA |
 
 > Dla eventu bramki `assist` bywa wypełniony (`S. Kolasinac`) lub `null` — obsłużyć oba.
