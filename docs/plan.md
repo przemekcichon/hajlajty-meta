@@ -84,6 +84,9 @@ modelu i znikłyby razem z nim.
   `acf_add_local_field_group()` (wersjonowalne, migracja-safe — NIE klikane w
   adminie bez eksportu): `skrot_url` (URL/Video ID), `skrot_duration` (MM:SS),
   `skrot_published_at` (datetime). Kanał = taksonomia, NIE pole ACF.
+  Faza 1 tylko DEFINIUJE pole `skrot_duration`; jego automatyczne wypełnianie
+  z YouTube Data API to osobny slice w fazie danych zewnętrznych (Faza 5) —
+  do tego czasu pole wypełniane ręcznie. Patrz D1.5.
 
 ### Decyzje wymagające zatwierdzenia
 
@@ -110,9 +113,12 @@ modelu i znikłyby razem z nim.
   Kryterium „ma wideo" istnieje wyłącznie w adminie, w narzędziu Algolii (Faza 4,
   slice synchronizacji indeksu). W Fazie 1 nie ma więc nic do zrobienia poza
   NIE rejestrowaniem tej taksonomii.
-- **D1.5 — `skrot_duration`: ręcznie czy z YouTube API?** (A2 „DO USTALENIA").
-  Na MVP proponuję pole ręczne MM:SS (zero abstrakcji na zapas). YouTube API →
-  ewentualnie później. OK?
+- **D1.5 — `skrot_duration`: ROZSTRZYGNIĘTE — źródłem YouTube Data API.**
+  Docelowo czas trwania pobieramy z YouTube Data API (klucz YT w `.env`, nigdy
+  w repo/na froncie). Faza 1 tylko DEFINIUJE pole ACF `skrot_duration`; samo
+  pobieranie to osobny vertical slice w fazie danych zewnętrznych (Faza 5).
+  Do czasu tego slice'a pole wypełniane ręcznie (MM:SS) — ścieżka „najpierw
+  ręcznie, potem z AI/API" (charakter projektu).
 
 ### Weryfikacja, że działa
 
@@ -404,7 +410,7 @@ ciążyło na MVP. Każde to przyszły osobny slice + PR.
 | Kierunek `subst` (player/assist = wchodzący/schodzący?) | mapping §events | **Faza 2** | Blocker transformacji zmian. Zweryfikować empirycznie na zakończonym meczu ze zmianami przed finalizacją `transform.php`. |
 | Oznaczenie własnej bramki / karnego / niewykorzystanego karnego | mapping §events | **Faza 3** | Decyzja UI: czy i jak oznaczać `Own Goal`/`Penalty`/`Missed Penalty`. Dane są; brak w designie. |
 | Eventy `Var` (np. Goal cancelled) | mapping §events | **Faza 3** | Pomijać czy pokazywać. Domyślnie: pomijać (brak w enumie designu). |
-| Czas trwania wideo (ręcznie vs YouTube API) | mapping A2 | **Faza 1** (D1.5) | MVP ręcznie MM:SS; YouTube API → później. |
+| Czas trwania wideo (źródło) | mapping A2 | **Faza 1** (pole) / **Faza 5** (pobieranie) | Rozstrzygnięte: źródłem YouTube Data API. Faza 1 definiuje pole ACF; slice pobierający = faza danych zewnętrznych (Faza 5). Do tego czasu ręcznie. Klucz YT w `.env`. |
 | `/standings` (tabele grup) | mapping A5 | **Faza 5** | później. |
 | Litera grupy A–L (12 grup) | mapping A5, §3 | **Faza 5** | później; razem ze standings. |
 | `/teams/statistics` (profil drużyny) | mapping A5 | **Faza 5** | później; najpierw dobór pól. |
