@@ -291,47 +291,83 @@ hajlajty-theme/
 
 ---
 
-## Faza 4 — wyszukiwarka / filtry po taksonomiach
+## Faza 4 — wyszukiwanie: publiczne (front) i redakcyjne (Algolia)
 
-Branch: `feature/faza-4-filtry`. Cel: filtrowanie list po taksonomiach
-(drużyny, rozgrywki, sezon, status wideo) + sortowanie po dacie.
+Cel: zrealizować ROZDZIAŁ wyszukiwania z CLAUDE.md. To dwa niezależne światy,
+osobne branche/PR-y i osobne slice'y. NIE mieszamy ich kodu.
 
-### Slice'y i pliki
+### 4A — Publiczne (front): natywne taksonomie + lekki własny JS
+
+Branch: `feature/faza-4a-front-filtry`. Celowo proste, headless-friendly (te same
+dane pójdą przez WPGraphQL). BEZ FacetWP, BEZ Algolii.
 
 ```
 hajlajty-theme/features/
   filters/
     filters.php                         # bootstrap
-    query.php                           # pre_get_posts: tax_query z parametrów GET
-    ui.php                              # render formularza filtrów (chipy/dropdowny)
-    partials/filter-bar.php
+    query.php                           # pre_get_posts: kontekstowa lista (tax_query)
+    ui.php                              # render chipsbara + pola wyszukiwarki
+    assets/filters.js                   # live-filtrowanie kart (vanilla JS)
+    partials/chips-bar.php
 ```
 
-### Zakres
+Zakres:
+- **Wyszukiwarka tekstowa: tylko po DRUŻYNACH.** Pole nad listą zawęża widoczne
+  karty po nazwie drużyny (klient, live).
+- **Chipsbar pod headerem** — chipy z publicznych taksonomii (drużyna, rozgrywki,
+  sezon, kanał) zbudowane z `design/components/chip-follow`, `chips-drag`.
+- **Live-filtrowanie kart wg KONTEKSTU strony** — serwer dostarcza kontekstową
+  listę (archiwum drużyny/rozgrywek/sezonu przez `pre_get_posts` → `tax_query`),
+  JS zawęża już wyrenderowane karty bez przeładowania.
+- **Kliknięcie chipsa = TRWAŁY filtr** — utrzymuje się nawet po wyczyszczeniu
+  pola tekstowego (chip i tekst to dwa niezależne, łączone (AND) kryteria).
+- BEZ statusu meczu jako filtra publicznego i BEZ `status_wideo` (pochodna,
+  decyzja #9) — to kryteria redakcyjne (4B).
 
-- Filtry jako parametry GET (`?druzyna=&rozgrywki=&sezon=&status_wideo=`),
-  mapowane w `pre_get_posts` na `tax_query` (AND między taksonomiami, OR w
-  obrębie jednej). Sort po `fixture.date`/meta.
-- UI: chipy/dropdowny z `design/components/chip-follow`, `chips-drag`.
-- Render serwerowy (przeładowanie strony) — zgodnie z „klasyczny motyw,
-  prostota > elastyczność". Bez SPA.
+### 4B — Redakcyjne (admin): Algolia + slice synchronizacji indeksu
+
+Branch: `feature/faza-4b-algolia` (osobny PR, po MVP front-u). Rosnące narzędzie
+kwerend dla redakcji. Indeks Algolii = POCHODNA, NIGDY źródło prawdy.
+
+```
+hajlajty-core/features/
+  algolia-sync/
+    algolia-sync.php                    # bootstrap
+    client.php                          # klient Algolia (klucze z wp-config/.env)
+    indexer.php                         # CPT/taksonomie/match_data → rekord indeksu
+    hooks.php                           # push przy save_post/acf/save_post i imporcie
+```
+
+Zakres:
+- Synchronizacja do indeksu przy zapisie posta i przy imporcie (Faza 2).
+  Rekord = pochodna z CPT/taksonomii/`match_data` (NIE odwrotnie).
+- Narzędzie kwerend dostępne TYLKO dla zalogowanych (admin). Tu żyją kwerendy
+  rosnące: drużyny, rozgrywki, sezon, „ma wideo" (z `skrot_url`) → docelowo
+  zawodnicy, gole itd.
+- Klucze Algolii w `wp-config`/`.env`, nigdy w repo ani na froncie.
 
 ### Decyzje wymagające zatwierdzenia
 
-- **D4.1 — Render serwerowy vs progresywne AJAX/Interactivity API.** Propozycja
-  MVP: czysty GET + przeładowanie (najprościej, spójne z motywem). Interactivity
-  API ewentualnie później (spójnie z decyzją dla `hajlajty-user`). OK?
-- **D4.2 — Status MECZU (ZAPOWIEDŹ/LIVE/ZAKOŃCZONY) jako filtr** — to pochodna
-  z `fixture.status.short`, nie taksonomia. Filtrowanie po nim wymaga albo
-  meta_query po `status.short`, albo osobnej taksonomii statusu. Czy filtrujemy
-  po statusie meczu (osobno od `status_wideo`), czy listy są stałe per widok
-  (Na Żywo/Zapowiedzi/Skróty) i status meczu nie jest filtrem użytkownika?
+- **D4.1 — Publiczny front: lekki vanilla JS (live-filtrowanie) zamiast czystego
+  reloadu.** Przyjęte: serwer renderuje kontekstową listę, JS zawęża karty bez
+  przeładowania; chipy trwałe. Interactivity API ewentualnie później (spójnie
+  z decyzją dla `hajlajty-user`). Potwierdź, że vanilla JS wystarcza na MVP.
+- **D4.2 — Status MECZU (ZAPOWIEDŹ/LIVE/ZAKOŃCZONY)** — pochodna z
+  `fixture.status.short`, nie taksonomia. Listy publiczne są stałe per widok
+  (Na Żywo/Zapowiedzi/Skróty), więc status meczu NIE jest publicznym filtrem
+  użytkownika. Filtrowanie po statusie/„ma wideo" → narzędzie Algolii (4B).
+- **D4.3 — Algolia: zakres startowy indeksu.** Które pola wpuszczamy do rekordu
+  na start (tytuł, drużyny, rozgrywki, sezon, kanał, `skrot_url` jako flaga,
+  data)? Reszta dochodzi iteracyjnie.
 
 ### Weryfikacja, że działa
 
-- Wybór drużyny zawęża listę; kombinacja drużyna+rozgrywki+sezon działa (AND).
-- URL z parametrami jest współdzielony/zakładkowalny (stan w GET).
-- Pusty wynik → komunikat, nie błąd. Brak SQL spoza `WP_Query`.
+- 4A: wpisanie nazwy drużyny zawęża karty na żywo; chip drużyny zostaje aktywny
+  po wyczyszczeniu pola tekstowego; kombinacja chip + tekst działa (AND).
+- 4A: archiwum drużyny/rozgrywek/sezonu ładuje właściwą kontekstową listę
+  (serwerowo); brak SQL spoza `WP_Query`; pusty wynik → komunikat, nie błąd.
+- 4B: zapis/import meczu aktualizuje rekord w indeksie Algolii; usunięcie posta
+  usuwa rekord; narzędzie kwerend niedostępne dla niezalogowanych.
 
 ---
 

@@ -36,6 +36,20 @@ i nastolatków uczących się współpracy z AI. To zmienia kryterium „dobrej"
    Filtrowanie „ma wideo" istnieje TYLKO w adminie, w ramach narzędzia Algolii
    (patrz „Wyszukiwanie i filtry").
 
+## Wyszukiwanie i filtry — rozdział publiczne / redakcyjne (trwała decyzja)
+Dwa osobne światy wyszukiwania, świadomie rozdzielone:
+
+- PUBLICZNE (front): celowo proste. Jedna wyszukiwarka tekstowa — TYLKO po
+  DRUŻYNACH. Filtry (chipy) po NATYWNYCH taksonomiach WP + lekki własny JS.
+  BEZ FacetWP, BEZ Algolii. Headless-friendly — te same dane pójdą przez
+  WPGraphQL bez zmian.
+- REDAKCYJNE (admin, tylko zalogowani): Algolia. Rosnące narzędzie kwerend dla
+  redakcji (drużyny, rozgrywki, sezon → docelowo zawodnicy, gole itd.).
+  - Indeks Algolii = POCHODNA, NIGDY źródło prawdy. Źródłem są zawsze
+    CPT / taksonomie / `match_data`.
+  - Synchronizacja do indeksu przy zapisie/imporcie = osobny vertical slice.
+  - Klucze Algolii w `wp-config`/`.env`, nigdy w repo ani na froncie.
+
 ## Stack
 WordPress, ACF PRO, klasyczny motyw PHP, frontend przeniesiony z Claude Design.
 
