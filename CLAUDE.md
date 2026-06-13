@@ -4,6 +4,16 @@ Serwis z zapowiedziami, live'ami i skrótami wideo meczów (start: Mundial 2026,
 potem piłka klubowa). "Spotify dla skrótów meczowych". Dane meczowe z api-football,
 linki do YouTube i kanał dodawane ręcznie.
 
+## Charakter projektu (czytaj najpierw)
+Hajlajty to projekt EDUKACYJNY — mini-redakcja sportowa prowadzona przez dzieci
+i nastolatków uczących się współpracy z AI. To zmienia kryterium „dobrej" decyzji:
+- Rozwiązanie musi być zrozumiałe i obsługiwalne przez początkujących
+  redaktorów-nastolatków, nie tylko przez dewelopera.
+- Każda funkcja zostawia ścieżkę „najpierw ręcznie, potem z AI" — tryb ręczny
+  to nie tymczasowy hack, tylko docelowy sposób nauki.
+- Prostota ma DWÓCH adresatów: dewelopera (kod) i młodego redaktora (panel).
+  Gdy decyzja jest niejednoznaczna, wybieramy wariant zrozumiały dla redaktora.
+
 ## Decyzje architektoniczne (NIE zmieniaj ich bez pytania)
 1. WordPress jako baza danych + klasyczny motyw PHP. ŻADNEGO FSE, bloków
    Gutenberga z danymi, Elementora ani Timbera.
