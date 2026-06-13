@@ -87,17 +87,21 @@ modelu i znikłyby razem z nim.
 
 ### Decyzje wymagające zatwierdzenia
 
-- **D1.1 — Struktura permalinków (raz i na zawsze, decyzja #7).** Propozycja:
-  `/mecz/{kod-home}-{kod-away}-{RRRR-MM-DD}`, np. `/mecz/fra-cro-2026-06-12`.
-  Czytelne, SEO-friendly, stabilne, data rozróżnia ten sam dwumecz (grupa vs
-  pucharowa). `fixture.id` żyje w `match_data`/meta jako klucz dedup, nie w URL.
-  Alternatywy odrzucone: samo `fixture.id` (brzydkie, nie-SEO), `%postname%`
-  bez schematu (ryzyko kolizji). **Pytanie: akceptujesz schemat kod-kod-data?**
+- **D1.1 — Struktura permalinków: ROZSTRZYGNIĘTE (raz i na zawsze, decyzja #7).**
+  Schemat: `/mecz/{gospodarz}-{gosc}-{RRRR-MM-DD}`, gdzie {gospodarz}/{gosc} to
+  PEŁNE polskie nazwy serwisowe drużyn (nazwa termu) transliterowane do ASCII,
+  np. `/mecz/francja-chorwacja-2026-06-12`. Kolejność gospodarz-gość z fixture'a.
+  BEZ `fixture.id` w URL (żyje w `match_data`/meta jako klucz dedup). Slug
+  generowany RAZ przy tworzeniu wpisu — NIE regenerowany przy re-imporcie ani
+  przy zmianie nazwy drużyny (stabilność linku > aktualność). Odrzucone:
+  kody FIFA w slugu (mniej czytelne dla redaktora-nastolatka niż polska nazwa),
+  samo `fixture.id` (brzydkie, nie-SEO), `%postname%` bez schematu (kolizje).
 - **D1.2 — Rejestr stałych: nazwa CPT i slug.** `post_type = 'mecz'`, rewrite
   slug `mecz`. Potwierdź `mecz` (vs `match`/`mecze`) — to też przeżywa migrację.
-- **D1.3 — Term meta drużyny: `fifa_code` 3-literowy.** Wielkość liter w slugu
-  permalinku (lower) vs w `data-team` designu (UPPER, np. `POL`). Proponuję
-  przechowywać UPPER, w slugu lowercasować. OK?
+- **D1.3 — Term meta drużyny: `fifa_code` 3-literowy.** Po D1.1 `fifa_code` NIE
+  trafia już do slugu (slug = polskie nazwy). Służy wyłącznie designowi:
+  `data-team`/herby/flagi (np. flagcdn po kodzie). Przechowujemy UPPER (`POL`),
+  spójnie z `data-team` z designu. OK?
 - **D1.4 — `status_wideo`: ROZSTRZYGNIĘTE — pochodna, nie taksonomia.**
   Konflikt w źródłach (CLAUDE.md mówił „taksonomia", data-inventory #14 „pole
   pochodne") rozstrzygnięty na korzyść pochodnej (CLAUDE.md decyzja #9):
@@ -168,8 +172,10 @@ hajlajty-core/features/
   - `player_id` zostaje też w `lineups` (łączenie events↔skład),
   - sekcje `events`/`lineups`/`statistics` opcjonalne (zapowiedź ich nie ma).
 - **Dedup po `fixture.id`**: szukamy istniejącego posta po meta `fixture_id`;
-  jeśli jest — update, jak nie — insert. Slug ustawiany raz przy insert (kody
-  FIFA z term meta + data); kolejne importy nie nadpisują slug.
+  jeśli jest — update, jak nie — insert. Slug ustawiany raz przy insert
+  (polskie nazwy drużyn z termów, transliteracja do ASCII + data, kolejność
+  gospodarz-gość z fixture'a — D1.1); kolejne importy NIE nadpisują slug, tak
+  samo zmiana nazwy drużyny go nie regeneruje.
 - **Przypisanie taksonomii** przy imporcie: `druzyna` (×2, resolucja po
   `teams.{home,away}.id`), `rozgrywki` (po `league.id`), `sezon` (po
   `league.season`). `status_wideo`/`kanal` NIE z importu (redaktorskie).
@@ -214,7 +220,8 @@ hajlajty-core/features/
 - Re-run seeda nie tworzy duplikatów (idempotencja).
 - `wp hajlajty import --fixture={id}` na próbce/realnym ID → powstaje 1 post
   `mecz`, `match_data` = poprawny JSON wg sekcji C (porównaj z
-  [api-samples/](api-samples/)); taksonomie przypisane; slug = kod-kod-data.
+  [api-samples/](api-samples/)); taksonomie przypisane; slug =
+  gospodarz-gosc-RRRR-MM-DD (polskie nazwy transliterowane do ASCII).
 - Druga próba importu tego samego `fixture.id` → update, nie duplikat
   (sprawdź `wp post list --post_type=mecz --meta_key=fixture_id`).
 - Import zapowiedzi (status `NS`) → `match_data` bez `events`/`lineups`/`stats`.

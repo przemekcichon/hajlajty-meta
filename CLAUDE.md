@@ -28,7 +28,12 @@ i nastolatków uczących się współpracy z AI. To zmienia kryterium „dobrej"
 5. Post content zostaje na ręczne opisy/zapowiedzi, nie na dane.
 6. Przyszła migracja do Next.js + WPGraphQL: rejestruj CPT/taksonomie
    z `show_in_graphql => true`, dane mają być czytelne bez parsowania HTML.
-7. Permalinki ustalamy raz i na zawsze (przeżyją migrację headless).
+7. Permalinki ustalamy raz i na zawsze (przeżyją migrację headless). Schemat
+   meczu: `/mecz/{gospodarz}-{gosc}-{RRRR-MM-DD}`, gdzie {gospodarz}/{gosc} to
+   PEŁNE polskie nazwy serwisowe drużyn (term taksonomii) transliterowane do
+   ASCII, kolejność gospodarz-gość bierzemy z fixture'a, BEZ `fixture.id` w URL.
+   Slug generowany RAZ przy tworzeniu wpisu — NIE regenerujemy go przy
+   re-imporcie ani przy zmianie nazwy drużyny (stabilność linku > aktualność).
 8. Prostota > elastyczność. Nie dodawaj abstrakcji "na przyszłość".
 9. `status_wideo` NIE jest osobnym polem ani taksonomią — to POCHODNA obecności
    `field_skrot_url` (mecz ma skrót ⟺ pole wypełnione). Wypada z listy
