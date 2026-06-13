@@ -131,3 +131,37 @@ Każdy zawiera `team`, `formation`, `startXI[]`, `substitutes[]`, `coach`.
 `coach` (id/name/photo — brak trenera w designie; ewentualny bonus),
 `team.name`/`team.logo` (redundancja z fixtures), `player.id` (potrzebny tylko do
 łączenia z events, nie do wyświetlenia).
+
+---
+
+## Endpoint: statistics
+`GET /fixtures/statistics?fixture={id}` — próbka: [fixtures-statistics.jsonl](api-samples/fixtures-statistics.jsonl)
+
+Statystyki meczu per drużyna (widok ML). `response[]` ma **2 elementy** (po drużynie).
+Każdy: `team` + `statistics[]` — **tablica par `{type, value}`** (nie nazwane pola!).
+Mapowanie odbywa się po stringu `type`. `value` bywa int, stringiem ("66%", "0.57") lub `null`.
+
+### 5. Statystyki
+| Pole frontendu (data-inventory) | `type` w API | Uwagi |
+|---|---|---|
+| Posiadanie piłki (%) | `Ball Possession` | string z `%` ("66%") |
+| Strzały (łącznie) | `Total Shots` | int |
+| Strzały celne | `Shots on Goal` | int |
+| Faule | `Fouls` | int |
+| Rzuty rożne | `Corner Kicks` | int |
+| Żółte kartki (łączna liczba) | `Yellow Cards` | int |
+| Czerwone kartki (łączna liczba) | `Red Cards` | `null` gdy 0 → traktować jak 0 |
+| Podania (łącznie) | `Total passes` | int |
+| Podania (celność %) | `Passes %` | string z `%`; surowe: `Passes accurate` (int) |
+
+**Pozostałe `type` dostępne w API** (decyzja #4 — można wyświetlić przetłumaczone, jeśli zmieszczą się w UI):
+`Shots off Goal`, `Blocked Shots`, `Shots insidebox`, `Shots outsidebox`, `Offsides`,
+`Goalkeeper Saves`, `expected_goals` (xG), `goals_prevented`.
+
+> **Uwaga do importu/storage:** `statistics` to tablica par — przy zapisie do `match_data`
+> warto przekształcić ją w obiekt kluczowany po `type` (tylko wybrane typy), żeby szablon
+> nie szukał liniowo po tablicy. Wartości `%`/xG zostają stringami — parsowanie/format w PHP.
+
+### Dane statistics obecne w API, a NIEUŻYWANE przez frontend
+`team.name`/`team.logo` (redundancja). Reszta typów (xG, insidebox/outsidebox itp.)
+jest opcjonalna — domyślnie wycinamy te, których design nie pokazuje (patrz sekcja zbiorcza #2).
