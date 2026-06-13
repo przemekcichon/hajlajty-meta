@@ -99,8 +99,8 @@ modelu i znikłyby razem z nim.
   przy zmianie nazwy drużyny (stabilność linku > aktualność). Odrzucone:
   kody FIFA w slugu (mniej czytelne dla redaktora-nastolatka niż polska nazwa),
   samo `fixture.id` (brzydkie, nie-SEO), `%postname%` bez schematu (kolizje).
-- **D1.2 — Rejestr stałych: nazwa CPT i slug.** `post_type = 'mecz'`, rewrite
-  slug `mecz`. Potwierdź `mecz` (vs `match`/`mecze`) — to też przeżywa migrację.
+- **D1.2 — Nazwa CPT i slug: POTWIERDZONE.** `post_type = 'mecz'`, rewrite slug
+  `mecz`. Przeżywa migrację headless.
 - **D1.3 — Term meta drużyny: `fifa_code` 3-literowy.** Po D1.1 `fifa_code` NIE
   trafia już do slugu (slug = polskie nazwy). Służy wyłącznie designowi:
   `data-team`/herby/flagi (np. flagcdn po kodzie). Przechowujemy UPPER (`POL`),
@@ -206,10 +206,9 @@ hajlajty-core/features/
 - **D2.1 — Gdzie żyje CSV seeda?** Proponuję canonical w slice'u
   `roster-seed/data/` (plugin samowystarczalny dla komendy), nie w `docs/`
   (osobny artefakt). `docs/` może mieć kopię referencyjną. OK?
-- **D2.2 — Zawartość CSV (osobne pod-zadanie zbierania danych).** Trzeba zebrać
-  `api_id` + kod FIFA dla uczestników Mundialu 2026 i `league.id` World Cup.
-  Czy dostarczasz listę, czy mam ją złożyć z próbek + dokumentacji API do
-  Twojej weryfikacji?
+- **D2.2 — Zawartość CSV: POTWIERDZONE — dostarcza użytkownik.** Roster (CSV
+  per liga: PL nazwa, `fifa_code`, `api_id`, `league_id`, sezon) dostarcza
+  użytkownik. Seed go tylko konsumuje (idempotentnie, resolucja po ID).
 - **D2.3 — Cron na Local (dev) vs prod.** Local (Flywheel) zwykle nie ma
   systemowego crona. Propozycja: dev = ręczne `wp hajlajty import` / opcjonalnie
   WP-Cron; prod = systemowy crontab. Potwierdź, że dev-flow ręczny wystarcza.
@@ -440,12 +439,19 @@ ciążyło na MVP. Każde to przyszły osobny slice + PR.
 - Faza 4 wymaga taksonomii (Faza 1) i list/archiwum (Faza 3).
 - Faza 5 niezależna, ruszamy po MVP.
 
-## Otwarte pytania ogólne (zbiorę odpowiedzi, nie zakładam cicho)
+## Pytania ogólne — status
 
-1. D1.1 permalink, D1.2 nazwa CPT, D1.4 `status_wideo`, D1.5 czas wideo — kluczowe
-   dla Fazy 1, blokują start.
-2. D2.2 — kto dostarcza dane CSV (api_id + kody FIFA uczestników Mundialu 2026)?
-3. WPGraphQL — instalujemy już teraz (żeby realnie testować `show_in_graphql`),
-   czy na razie tylko ustawiamy flagi i weryfikujemy REST?
-4. ACF PRO — potwierdzenie, że rejestrujemy grupy KODEM (`acf_add_local_field_group`),
-   nie klikamy w adminie.
+ROZSTRZYGNIĘTE:
+- **CPT = `mecz`** (D1.2). Nazwa i slug `mecz`, przeżywa migrację.
+- **WPGraphQL — później.** W Fazie 1 tylko ustawiamy flagi `show_in_graphql`
+  i weryfikujemy przez REST; instalację WPGraphQL i realny test schematu
+  odkładamy na czas migracji headless (nie blokuje MVP).
+- **ACF — rejestracja KODEM** (`acf_add_local_field_group`), nie klikana
+  w adminie (wersjonowalne, migracja-safe).
+- **Roster CSV — dostarcza użytkownik** (D2.2), CSV per liga; seed konsumuje.
+- D1.1 permalink, D1.4 `status_wideo`, D1.5 czas wideo — rozstrzygnięte powyżej.
+
+POZOSTAJĄ DO ZATWIERDZENIA (nie blokują rozpoczęcia Fazy 1):
+- D1.3 (UPPER `fifa_code`), D2.1/D2.3/D2.4/D2.5, D3.1–D3.3, D4.1–D4.3 oraz
+  pozycje z tabeli „Otwarte kwestie z mapowania" (przypisane do faz jak były:
+  `subst` → Faza 2; standings / `teams-statistics` / injuries → Faza 5).
