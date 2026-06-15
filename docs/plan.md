@@ -237,8 +237,14 @@ hajlajty-core/features/
 
 ## Faza 3 — motyw: szablony i przeniesienie designu
 
-Branch: `feature/faza-3-motyw`. Cel: front renderuje dane z `match_data` +
-taksonomii. Tu mieszka tłumaczenie RAW→PL (słowniki).
+Branch: `feature/faza-3-motyw`. Cel: front renderuje publiczne widoki meczu z
+`match_data` + taksonomii (TYLKO odczyt). Tu mieszka tłumaczenie RAW→PL (słowniki).
+
+Render to za duży kawałek na jeden prompt (`design/` ~10K linii HTML), więc dzielimy
+go na pod-etapy 3a–3d na JEDNYM branchu (jak Faza 2: seed→import→transform). Każdy
+pod-etap jest osobno weryfikowalny i pracuje na wąskim kontekście (1–2 pliki HTML
+naraz, nie 21). Kolejność wymuszona zależnością: 3a (logika) → 3b (szkielet + pierwszy
+wariant single) → 3c (reszta wariantów) → 3d (listy).
 
 ### Slice'y i pliki
 
@@ -252,7 +258,7 @@ hajlajty-theme/
     match-display/
       match-display.php                 # bootstrap: helpery + enqueue
       helpers.php                       # hajlajty_get_match_data() i pochodne
-      lookups.php                       # string→PL: runda, status, pozycje G/D/M/F
+      lookups.php                       # string→PL: runda, status, pozycje, eventy, statystyki
       partials/                         # karty/sekcje z design/components
     layout/
       layout.php                        # header/footer/nawigacja, enqueue tokens+base
@@ -263,47 +269,80 @@ hajlajty-theme/
 > roocie motywu (hierarchia szablonów WP ich tam szuka). Logikę/partiale trzymamy
 > w slice'ach; pliki-szablony w roocie tylko `get_template_part()` do slice'a.
 
-### Zakres
+Przeniesienie designu: `tokens.css`/`base.css` → globalny enqueue; komponenty
+(`card-*`, `match-row`, `pagination`) → partiale + ich CSS/JS. Flagi/herby z
+flagcdn.com po kodzie FIFA z term meta. Kanał = taksonomia (`get_the_terms`), NIE
+pole ACF. Render jest READ-ONLY — bez `editor-form` (→ faza `hajlajty-editor`), bez
+`chip-follow`/`user-menu` (→ `hajlajty-user`, Faza 4).
 
-- `hajlajty_get_match_data( $post_id )` — `get_post_meta` + `json_decode`,
-  zwraca tablicę/obiekt; jedno miejsce dostępu (helper z A4/A.).
-- Pochodne liczone w PHP (A4): status enum PL, pozycje Br/O/P/N, slug, eventy
-  zawodnika agregowane per `player_id`, odliczanie z `fixture.date`.
-- `lookups.php`: mapy string→PL (runda „Group Stage - 1"→„Faza grupowa, kolejka 1";
-  status `short`→enum PL; G/D/M/F→Br/O/P/N). **Słownik statusów = pełna tabela
-  mapowania w [api-mapping.md](api-mapping.md) (sekcja „Mapowanie statusu")** —
-  źródło prawdy dla `lookups.php`: każdy kod `short`→1 z 4 stanów PL (ZAPOWIEDŹ/
-  LIVE/ZAKOŃCZONY/ODWOŁANY) + flaga „pokaż minutę" (`1H`/`2H`/`ET`) + fallback dla
-  nieznanego kodu. Implementacja `lookups.php` realizuje tę tabelę w tej fazie.
-- Przeniesienie designu: tokens.css/base.css → globalny enqueue; komponenty
-  (`card-*`, `match-row`, `chip-follow`, `user-menu`, `editor-form`, `pagination`)
-  → partiale + ich CSS/JS. Flagi/herby z flagcdn.com po kodzie FIFA z term meta.
-- Mapowanie widoków designu → szablony: Strona Główna→`front-page.php`;
-  Skróty/Zapowiedzi/Na Żywo→`archive-mecz.php` (warianty wg statusu); Skrót
-  Meczu/Mecz na Żywo/Zapowiedź Meczu→`single-mecz.php` (warianty wg statusu).
+### 3a — Fundament (zero HTML, czysta logika PHP)
 
-### Decyzje wymagające zatwierdzenia
+- `hajlajty_get_match_data( $post_id )` — `get_post_meta` + `json_decode`; jedno
+  miejsce dostępu do danych meczu.
+- WŁASNY helper `api_id`→term drużyny (`get_terms` + `meta_query`, WSADOWO by
+  uniknąć N+1). Helpery `hajlajty_import_*` są niedostępne na froncie (ground-truth
+  Fazy 2) — render ma swój.
+- `lookups.php` — słowniki string→PL:
+  - status `short`→stan PL: 1:1 z [api-mapping.md](api-mapping.md) („Mapowanie
+    statusu") — 4 stany (ZAPOWIEDŹ/LIVE/ZAKOŃCZONY/ODWOŁANY) + flaga „pokaż minutę"
+    (`1H`/`2H`/`ET`) + fallback ZAPOWIEDŹ dla nieznanego kodu;
+  - pozycje `G`/`D`/`M`/`F`→`Br`/`O`/`P`/`N`;
+  - typy eventów (`type`+`detail`)→enum UI PL;
+  - etykiety statystyk EN→PL;
+  - runda `round`→PL (patrz D3.3).
+- Weryfikacja: helpery zwracają poprawne PL dla próbki `match_data` realnego meczu.
 
-- **D3.1 — Jeden `single-mecz.php` z wariantami statusu, czy trzy osobne
-  szablony?** Propozycja: jeden szablon, gałęzie wg statusu enum (LIVE pokazuje
-  events/stats, ZAPOWIEDŹ pokazuje odliczanie+składy, ZAKOŃCZONY pokazuje
-  wideo+stats). Mniej duplikacji. OK?
-- **D3.2 — Lista (Skróty/Zapowiedzi/Na Żywo) = jeden `archive-mecz.php`
-  filtrowany po statusie, czy osobne page-template?** Propozycja: archiwum +
-  query var statusu. Spójne z Fazą 4. OK?
-- **D3.3 — Format tekstu rundy PL.** „Group Stage - 1" → jak dokładnie? („Faza
-  grupowa" vs „Faza grupowa — 1. kolejka"). Litera grupy NIE jest w `round`
-  (Faza 5/standings). Doprecyzuj docelowy string.
+### 3b — Szkielet motywu + single (wariant ZAKOŃCZONY/skrót)
 
-### Weryfikacja, że działa
+- `functions.php` autoloader; `layout` (header/footer/nawigacja, enqueue
+  tokens+base); `single-mecz.php` w roocie → `get_template_part` do slice'a
+  `match-display`.
+- Wariant ZAKOŃCZONY: wideo + wynik + oś czasu + statystyki. Kontekst: 1 plik HTML
+  (Skrót Meczu).
+- Weryfikacja: realny mecz FT renderuje się wizualnie zgodnie z `design/`.
 
-- Po imporcie 1 meczu: `single-mecz.php` renderuje wynik, oś czasu, składy,
-  statystyki — wizualnie zgodnie z `design/` (porównanie ze screenshotami).
-- Zapowiedź: odliczanie działa, brak sekcji live.
-- Archiwum listuje mecze, karty zgodne z `card-*`.
-- Brak PHP notice/warning (`WP_DEBUG=true`); brak zapytań N+1 na liście
-  (jeden `WP_Query`, dane z `match_data`).
-- `assets` ładują się z motywu (nie z `design/`).
+### 3c — Pozostałe warianty single (gałęzie tego samego `single-mecz.php` wg statusu)
+
+- LIVE (oś czasu + statystyki + minuta), ZAPOWIEDŹ (odliczanie + składy), ODWOŁANY
+  (oznaczenie meczu odwołanego). Kontekst: HTML Mecz na Żywo + Zapowiedź Meczu.
+- Odliczanie liczone z meta `kickoff` (UTC) → czas polski w renderze (NIE z
+  `fixture.date`; wariant B, fix PR #3 hajlajty-core).
+- UWAGA: wariant ODWOŁANY NIE MA wzorca w `design/` — projektujemy go sami,
+  minimalnie (oznaczenie „mecz odwołany" zamiast sekcji live/wideo, spójnie z
+  tokenami designu).
+- Weryfikacja: zapowiedź (NS, `publish` dzięki wariantowi B) pokazuje odliczanie
+  bez sekcji live.
+
+### 3d — Archiwum + strona główna
+
+- `archive-mecz.php` (jeden, query var statusu — D3.2), `front-page.php`. Karty
+  `card-*`.
+- Sortowanie listy po meta `kickoff` (`orderby meta_value`), bez N+1 (jeden
+  `WP_Query`).
+- Kontekst: 1 plik listowy (Skróty lub Na Żywo) + Strona Główna.
+- Weryfikacja: archiwum listuje, karty zgodne z `design/`, brak N+1, brak PHP
+  notice (`WP_DEBUG=true`). `assets` ładują się z motywu (nie z `design/`).
+
+### Decyzje podjęte
+
+- **D3.1 — JEDEN `single-mecz.php` z gałęziami wg 4 stanów** (nie 3 — doszedł
+  ODWOŁANY). Mniej duplikacji niż osobne szablony. Podjęte.
+- **D3.2 — JEDEN `archive-mecz.php` + query var statusu** (Skróty/Zapowiedzi/Na
+  Żywo to warianty jednego archiwum). Spójne z Fazą 4. Podjęte.
+- **D3.3 — Format rundy PL:** grupowe „Group Stage - N"→„Faza grupowa — N.
+  kolejka"; pucharowe wg listy (1/16, 1/8, ćwierćfinał, półfinał, mecz o 3.
+  miejsce, finał) z FALLBACKIEM na surowy string dla nieznanej rundy. Podjęte.
+
+### Poza zakresem Fazy 3
+
+Render Fazy 3 to publiczne widoki meczu (odczyt). Pozostałe widoki designu mają
+wskazany dom; szczegółowy zakres każdej z tych faz powstaje, gdy są bliskie (zero
+abstrakcji na zapas również w planowaniu):
+- **Terminarz Turnieju** → osobno tuż po Fazie 3 (dane już z importu).
+- **Tabele Grup** → Faza 5 (standings).
+- **Reprezentacje / Profil kraju** → faza po Fazie 5.
+- **Ulubione / Obserwowane / Konto / Ustawienia** → Faza 4 (`hajlajty-user`).
+- **Panel Redaktora** → faza `hajlajty-editor` (na koniec).
 
 ---
 
@@ -473,7 +512,7 @@ ciążyło na MVP. Każde to przyszły osobny slice + PR.
 | `/teams/statistics` (profil drużyny) | mapping A5 | **Faza 5** | później; najpierw dobór pól. |
 | `/injuries` (status nieobecności) | mapping A5 | **Faza 5** | później / ew. pole ręczne. |
 | Statystyki rozszerzone (xG, insidebox itd.) | mapping §statistics | **Faza 2/3** | Import: które `type` wpuścić do `match_data`. Wg odpowiedzi #4 — wziąć wszystkie dostępne, tłumaczyć i pokazać te, co się mieszczą. Lista typów do zatwierdzenia. |
-| Status `SUSP`/`AWD`/`WO` (mapowanie enum) | mapping §status | **Faza 3** | Doprecyzować mapę. Bazowa mapa wg odpowiedzi #1 (Scheduled/In Play/Finished/Postponed/Cancelled/Abandoned/Not Played). |
+| Status `SUSP`/`AWD`/`WO` (mapowanie enum) | mapping §status | **Faza 3** | ROZSTRZYGNIĘTE: pełna mapa kod→stan PL w [api-mapping.md](api-mapping.md) („Mapowanie statusu"). `SUSP`/`INT`→LIVE, `AWD`/`WO`→ODWOŁANY. `lookups.php` (3a) realizuje ją 1:1. |
 
 ---
 
@@ -499,6 +538,7 @@ ROZSTRZYGNIĘTE:
 - D1.1 permalink, D1.4 `status_wideo`, D1.5 czas wideo — rozstrzygnięte powyżej.
 
 POZOSTAJĄ DO ZATWIERDZENIA (nie blokują rozpoczęcia Fazy 1):
-- D1.3 (UPPER `fifa_code`), D2.1/D2.3/D2.4/D2.5, D3.1–D3.3, D4.1–D4.3 oraz
+- D1.3 (UPPER `fifa_code`), D2.1/D2.3/D2.4/D2.5, D4.1–D4.3 oraz
   pozycje z tabeli „Otwarte kwestie z mapowania" (przypisane do faz jak były:
   `subst` → Faza 2; standings / `teams-statistics` / injuries → Faza 5).
+  D3.1–D3.3 — PODJĘTE (patrz „Faza 3 → Decyzje podjęte").
