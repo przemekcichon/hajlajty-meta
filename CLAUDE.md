@@ -9,8 +9,10 @@ Hajlajty to projekt EDUKACYJNY — mini-redakcja sportowa prowadzona przez dziec
 i nastolatków uczących się współpracy z AI. To zmienia kryterium „dobrej" decyzji:
 - Rozwiązanie musi być zrozumiałe i obsługiwalne przez początkujących
   redaktorów-nastolatków, nie tylko przez dewelopera.
-- Każda funkcja zostawia ścieżkę „najpierw ręcznie, potem z AI" — tryb ręczny
-  to nie tymczasowy hack, tylko docelowy sposób nauki.
+- Każda funkcja zostawia ścieżkę „najpierw ręcznie, potem z AI" — tryb ręczny to
+  nie tymczasowy hack, tylko docelowy sposób nauki. Doprecyzowanie dla MECZÓW:
+  „ręczny tryb" = redakcyjne wzbogacanie zaimportowanych wpisów (link YT + kanał),
+  NIE ręczne tworzenie/wpisywanie danych meczowych (patrz #10).
 - Prostota ma DWÓCH adresatów: dewelopera (kod) i młodego redaktora (panel).
   Gdy decyzja jest niejednoznaczna, wybieramy wariant zrozumiały dla redaktora.
 
@@ -36,10 +38,17 @@ i nastolatków uczących się współpracy z AI. To zmienia kryterium „dobrej"
    re-imporcie ani przy zmianie nazwy drużyny (stabilność linku > aktualność).
 8. Prostota > elastyczność. Nie dodawaj abstrakcji "na przyszłość".
 9. `status_wideo` NIE jest osobnym polem ani taksonomią — to POCHODNA obecności
-   `field_skrot_url` (mecz ma skrót ⟺ pole wypełnione). Wypada z listy
+   `skrot_url` (mecz ma skrót ⟺ pole wypełnione). Wypada z listy
    publicznych taksonomii (zostają: drużyna, rozgrywki, sezon, kanał).
    Filtrowanie „ma wideo" istnieje TYLKO w adminie, w ramach narzędzia Algolii
    (patrz „Wyszukiwanie i filtry").
+10. Mecze powstają WYŁĄCZNIE z automatycznego importu (api-football) — w każdej
+    fazie życia meczu (zapowiedź → live → skrót). NIGDY ręcznie; dane meczowe
+    nie są nigdy wprowadzane z ręki. Ręczna/redakcyjna praca nastoletniego
+    redaktora = WZBOGACANIE zaimportowanego meczu: dodanie `skrot_url` (link
+    YouTube) i przypisanie taksonomii `kanal` (źródłowy kanał YT). Tylko te pola
+    edytuje się ręcznie; reszta pochodzi z importu. Konsekwencja dla #7: slug
+    buduje wyłącznie import przy insert; edycja redakcyjna go nie rusza.
 
 ## Wyszukiwanie i filtry — rozdział publiczne / redakcyjne (trwała decyzja)
 Dwa osobne światy wyszukiwania, świadomie rozdzielone:
