@@ -140,3 +140,22 @@ api-football zwraca nazwy po angielsku. NIE budujemy słownika EN→PL po string
   bo round nie ma stabilnego ID, jest tylko stringiem.
 Zasada: encje (drużyna, rozgrywki) tłumaczy się przez resolucję po stabilnym ID
 do termu o polskiej nazwie; małe słowniki — przez lookup w kodzie.
+
+## Środowisko dev: Local by Flywheel — podział pracy agent / człowiek
+Lokalny WordPress działa w Local by Flywheel — IZOLOWANYM środowisku (własny
+PHP/MySQL, osobny shell). Terminal agenta w VS Code to NIE jest shell Locala,
+więc agent NIE MA dostępu do runtime'u WordPressa.
+
+Agent ROBI bezpośrednio (pliki żyją na realnym dysku w folderze Locala):
+- tworzenie/edycja kodu wtyczek i motywu, git, PR.
+
+Agent NIE wykonuje sam (operacje na runtime — w tym środowisku zawiodą):
+- WP-CLI (`wp ...`), aktywacja wtyczek/motywu, operacje na bazie, flush
+  permalinków, uruchamianie importu, testy przeciw żywej stronie.
+- NIE próbuj ich odpalać „na próbę". Zamiast tego podaj mi DOKŁADNE komendy do
+  wklejenia w „Open Site Shell" Locala (lub kroki w panelu WP) — ja je wykonam
+  i wkleję wynik.
+
+Weryfikacja: projektuj kroki testowe jako „oto komenda, uruchom i wklej output",
+nie jako założenie, że agent sam sprawdzi działanie. Zasada: agent pisze kod
+i instrukcje; człowiek wykonuje runtime i raportuje wynik.
