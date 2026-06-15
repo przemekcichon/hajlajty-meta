@@ -417,7 +417,7 @@ ciążyło na MVP. Każde to przyszły osobny slice + PR.
 
 | Kwestia | Źródło | Faza | Status / akcja |
 |---|---|---|---|
-| Kierunek `subst` (player/assist = wchodzący/schodzący?) | mapping §events | **Faza 2** | Blocker transformacji zmian. Zweryfikować empirycznie na zakończonym meczu ze zmianami przed finalizacją `transform.php`. |
+| Kierunek `subst` (player/assist = wchodzący/schodzący?) | mapping §events | **Faza 2** | ROZSTRZYGNIĘTE empirycznie: `player`=WCHODZĄCY, `assist`=SCHODZĄCY. Transform przepisuje surowo (zero relabelingu); mapowanie etykiet = render (Faza 3). |
 | Oznaczenie własnej bramki / karnego / niewykorzystanego karnego | mapping §events | **Faza 3** | Decyzja UI: czy i jak oznaczać `Own Goal`/`Penalty`/`Missed Penalty`. Dane są; brak w designie. |
 | Eventy `Var` (np. Goal cancelled) | mapping §events | **Faza 3** | Pomijać czy pokazywać. Domyślnie: pomijać (brak w enumie designu). |
 | Czas trwania wideo (źródło) | mapping A2 | **Faza 1** (pole) / **Faza 5** (pobieranie) | Rozstrzygnięte: źródłem YouTube Data API. Faza 1 definiuje pole ACF; slice pobierający = faza danych zewnętrznych (Faza 5). Do tego czasu ręcznie. Klucz YT w `.env`. |
