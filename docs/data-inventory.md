@@ -110,7 +110,7 @@ Format: każdy wiersz = jeden atrybut danych; kolumna "Filtrowanie" = "TAK" jeś
 |------|--------|-------------|-------|
 | URL YouTube (lub Video ID) | SM, SG, SK, TH, UL, PR, PuR | NIE | ACF: `field_skrot_url`; obsługa watch/youtu.be/embed |
 | Czas trwania wideo | SG, SK, SM, TH, UL | NIE | Format MM:SS, np. "9:24" |
-| Kanał / nadawca | SG, SK, SM, TH, UL, PR, PuR | NIE (lista stała) | ACF: `field_skrot_channel`; lista: TVP Sport, Canal+ Sport, Eleven Sports, Meczyki, Kanał Sportowy |
+| Kanał / nadawca | SG, SK, SM, TH, UL, PR, PuR | TAK (taksonomia) | **Taksonomia `kanal`** (CLAUDE.md #4, jedna z 4 publicznych taksonomii — jak `druzyna`/`rozgrywki`/`sezon`). NIE pole ACF: `field_skrot_channel` NIE istnieje i nie ma powstać. Render czyta przez `get_the_terms($post_id, 'kanal')`, nie `get_field`. Przypisanie kanału = redakcyjne (term zaznaczany przy meczu), NIE z importu (Faza 2). |
 | Data/czas publikacji wideo | SG, SK, SM, TH, UL | NIE | Wyświetlana relatywnie: "2 godz. temu", "wczoraj" |
 
 ---
