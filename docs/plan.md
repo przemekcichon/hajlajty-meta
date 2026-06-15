@@ -387,6 +387,49 @@ Zakres:
 
 ---
 
+## Faza — `hajlajty-editor`: pulpit redaktora (zapis skrótu)
+
+Redakcyjne wzbogacanie zaimportowanego meczu (CLAUDE.md #10): redaktor-nastolatek
+dodaje `skrot_url` + kanał. Mecze powstają WYŁĄCZNIE z importu (Faza 2) — ta faza
+NIE tworzy danych meczowych, tylko edytuje dwa redakcyjne atrybuty istniejącego wpisu.
+Zależy od Fazy 1 (pola ACF skrótu istnieją) i Fazy 3 (front edytora: komponent
+`editor-form` z designu).
+
+### Warstwa zapisu = `acf_form()` (decyzja)
+
+Zapis pól skrótu idzie przez **`acf_form()`** — natywny frontendowy formularz ACF —
+**NIE przez własny REST endpoint**. ACF obsługuje render pól + walidację + nonce +
+zapis (`update_field`) dla `skrot_url` / `skrot_duration` / `skrot_published_at`.
+Upraszcza fazę: nie budujemy własnej logiki zapisu dla pól ACF.
+
+> **KOREKTA wcześniejszego ustalenia „REST endpoint zapisujący `skrot_url`".**
+> Zapis pól skrótu = `acf_form()`, nie własny REST. Wzorzec `hajlajty-user`
+> („trwały backend REST + wymienna warstwa frontowa") dotyczył ulubionych/
+> obserwowanych — tam zapisujemy WŁASNY model danych użytkownika, więc REST
+> z autoryzacją przez nonce ma sens. Tutaj zapisujemy do ISTNIEJĄCYCH pól ACF
+> na CPT mecz, więc `acf_form()` jest właściwym, prostszym narzędziem.
+
+### Decyzje wymagające zatwierdzenia
+
+- **D — przypisanie taksonomii `kanal` przez `acf_form()`** (rozstrzygnąć przy
+  starcie fazy). `acf_form` natywnie obsługuje POLA ACF, a `kanal` to taksonomia.
+  Dwie opcje:
+  - **(a)** pole ACF typu „taxonomy" wskazujące na `kanal`, wpięte w ten sam
+    `acf_form` — całość jednym formularzem, czystsze. **Domyślnie preferowane.**
+  - **(b)** osobny element wyboru termu poza ACF + własny zapis przypisania.
+  - Zweryfikować przy starcie fazy: czy ACF taxonomy field POPRAWNIE zapisuje
+    przypisanie termu do posta (nie tylko jako meta).
+
+### Poza `acf_form` (osobna warstwa)
+
+`acf_form()` to pojedynczy formularz EDYCJI jednego meczu — NIE lista. Dlatego
+osobną warstwą nad nim są:
+- **Lista „z wideo / bez wideo"** — `status_wideo` jako POCHODNA obecności
+  `skrot_url` (CLAUDE.md #9), nie pole/taksonomia.
+- **Paginacja pulpitu redaktora** (PuR).
+
+---
+
 ## Faza 5 — „później" (poza MVP)
 
 Branch(e) osobne, gdy ruszymy. Cel: zebrać tu wszystko odłożone, żeby nie
