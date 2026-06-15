@@ -159,8 +159,9 @@ Mapowanie odbywa się po stringu `type`. `value` bywa int, stringiem ("66%", "0.
 `Goalkeeper Saves`, `expected_goals` (xG), `goals_prevented`.
 
 > **Uwaga do importu/storage:** `statistics` to tablica par — przy zapisie do `match_data`
-> warto przekształcić ją w obiekt kluczowany po `type` (tylko wybrane typy), żeby szablon
-> nie szukał liniowo po tablicy. Wartości `%`/xG zostają stringami — parsowanie/format w PHP.
+> przekształcamy ją w obiekt kluczowany po `type` (WSZYSTKIE typy, nie tylko wybrane),
+> żeby szablon nie szukał liniowo po tablicy. Selekcję „które pokazać" robi render
+> (Faza 3). Wartości `%`/xG zostają stringami — parsowanie/format w PHP. Patrz Sekcja C.
 
 ### Dane statistics obecne w API, a NIEUŻYWANE przez frontend
 `team.name`/`team.logo` (redundancja). Reszta typów (xG, insidebox/outsidebox itp.)
@@ -249,9 +250,11 @@ zawodnika na karcie składu).
 **lineups:** `team.colors` (kolory koszulek), `coach` (cały blok), `team.name`/`team.logo`.
 `player.id` zostaje (łączenie z events).
 
-**statistics:** `team.name`/`team.logo`; typy spoza listy używanej w UI
-(`Shots insidebox/outsidebox`, `Blocked Shots`, `expected_goals`, `goals_prevented` itd.
-— chyba że zdecydujemy je pokazać, decyzja #4).
+**statistics:** `team.name`/`team.logo` (redundancja — zostaje sam `team.id` →
+strona). Typów statystyk **NIE wycinamy**: import zapisuje WSZYSTKIE `type`
+zwrócone przez API (obiekt keyed by `type`). Selekcja „które pokazać" przeniesiona
+do renderu (Faza 3) — spójnie z `events`/`lineups` (też nie filtrujemy przy
+imporcie) i z decyzją #6 (filtr przy imporcie wymuszałby re-import przy zmianie UI).
 
 **globalnie:** `get`, `parameters`, `errors`, `paging`, `results` (koperta odpowiedzi) —
 nigdy nie zapisujemy; bierzemy tylko `response`.
@@ -310,6 +313,9 @@ składy, statystyki. Struktura blisko API (przycięta), z dwoma świadomymi odst
 }
 ```
 
+> **`statistics` w przykładzie pokazuje 9 typów — przykład skrócony.** Import
+> zapisuje WSZYSTKIE typy zwrócone przez API (keyed by `type`), nie tylko te z UI.
+
 **Uwagi do kształtu:**
 - `teams.{home,away}.api_id` to jedyny ślad drużyny w `match_data` — łącznik do termu
   taksonomii „drużyna" (skąd PL nazwa, kod, flaga). Bez duplikowania nazw.
@@ -319,8 +325,14 @@ składy, statystyki. Struktura blisko API (przycięta), z dwoma świadomymi odst
   niż powtarzać `team.id`). `player_id` **zostaje** — design pokazuje eventy zawodnika
   na karcie składu, więc agregacja eventów per `player.id` (łącznik events↔lineups)
   jest realnie używana.
-- `statistics` — tylko typy z listy używanej w UI; reszta wycięta. Wartości `%`/xG
-  zostają stringami (format w PHP).
+- `statistics` — **wszystkie typy zwrócone przez API**, jako obiekt kluczowany po
+  `type`. Klucz = `type` VERBATIM z API (mieszany case zostaje: `"Ball Possession"`,
+  `"expected_goals"`, `"goals_prevented"`). Import NIE wycina ani NIE tłumaczy typów
+  — selekcja „które pokazać", etykiety PL i format wartości to operacje RENDERU
+  (Faza 3; zakaz słownika EN→PL po stringach przy imporcie — „Lokalizacja nazw").
+  Wartości surowe, zero koercji: `7` (int), `"66%"` (string), `null`, `"0.57"`
+  (string). Jedyne odstępstwo od API: tablica par `{type,value}` → obiekt keyed
+  by `type` (szablon nie szuka liniowo).
 - Sekcje opcjonalne: dla meczu-zapowiedzi `events`/`lineups`/`statistics` mogą nie
   istnieć — szablon sprawdza obecność klucza.
 
