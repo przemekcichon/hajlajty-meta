@@ -270,7 +270,11 @@ hajlajty-theme/
 - Pochodne liczone w PHP (A4): status enum PL, pozycje Br/O/P/N, slug, eventy
   zawodnika agregowane per `player_id`, odliczanie z `fixture.date`.
 - `lookups.php`: mapy string→PL (runda „Group Stage - 1"→„Faza grupowa, kolejka 1";
-  status `short`→enum PL wg tabeli mapowania; G/D/M/F→Br/O/P/N).
+  status `short`→enum PL; G/D/M/F→Br/O/P/N). **Słownik statusów = pełna tabela
+  mapowania w [api-mapping.md](api-mapping.md) (sekcja „Mapowanie statusu")** —
+  źródło prawdy dla `lookups.php`: każdy kod `short`→1 z 4 stanów PL (ZAPOWIEDŹ/
+  LIVE/ZAKOŃCZONY/ODWOŁANY) + flaga „pokaż minutę" (`1H`/`2H`/`ET`) + fallback dla
+  nieznanego kodu. Implementacja `lookups.php` realizuje tę tabelę w tej fazie.
 - Przeniesienie designu: tokens.css/base.css → globalny enqueue; komponenty
   (`card-*`, `match-row`, `chip-follow`, `user-menu`, `editor-form`, `pagination`)
   → partiale + ich CSS/JS. Flagi/herby z flagcdn.com po kodzie FIFA z term meta.
