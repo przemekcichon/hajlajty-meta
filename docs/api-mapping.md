@@ -36,20 +36,52 @@ Jeden element `response[i]` = jeden mecz.
 | Status meczu (enum PL) | `fixture.status.short` | mapowanie ↓ |
 | Minuta meczu (live) | `fixture.status.elapsed` | `null` poza LIVE; doliczony czas: `fixture.status.extra` |
 
-**Mapowanie statusu** (`status.short` → enum frontendu, wg odpowiedzi #1 z data-inventory):
-| API `short` | API `long` | Enum frontendu |
-|---|---|---|
-| `NS` | Not Started | ZAPOWIEDŹ |
-| `TBD` | Time To Be Defined | ZAPOWIEDŹ |
-| `1H`,`HT`,`2H`,`ET`,`BT`,`P`,`LIVE`,`INT` | First Half / Halftime / Second Half / Extra Time / Break / Penalty / Live | LIVE |
-| `FT`,`AET`,`PEN` | Match Finished (+ ET / + Penalties) | ZAKOŃCZONY |
-| `PST` | Match Postponed | ZAPOWIEDŹ (z nową datą) |
-| `CANC` | Match Cancelled | ODWOŁANY |
-| `ABD` | Match Abandoned | ODWOŁANY |
-| `AWD`,`WO` | Technical Loss / WalkOver | ODWOŁANY / DO USTALENIA |
-| `SUSP` | Match Suspended | DO USTALENIA (LIVE czy ZAPOWIEDŹ?) |
+**Mapowanie statusu — pełny słownik dla `lookups.php`** (`status.short` → jeden z 4
+stanów PL serwisu). To **trwała decyzja mapowania** (rozstrzyga decyzję #1 z
+data-inventory). Cztery stany PL: **ZAPOWIEDŹ** (przed startem) / **LIVE** (w trakcie) /
+**ZAKOŃCZONY** (rozegrany) / **ODWOŁANY** (nie odbędzie się / przerwany bez wyniku).
+Podstawa: zatwierdzone mapowanie grup api-football — Scheduled→ZAPOWIEDŹ, In Play→LIVE,
+Finished→ZAKOŃCZONY, Postponed→ZAPOWIEDŹ, Cancelled/Abandoned/Not Played→ODWOŁANY —
+rozłożone na konkretne kody `short`.
 
-> Próbka ma tylko `2H` i `NS`. Pełna lista kodów wg dokumentacji API (decyzja #1).
+Kolumna **Minuta?** = czy render pokazuje minutę (`status.elapsed` + `status.extra`).
+Tylko stany LIVE z **trwającą grą** (zegar tyka). Pozostałe LIVE to przerwy/pauzy —
+render pokazuje etykietę (Przerwa / Karne / Zawieszony), nie minutę.
+
+| API `short` | API `long` | grupa API | Stan PL | Minuta? | Komentarz |
+|---|---|---|---|---|---|
+| `TBD`  | Time To Be Defined            | Scheduled  | ZAPOWIEDŹ   | —   | termin meczu jeszcze nieustalony |
+| `NS`   | Not Started                   | Scheduled  | ZAPOWIEDŹ   | —   | przed pierwszym gwizdkiem |
+| `1H`   | First Half / Kick Off         | In Play    | LIVE        | TAK | pierwsza połowa, zegar tyka |
+| `HT`   | Halftime                      | In Play    | LIVE        | nie | przerwa — etykieta „Przerwa" |
+| `2H`   | Second Half / 2nd Half Started| In Play    | LIVE        | TAK | druga połowa, zegar tyka |
+| `ET`   | Extra Time                    | In Play    | LIVE        | TAK | dogrywka, zegar tyka |
+| `BT`   | Break Time                    | In Play    | LIVE        | nie | przerwa przed/między dogrywką |
+| `P`    | Penalty In Progress           | In Play    | LIVE        | nie | rzuty karne — etykieta „Karne" |
+| `SUSP` | Match Suspended               | In Play    | LIVE        | nie | zawieszony (zegar zamrożony) |
+| `INT`  | Match Interrupted             | In Play    | LIVE        | nie | chwilowo przerwany |
+| `LIVE` | In Progress                   | In Play    | LIVE        | nie | generyczny live (bardzo rzadki) — wg API `elapsed`/half-time NIEdostępne, więc render daje etykietę „Na żywo" bez minuty |
+| `FT`   | Match Finished                | Finished   | ZAKOŃCZONY  | —   | koniec w regulaminowym czasie |
+| `AET`  | Match Finished After Extra Time | Finished | ZAKOŃCZONY  | —   | koniec po dogrywce |
+| `PEN`  | Match Finished After Penalty  | Finished   | ZAKOŃCZONY  | —   | koniec po karnych |
+| `PST`  | Match Postponed               | Postponed  | ZAPOWIEDŹ   | —   | przełożony → ZAPOWIEDŹ z nową datą (nie ODWOŁANY) |
+| `CANC` | Match Cancelled               | Cancelled  | ODWOŁANY    | —   | odwołany |
+| `ABD`  | Match Abandoned               | Abandoned  | ODWOŁANY    | —   | przerwany bez dokończenia |
+| `AWD`  | Technical Loss                | Not Played | ODWOŁANY    | —   | walkower techniczny — mecz się nie odbył |
+| `WO`   | WalkOver                      | Not Played | ODWOŁANY    | —   | walkower — mecz się nie odbył |
+
+> **Trwająca gra (Minuta? = TAK):** `1H`, `2H`, `ET`. Tylko tu render dokleja
+> minutę z `status.elapsed` (+ `status.extra` jako doliczony). Pozostałe stany LIVE
+> to albo pauzy z zamrożonym zegarem (`HT`/`BT`/`P`/`SUSP`/`INT`), albo `LIVE`,
+> gdzie wg API `elapsed` jest NIEdostępny — wszystkie dostają etykietę zamiast minuty.
+>
+> **Uwaga implementacyjna dla `lookups.php`:** kod nieznany / nieobecny w tabeli →
+> bezpieczny fallback (proponowane: ZAPOWIEDŹ, bez minuty), żeby nowy kod API nie
+> wywrócił renderu. Słownik trzyma WSZYSTKIE kody enuma — nie tylko te z próbek.
+>
+> Próbka ma tylko `2H` i `NS`. Pełna lista to enum statusów fixtures z dokumentacji
+> api-football v3 (sekcja Fixtures → status). `LIVE` jako `short` pojawia się rzadko
+> (część lig); pozostałe kody są standardowe.
 > Frontend live używa też `score.halftime`, `score.fulltime`, `score.extratime`, `score.penalty` — dostępne w fixtures.
 
 ### 3. Metadane czasowe i kontekst
