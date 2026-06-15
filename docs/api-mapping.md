@@ -60,7 +60,7 @@ render pokazuje etykietę (Przerwa / Karne / Zawieszony), nie minutę.
 | `P`    | Penalty In Progress           | In Play    | LIVE        | nie | rzuty karne — etykieta „Karne" |
 | `SUSP` | Match Suspended               | In Play    | LIVE        | nie | zawieszony (zegar zamrożony) |
 | `INT`  | Match Interrupted             | In Play    | LIVE        | nie | chwilowo przerwany |
-| `LIVE` | In Progress                   | In Play    | LIVE        | TAK | generyczny live (rzadki), zegar dostępny |
+| `LIVE` | In Progress                   | In Play    | LIVE        | nie | generyczny live (bardzo rzadki) — wg API `elapsed`/half-time NIEdostępne, więc render daje etykietę „Na żywo" bez minuty |
 | `FT`   | Match Finished                | Finished   | ZAKOŃCZONY  | —   | koniec w regulaminowym czasie |
 | `AET`  | Match Finished After Extra Time | Finished | ZAKOŃCZONY  | —   | koniec po dogrywce |
 | `PEN`  | Match Finished After Penalty  | Finished   | ZAKOŃCZONY  | —   | koniec po karnych |
@@ -70,9 +70,10 @@ render pokazuje etykietę (Przerwa / Karne / Zawieszony), nie minutę.
 | `AWD`  | Technical Loss                | Not Played | ODWOŁANY    | —   | walkower techniczny — mecz się nie odbył |
 | `WO`   | WalkOver                      | Not Played | ODWOŁANY    | —   | walkower — mecz się nie odbył |
 
-> **Trwająca gra (Minuta? = TAK):** `1H`, `2H`, `ET`, `LIVE`. Tylko tu render
-> dokleja minutę z `status.elapsed` (+ `status.extra` jako doliczony). Reszta stanów
-> LIVE (`HT`/`BT`/`P`/`SUSP`/`INT`) to pauzy — etykieta zamiast minuty.
+> **Trwająca gra (Minuta? = TAK):** `1H`, `2H`, `ET`. Tylko tu render dokleja
+> minutę z `status.elapsed` (+ `status.extra` jako doliczony). Pozostałe stany LIVE
+> to albo pauzy z zamrożonym zegarem (`HT`/`BT`/`P`/`SUSP`/`INT`), albo `LIVE`,
+> gdzie wg API `elapsed` jest NIEdostępny — wszystkie dostają etykietę zamiast minuty.
 >
 > **Uwaga implementacyjna dla `lookups.php`:** kod nieznany / nieobecny w tabeli →
 > bezpieczny fallback (proponowane: ZAPOWIEDŹ, bez minuty), żeby nowy kod API nie
