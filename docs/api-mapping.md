@@ -91,12 +91,20 @@ posortowane wg czasu. Frontend renderuje je po stronie drużyny wg `team.id`.
 | `Goal` | Missed Penalty | DO USTALENIA (czy pokazywać niewykorzystany karny) |
 | `Card` | Yellow Card | żółta kartka 🟨 |
 | `Card` | Red Card | czerwona kartka 🟥 |
-| `subst` | Substitution {n} | zmiana ↔ — **brak w próbce**; dla zmian `player`/`assist` = wchodzący/schodzący, ale kierunku NIE zakładamy → ZADANIE: zweryfikować empirycznie na eventach zakończonego meczu ze zmianami |
+| `subst` | Substitution {n} | zmiana ↔ — **potwierdzone empirycznie**: `player`/`player_id` = WCHODZĄCY, `assist`/`assist_id` = SCHODZĄCY. `detail` numeruje zmiany per drużyna narastająco (struktura recyklowana z eventu gola — stąd nazwa „assist"). |
 | `Var` | (np. Goal cancelled) | brak w enumie frontendu → pomijać lub DO USTALENIA |
 
 > Dla eventu bramki `assist` bywa wypełniony (`S. Kolasinac`) lub `null` — obsłużyć oba.
 > Pole 6 data-inventory „Eventy zawodnika na karcie składu / Minuta zmiany" jest pochodne:
 > agregujemy te same eventy per `player.id` przy renderowaniu składu (lineups).
+
+> **Kierunek `subst` (rozstrzygnięte empirycznie).** W evencie `type="subst"`
+> api-football trzyma WCHODZĄCEGO w `player`/`player_id`, a SCHODZĄCEGO w
+> `assist`/`assist_id` (struktura recyklowana z eventu gola). **Import przepisuje
+> oba pola SUROWO — niczego nie relabeluje.** Mapowanie na etykiety „wchodzi/schodzi"
+> (`player`→wchodzący, `assist`→schodzący) to wyłącznie operacja RENDERU (Faza 3).
+> Dlatego dla eventów `subst` w `match_data` zostaje też `assist_id` (łącznik
+> schodzącego ze składem `lineups`) — przy bramkach `assist.id` jest wycinany.
 
 ### Dane events obecne w API, a NIEUŻYWANE przez frontend
 `team.name`, `team.logo` (redundancja z fixtures — przypisanie po `team.id`),
@@ -244,8 +252,9 @@ Cel: `match_data` ma nie puchnąć (decyzja CLAUDE.md #3). Wycinamy podczas impo
 (herb mamy z term meta), URL-e `…logo`.
 
 **events:** `team.name`, `team.logo` (zostaje samo `team.id` do przypisania strony),
-`assist.id`, `comments`. `player.id` — **zostaje** (łączenie ze składami: eventy
-zawodnika na karcie składu).
+`comments`. `assist.id` — wycinany dla bramek/kartek, ale **zostaje dla `subst`**
+(łącznik schodzącego ze składem). `player.id` — **zostaje** (łączenie ze składami:
+eventy zawodnika na karcie składu).
 
 **lineups:** `team.colors` (kolory koszulek), `coach` (cały blok), `team.name`/`team.logo`.
 `player.id` zostaje (łączenie z events).
