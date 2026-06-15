@@ -24,6 +24,50 @@ i nastolatków uczących się współpracy z AI. To zmienia kryterium „dobrej"
 3. Dane meczowe (oś czasu, składy, statystyki) trzymamy w JEDNYM polu meta
    jako JSON (surowy/przycięty payload z api-football). Bez repeaterów ACF,
    bez rozbijania na dziesiątki pól meta. Szablony robią json_decode i renderują.
+
+   **Doprecyzowanie #3 — trzy grupy danych meczu i reguła przydziału.** Treść #3
+   obowiązuje bez zmian; poniżej tylko jasna granica, KIEDY pole ląduje w
+   `match_data`, a kiedy dostaje osobne `register_post_meta` — żeby płaskie pola
+   (`fixture_id`, `kickoff`) nie wyglądały na złamanie #3. Dane meczu dzielą się
+   na trzy grupy wg ROLI (nie wg tego, kto je wpisuje):
+   1. **Taksonomie** (`druzyna`×2, `rozgrywki`, `sezon`, `kanal`) — wszystko, po
+      czym front FILTRUJE/GRUPUJE. WP filtruje po taksonomiach natywnie
+      (`tax_query`, indeksy). Patrz decyzja #4.
+   2. **`match_data` (jeden JSON)** — DOMYŚLNE miejsce na dane meczowe: oś czasu,
+      składy, statystyki, wynik, status, `kickoff` (surowy). Dynamiczne,
+      niefiltrowalne, renderowane razem (`json_decode` raz → render całości). Tu
+      właśnie obowiązuje zakaz z #3: NIE rozbijaj tych danych na dziesiątki meta
+      (żadnych `gol_1_minuta`, `gol_1_strzelec` itd.).
+   3. **Płaskie meta (`register_post_meta`):** `fixture_id`, `match_data` (sam
+      payload), `kickoff`. WYJĄTEK od grupy 2, wąski i świadomy: pole, po którym
+      BAZA musi WYSZUKIWAĆ lub SORTOWAĆ na poziomie zapytania SQL — ZANIM dotknie
+      JSON-a. MySQL nie indeksuje wnętrza JSON-a, więc takie pole musi być płaskie
+      i indeksowalne.
+
+   Reguła rozstrzygająca (stosuj przy KAŻDYM nowym polu) — „Czy baza musi po tym
+   polu wyszukiwać lub sortować na poziomie `WP_Query` / SQL?":
+   - TAK, i to filtr kategoryczny dla frontu → **taksonomia** (grupa 1).
+   - TAK, i to klucz dedup/sortowania → **płaskie meta** (grupa 3).
+   - NIE (pole tylko renderowane) → **`match_data`** (grupa 2). To domyślna odpowiedź.
+
+   Przykłady:
+   - `fixture_id` → grupa 3: import robi dedup (`SELECT` po meta PRZED
+     insert/update). W JSON-ie byłoby `meta_value LIKE` — nieindeksowalne, zawodne.
+   - `kickoff` → grupa 3: front sortuje mecze chronologicznie (`orderby
+     meta_value`). Po polu w JSON-ie nie da się sortować bez parsowania każdego
+     rekordu w PHP. UWAGA: `kickoff` istnieje w DWÓCH miejscach świadomie — surowy
+     w `match_data.kickoff` (render czyta do wyświetlenia) i płaski w meta
+     `kickoff` (baza sortuje). To NIE jest zakazana duplikacja danych
+     filtrowalnych — to ten sam moment w dwóch rolach (payload vs klucz sortujący),
+     tania kopia jednego stringa za indeksowalne sortowanie.
+   - status meczu (`NS`/`LIVE`/`FT`) → grupa 2 (`match_data.status.short`):
+     renderowany, nie filtrowany publicznie. Filtr „ma wideo" to pochodna
+     `skrot_url`, admin-only (#9).
+
+   Grupa 3 ma być MAŁA i taka zostać. Nowe pole wpada do grupy 3 TYLKO gdy
+   udowodnisz potrzebę wyszukiwania/sortowania po nim na poziomie bazy. W razie
+   wątpliwości → `match_data`. To nie łamie #3 — #3 zakazuje rozbijania
+   RENDEROWANYCH danych; grupa 3 to KLUCZE ZAPYTAŃ, nie dane do renderu.
 4. Publiczne taksonomie (filtry/chipy): drużyna, rozgrywki, sezon, kanał —
    wszystko jako taksonomie WP. Link do YouTube → pole ACF (nie filtrujemy
    po nim). `status_wideo` NIE jest tu taksonomią — patrz decyzja #9.
