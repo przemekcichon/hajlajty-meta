@@ -339,10 +339,13 @@ pole ACF. Render jest READ-ONLY — bez `editor-form` (→ faza `hajlajty-editor
 
 ### 3c — Pozostałe warianty single (gałęzie tego samego `single-mecz.php` wg statusu)
 
-- LIVE (oś czasu + statystyki + minuta), ZAPOWIEDŹ (odliczanie + składy), ODWOŁANY
-  (oznaczenie meczu odwołanego). Kontekst: HTML Mecz na Żywo + Zapowiedź Meczu.
-- Odliczanie liczone z meta `kickoff` (UTC) → czas polski w renderze (NIE z
-  `fixture.date`; wariant B, fix PR #3 hajlajty-core).
+- Implementuje gałęzie ZAPOWIEDŹ / LIVE / ODWOŁANY scaffoldingu z 3b. Składy
+  (half-pitch) i agregacja zdarzeń per `player_id` POWSTAŁY w 3b — 3c je REUŻYWA,
+  nie buduje od nowa.
+- LIVE (oś czasu + statystyki + minuta), ZAPOWIEDŹ (odliczanie + składy gdy są),
+  ODWOŁANY (oznaczenie meczu odwołanego). Kontekst: HTML Mecz na Żywo + Zapowiedź Meczu.
+- Odliczanie (ZAPOWIEDŹ) liczone z płaskiej meta `kickoff` (UTC) → czas polski w
+  renderze (NIE z `fixture.date`; wariant B, fix PR #3 hajlajty-core).
 - UWAGA: wariant ODWOŁANY NIE MA wzorca w `design/` — projektujemy go sami,
   minimalnie (oznaczenie „mecz odwołany" zamiast sekcji live/wideo, spójnie z
   tokenami designu).
