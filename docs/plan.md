@@ -337,6 +337,22 @@ pole ACF. Render jest READ-ONLY — bez `editor-form` (→ faza `hajlajty-editor
   i wskaźniki przy składzie zgadzają się z `events`; aside „inne skróty" listuje
   bez N+1.
 
+### 3bi — Fix danych: kolory koszulek + trener (dwurepo)
+
+Krótki pod-krok korygujący kontrakt danych pod realne STUB-y z 3b. Dwa repo,
+osobne PR-y, kolejność wymuszona zależnością.
+
+- **hajlajty-core (import, `transform.php`):** PRZESTAŃ wycinać `team.colors`
+  i `coach` z `lineups` — zachowaj w `match_data.lineups` (kolory per strona;
+  trener: `name`). [DECYZJA WŁAŚCICIELA — pytanie otwarte: czy dołożyć też
+  `events[].comments` (powód kartki, ten sam mechanizm wycięcia)? Zostawione jako
+  pytanie w PR, NIE implementowane domyślnie.]
+- **Re-import meczu 11:** upsert po `fixture_id` → aktualizuje `match_data`; slug
+  i `post_date` NIETKNIĘTE (stabilność linku, decyzja #7 / wariant B).
+- **Powrót do renderu 3b (motyw):** podmiana STUB-ów kolorów/trenera na realne dane.
+- Weryfikacja: `match_data.lineups.{home,away}` meczu 11 zawiera kolory i trenera;
+  render pokazuje realne wartości zamiast STUB-ów; slug i `post_date` bez zmian.
+
 ### 3c — Pozostałe warianty single (gałęzie tego samego `single-mecz.php` wg statusu)
 
 - Implementuje gałęzie ZAPOWIEDŹ / LIVE / ODWOŁANY scaffoldingu z 3b. Składy
