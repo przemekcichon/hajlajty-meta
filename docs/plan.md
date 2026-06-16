@@ -297,16 +297,71 @@ pole ACF. Render jest READ-ONLY — bez `editor-form` (→ faza `hajlajty-editor
 - `functions.php` autoloader; `layout` (header/footer/nawigacja, enqueue
   tokens+base); `single-mecz.php` w roocie → `get_template_part` do slice'a
   `match-display`.
-- Wariant ZAKOŃCZONY: wideo + wynik + oś czasu + statystyki. Kontekst: 1 plik HTML
-  (Skrót Meczu).
-- Weryfikacja: realny mecz FT renderuje się wizualnie zgodnie z `design/`.
+- **Scaffolding 4 stanów:** `single-mecz.php` wprowadza rozgałęzienie wg stanu
+  (D3.1), ale 3b IMPLEMENTUJE tylko ZAKOŃCZONY; ZAPOWIEDŹ/LIVE/ODWOŁANY = jawne
+  `TODO` (→ 3c).
+- Wariant ZAKOŃCZONY renderuje:
+  - **Nagłówek (ibar):** wideo (ze `skrot_url`) + wynik (`goals.*` — autorytatywny).
+  - **Oś czasu** z narastającym wynikiem (pochodna ↓) + **statystyki**.
+  - **Składy (lineups):** half-pitch z rozkładem zawodników po `pos` + `grid`;
+    lista ławki; wskaźniki zdarzeń przy zawodniku (gol / żółta / czerwona / zmiana)
+    z agregacji eventów (pochodna ↓).
+  - **Prawy aside „inne mecze":**
+    - „Inne skróty" — prosty `WP_Query`: `post_type=mecz`, niepuste `skrot_url`,
+      te same `rozgrywki`, stan ZAKOŃCZONY, bez bieżącego posta, sort po meta
+      `kickoff` malejąco, limit ~4; karty reużywają komponentu `card-highlight`.
+    - „Polecane dla Ciebie" (personalizacja) → Faza 4 (`hajlajty-user`); w 3b
+      POMINIĘTA.
+    - Tytuł sekcji BEZ litery grupy (`round` nie niesie litery — patrz STUB-y ↓).
+- **Pochodne — nowy plik `features/match-display/derive.php`** (czyste funkcje,
+  bez WP/HTML, jak `lookups.php`):
+  - **Indeks zdarzeń zawodnika:** `events[]` → mapa `player_id` →
+    `{gole, żółta, czerwona, zszedł:?minuta, wszedł:?minuta}` — łącznik
+    events↔lineups (zasila wskaźniki przy składzie).
+  - **Oś czasu z bieżącym wynikiem:** `events[]` chronologicznie z narastającym
+    wynikiem przy bramkach. Reguły: `own_goal` liczy się dla PRZECIWNIKA;
+    `missed_penalty` NIE liczy; VAR-anulowany gol = znany brak (`TODO`, spójnie
+    z api-mapping „VAR DO USTALENIA"). `goals.*` pozostaje autorytatywnym wynikiem
+    nagłówka (ibar) — oś tylko ilustruje przebieg.
+  - Mały helper ekstrakcji **YouTube ID** ze `skrot_url` (facade `data-yt`).
+- **STUB-y / świadome pominięcia** (dane wycięte przy imporcie lub spoza 4
+  zmapowanych endpointów — realne uzupełnienie w 3bi / Fazie 5):
+  - Trener: STUB (placeholder) — realne po 3bi.
+  - Kolory koszulek: STUB `home=accent`, `away=neutral` — realne (per fixture) po 3bi.
+  - Litera grupy: POMINIĘTA (`round` = tylko numer kolejki; źródło `/standings`,
+    mapping A5).
+  - Powód kartki na osi: POMINIĘTY (`comments` wycięte przy imporcie).
+  - Blok „Nieobecni / pauzujący": POMINIĘTY w całości (patrz Backlog).
+- Kontekst: 1 plik HTML (Skrót Meczu).
+- Weryfikacja: realny mecz FT renderuje się wizualnie zgodnie z `design/`; oś czasu
+  i wskaźniki przy składzie zgadzają się z `events`; aside „inne skróty" listuje
+  bez N+1.
+
+### 3bi — Fix danych: kolory koszulek + trener (dwurepo)
+
+Krótki pod-krok korygujący kontrakt danych pod realne STUB-y z 3b. Dwa repo,
+osobne PR-y, kolejność wymuszona zależnością.
+
+- **hajlajty-core (import, `transform.php`):** PRZESTAŃ wycinać `team.colors`
+  i `coach` z `lineups` — zachowaj w `match_data.lineups` (kolory per strona;
+  trener: `name`). [DECYZJA WŁAŚCICIELA — pytanie otwarte: czy dołożyć też
+  `events[].comments` (powód kartki, ten sam mechanizm wycięcia)? Zostawione jako
+  pytanie w PR, NIE implementowane domyślnie.]
+- **Re-import meczu 11:** upsert po `fixture_id` → aktualizuje `match_data`; slug
+  i `post_date` NIETKNIĘTE (stabilność linku, decyzja #7 / wariant B).
+- **Powrót do renderu 3b (motyw):** podmiana STUB-ów kolorów/trenera na realne dane.
+- Weryfikacja: `match_data.lineups.{home,away}` meczu 11 zawiera kolory i trenera;
+  render pokazuje realne wartości zamiast STUB-ów; slug i `post_date` bez zmian.
 
 ### 3c — Pozostałe warianty single (gałęzie tego samego `single-mecz.php` wg statusu)
 
-- LIVE (oś czasu + statystyki + minuta), ZAPOWIEDŹ (odliczanie + składy), ODWOŁANY
-  (oznaczenie meczu odwołanego). Kontekst: HTML Mecz na Żywo + Zapowiedź Meczu.
-- Odliczanie liczone z meta `kickoff` (UTC) → czas polski w renderze (NIE z
-  `fixture.date`; wariant B, fix PR #3 hajlajty-core).
+- Implementuje gałęzie ZAPOWIEDŹ / LIVE / ODWOŁANY scaffoldingu z 3b. Składy
+  (half-pitch) i agregacja zdarzeń per `player_id` POWSTAŁY w 3b — 3c je REUŻYWA,
+  nie buduje od nowa.
+- LIVE (oś czasu + statystyki + minuta), ZAPOWIEDŹ (odliczanie + składy gdy są),
+  ODWOŁANY (oznaczenie meczu odwołanego). Kontekst: HTML Mecz na Żywo + Zapowiedź Meczu.
+- Odliczanie (ZAPOWIEDŹ) liczone z płaskiej meta `kickoff` (UTC) → czas polski w
+  renderze (NIE z `fixture.date`; wariant B, fix PR #3 hajlajty-core).
 - UWAGA: wariant ODWOŁANY NIE MA wzorca w `design/` — projektujemy go sami,
   minimalnie (oznaczenie „mecz odwołany" zamiast sekcji live/wideo, spójnie z
   tokenami designu).
@@ -542,3 +597,14 @@ POZOSTAJĄ DO ZATWIERDZENIA (nie blokują rozpoczęcia Fazy 1):
   pozycje z tabeli „Otwarte kwestie z mapowania" (przypisane do faz jak były:
   `subst` → Faza 2; standings / `teams-statistics` / injuries → Faza 5).
   D3.1–D3.3 — PODJĘTE (patrz „Faza 3 → Decyzje podjęte").
+
+---
+
+## Backlog — poza fazami
+
+Pozycje bez przypisania do żadnej fazy (nie ciążą na MVP, nie mają jeszcze
+własnego slice'a). Przenosimy do konkretnej fazy, gdy dojrzeją.
+
+- **Nieobecni / pauzujący zawodnicy** — brak pola w czterech zmapowanych
+  endpointach; źródło: `/injuries` lub pole ręczne, do ustalenia. Nie przypisane
+  do żadnej fazy.
