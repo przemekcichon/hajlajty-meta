@@ -297,9 +297,45 @@ pole ACF. Render jest READ-ONLY — bez `editor-form` (→ faza `hajlajty-editor
 - `functions.php` autoloader; `layout` (header/footer/nawigacja, enqueue
   tokens+base); `single-mecz.php` w roocie → `get_template_part` do slice'a
   `match-display`.
-- Wariant ZAKOŃCZONY: wideo + wynik + oś czasu + statystyki. Kontekst: 1 plik HTML
-  (Skrót Meczu).
-- Weryfikacja: realny mecz FT renderuje się wizualnie zgodnie z `design/`.
+- **Scaffolding 4 stanów:** `single-mecz.php` wprowadza rozgałęzienie wg stanu
+  (D3.1), ale 3b IMPLEMENTUJE tylko ZAKOŃCZONY; ZAPOWIEDŹ/LIVE/ODWOŁANY = jawne
+  `TODO` (→ 3c).
+- Wariant ZAKOŃCZONY renderuje:
+  - **Nagłówek (ibar):** wideo (ze `skrot_url`) + wynik (`goals.*` — autorytatywny).
+  - **Oś czasu** z narastającym wynikiem (pochodna ↓) + **statystyki**.
+  - **Składy (lineups):** half-pitch z rozkładem zawodników po `pos` + `grid`;
+    lista ławki; wskaźniki zdarzeń przy zawodniku (gol / żółta / czerwona / zmiana)
+    z agregacji eventów (pochodna ↓).
+  - **Prawy aside „inne mecze":**
+    - „Inne skróty" — prosty `WP_Query`: `post_type=mecz`, niepuste `skrot_url`,
+      te same `rozgrywki`, stan ZAKOŃCZONY, bez bieżącego posta, sort po meta
+      `kickoff` malejąco, limit ~4; karty reużywają komponentu `card-highlight`.
+    - „Polecane dla Ciebie" (personalizacja) → Faza 4 (`hajlajty-user`); w 3b
+      POMINIĘTA.
+    - Tytuł sekcji BEZ litery grupy (`round` nie niesie litery — patrz STUB-y ↓).
+- **Pochodne — nowy plik `features/match-display/derive.php`** (czyste funkcje,
+  bez WP/HTML, jak `lookups.php`):
+  - **Indeks zdarzeń zawodnika:** `events[]` → mapa `player_id` →
+    `{gole, żółta, czerwona, zszedł:?minuta, wszedł:?minuta}` — łącznik
+    events↔lineups (zasila wskaźniki przy składzie).
+  - **Oś czasu z bieżącym wynikiem:** `events[]` chronologicznie z narastającym
+    wynikiem przy bramkach. Reguły: `own_goal` liczy się dla PRZECIWNIKA;
+    `missed_penalty` NIE liczy; VAR-anulowany gol = znany brak (`TODO`, spójnie
+    z api-mapping „VAR DO USTALENIA"). `goals.*` pozostaje autorytatywnym wynikiem
+    nagłówka (ibar) — oś tylko ilustruje przebieg.
+  - Mały helper ekstrakcji **YouTube ID** ze `skrot_url` (facade `data-yt`).
+- **STUB-y / świadome pominięcia** (dane wycięte przy imporcie lub spoza 4
+  zmapowanych endpointów — realne uzupełnienie w 3bi / Fazie 5):
+  - Trener: STUB (placeholder) — realne po 3bi.
+  - Kolory koszulek: STUB `home=accent`, `away=neutral` — realne (per fixture) po 3bi.
+  - Litera grupy: POMINIĘTA (`round` = tylko numer kolejki; źródło `/standings`,
+    mapping A5).
+  - Powód kartki na osi: POMINIĘTY (`comments` wycięte przy imporcie).
+  - Blok „Nieobecni / pauzujący": POMINIĘTY w całości (patrz Backlog).
+- Kontekst: 1 plik HTML (Skrót Meczu).
+- Weryfikacja: realny mecz FT renderuje się wizualnie zgodnie z `design/`; oś czasu
+  i wskaźniki przy składzie zgadzają się z `events`; aside „inne skróty" listuje
+  bez N+1.
 
 ### 3c — Pozostałe warianty single (gałęzie tego samego `single-mecz.php` wg statusu)
 
