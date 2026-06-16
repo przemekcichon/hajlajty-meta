@@ -537,7 +537,9 @@ ciążyło na MVP. Każde to przyszły osobny slice + PR.
   (zaproponować realny zestaw z danych API: śr. goli, posiadanie, czyste konta,
   kartki — to, co faktycznie jest w próbce). Forma drużyny — odpuszczona.
 - **`/injuries`** — status nieobecności (Kontuzja/Zawieszenie, §6). Alternatywa:
-  pole ręczne ACF. Decyzja przy realizacji.
+  pole ręczne ACF. Decyzja przy realizacji. Tu wraca też **blok „Nieobecni /
+  pauzujący"** pominięty w 3b — brak pola w czterech zmapowanych endpointach,
+  więc czeka na to samo źródło (`/injuries` lub pole ręczne).
 - **Ostatnie mecze / forma** (§10) — ten sam `/fixtures`, inne zapytanie (po
   drużynie). Razem z profilem drużyny.
 - **Czas trwania wideo z YouTube Data API** (D1.5) — slice fazy danych
@@ -597,14 +599,3 @@ POZOSTAJĄ DO ZATWIERDZENIA (nie blokują rozpoczęcia Fazy 1):
   pozycje z tabeli „Otwarte kwestie z mapowania" (przypisane do faz jak były:
   `subst` → Faza 2; standings / `teams-statistics` / injuries → Faza 5).
   D3.1–D3.3 — PODJĘTE (patrz „Faza 3 → Decyzje podjęte").
-
----
-
-## Backlog — poza fazami
-
-Pozycje bez przypisania do żadnej fazy (nie ciążą na MVP, nie mają jeszcze
-własnego slice'a). Przenosimy do konkretnej fazy, gdy dojrzeją.
-
-- **Nieobecni / pauzujący zawodnicy** — brak pola w czterech zmapowanych
-  endpointach; źródło: `/injuries` lub pole ręczne, do ustalenia. Nie przypisane
-  do żadnej fazy.
