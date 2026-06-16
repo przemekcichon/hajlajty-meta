@@ -597,3 +597,14 @@ POZOSTAJĄ DO ZATWIERDZENIA (nie blokują rozpoczęcia Fazy 1):
   pozycje z tabeli „Otwarte kwestie z mapowania" (przypisane do faz jak były:
   `subst` → Faza 2; standings / `teams-statistics` / injuries → Faza 5).
   D3.1–D3.3 — PODJĘTE (patrz „Faza 3 → Decyzje podjęte").
+
+---
+
+## Backlog — poza fazami
+
+Pozycje bez przypisania do żadnej fazy (nie ciążą na MVP, nie mają jeszcze
+własnego slice'a). Przenosimy do konkretnej fazy, gdy dojrzeją.
+
+- **Nieobecni / pauzujący zawodnicy** — brak pola w czterech zmapowanych
+  endpointach; źródło: `/injuries` lub pole ręczne, do ustalenia. Nie przypisane
+  do żadnej fazy.
