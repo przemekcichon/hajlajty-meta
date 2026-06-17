@@ -292,8 +292,10 @@ Cel: `match_data` ma nie puchnąć (decyzja CLAUDE.md #3). Wycinamy podczas impo
 (łącznik wchodzącego ze składem). `player.id` — **zostaje** (łączenie ze składami:
 eventy zawodnika na karcie składu).
 
-**lineups:** `team.colors` (kolory koszulek), `coach` (cały blok), `team.name`/`team.logo`.
-`player.id` zostaje (łączenie z events).
+**lineups:** `team.name`/`team.logo` (zostaje sam `team.id`). Z `coach` zostaje
+TYLKO `name` (główka składu) — `coach.id`/`coach.photo` wycinane. `player.id`
+zostaje (łączenie z events). UWAGA: `team.colors` NIE jest już wycinane — od 3bi
+zostaje w `match_data.lineups` (render maluje barwy koszulek: primary/number/border).
 
 **statistics:** `team.name`/`team.logo` (redundancja — zostaje sam `team.id` →
 strona). Typów statystyk **NIE wycinamy**: import zapisuje WSZYSTKIE `type`
