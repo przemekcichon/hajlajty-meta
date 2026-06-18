@@ -378,6 +378,49 @@ osobne PR-y, kolejność wymuszona zależnością.
 - Weryfikacja: archiwum listuje, karty zgodne z `design/`, brak N+1, brak PHP
   notice (`WP_DEBUG=true`). `assets` ładują się z motywu (nie z `design/`).
 
+### 3e — Live auto-refresh (PRZYSZŁY slice — NIE implementowany w 3c)
+
+3c renderuje stan LIVE STATYCZNIE: minuta z `status.elapsed`, wynik z `goals`,
+oś/składy/statystyki z `match_data` — wszystko z ostatniego importu, odświeża się
+dopiero przy F5. 3e dokłada dwie warstwy (serwer + front), świadomie rozdzielone
+i obie z osobnym uzasadnieniem budżetowym:
+
+**Warstwa serwerowa — pętla importu danych live.**
+- Źródło: `fixtures?live=all` (lista trwających meczów jednym żądaniem), parametr
+  `league` WIELOWARTOŚCIOWY (`league=1-2-39…`) pod przyszłe rozgrywki klubowe —
+  nie pojedyncze `fixture` w pętli. Sekcje live: statystyki z `/fixtures/statistics`,
+  składy z `/fixtures/players` (UWAGA niżej), zdarzenia z `/fixtures/events`.
+- Kadencja API: dane live aktualizują się co ~15 s — to GÓRNA granica sensownego
+  odpytywania, nie cel sam w sobie.
+- **Budżet vs ślepy polling:** ~7500 żądań/dobę (plan) vs 5760 kwadransów/dobę
+  (24 h × 60 min ÷ 15 s). Ślepy polling co 15 s przez całą dobę zjadłby cały
+  budżet na puste odpytania (mecze grają kilka godzin dziennie, nie 24 h). DLATEGO:
+  preferowane HARMONOGRAMOWANIE odpytań z terminarzy rozgrywek (znamy `kickoff`
+  z importu) — pollujemy `fixtures?live=all` TYLKO w oknach, gdy realnie trwają
+  mecze śledzonych lig, a nie bez przerwy.
+- **Magazyn pośredni:** rozważyć zapis świeżych danych live do TRANSIENTÓW
+  (`set_transient`, TTL ~rząd minut), NIE przepisywać `post_meta` `match_data`
+  co 15 s — to setki zapisów do `wp_postmeta` na mecz i niepotrzebne wersjonowanie.
+  Po `FT` jeden finalny zapis do `match_data` utrwala stan końcowy (kontrakt 3b/3c).
+- **Kontrakt danych — twardy wymóg:** kształt danych live MUSI być zgodny z
+  istniejącym `match_data` (transform.php, Faza 2), żeby render 3c działał bez
+  zmian. Punkt zapalny: `/fixtures/players` (źródło live składów) vs obecne
+  `/fixtures/lineups` (import 3b) — inny kształt pól zawodnika; 3e musi
+  zmapować `players` do tego samego kształtu `lineups{ formation, colors, coach,
+  startXI[], substitutes[] }`, co `hajlajty_import_map_lineups`, albo świadomie
+  rozszerzyć kontrakt (decyzja przy 3e).
+
+**Warstwa front-end — auto-refresh widoku (to jest „3e" w wąskim sensie).**
+- Rekomendacja **B1: polling FRAGMENTU HTML renderowanego po stronie PHP** —
+  klient co N s pobiera odświeżony wycinek (telebim + oś + statystyki) wyrenderowany
+  tym samym kodem co 3c i podmienia go w DOM. Bez budowania równoległego renderera
+  w JS (jedno źródło prawdy znacznika), headless-friendly (fragment = ten sam
+  partial). Alternatywy (JSON + render w JS, WebSocket/SSE) — odrzucone na tym
+  etapie jako nadmiarowe dla prostoty i spójności z klasycznym motywem.
+- Brak teatru z designu „na żywo" (overlaye goli, podbijanie minuty w JS, przyciski
+  demo) — 3c świadomie ich nie portuje; jeśli wrócą, to jako efekt na realnym
+  zdarzeniu z odświeżonego fragmentu, nie symulacja.
+
 ### Decyzje podjęte
 
 - **D3.1 — JEDEN `single-mecz.php` z gałęziami wg 4 stanów** (nie 3 — doszedł
