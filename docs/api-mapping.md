@@ -25,6 +25,12 @@ Jeden element `response[i]` = jeden mecz.
 > Format `live={id-id-id}` **potwierdzony empirycznie** na demo api-football
 > (2026-06-19) — nie ma go w próbce [fixtures.jsonl](api-samples/fixtures.jsonl),
 > więc notujemy tu jako trwały kontrakt.
+> **PUŁAPKA (potwierdzona 2026-06-19):** param `live` przyjmuje WYŁĄCZNIE `all`
+> albo listę z myślnikami `id-id-id` (≥2 ligi). POJEDYNCZE `live=1` jest ODRZUCANE
+> (`The Live field does not match the regular expression: [id-id-id...] or string:
+> all`), tak samo jak przecinki `live=1,2`. Dlatego dla DOWOLNEJ liczby śledzonych
+> lig (w tym jednej) `import-live` pyta `live=all` i zawęża do śledzonych lig po
+> stronie klienta (po `league.id`) — patrz `cli-live.php`.
 
 ### 1. Tożsamość meczu
 | Pole frontendu (data-inventory) | Ścieżka w API | Uwagi |
