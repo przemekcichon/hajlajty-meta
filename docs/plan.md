@@ -515,10 +515,27 @@ prościej", którą rozbito całe 3e. Operacyjne decyzje rozkładają się międ
   - BEZ transientów — zapis wprost do `match_data` jak w 3e-ii (transienty dopiero
     w 3e-iv-b, gdy realna kadencja crona to uzasadni — D3.5).
   - Wyłącznie hajlajty-core; ręczne `import-live` i `import --fixture` zostają działające.
-  - DO ROZSTRZYGNIĘCIA (przed kodem, z ground-truth): kadencja crona w Local
-    (WP-Cron request-driven vs systemowy cron na ~15 s), granice okna (ile przed
-    kickoffem / ile po — do pewnego wykrycia FT), wykrywanie „zniknął z live=all"
-    (diff względem poprzedniego biegu — gdzie trzymany stan).
+  - USTALENIA (2026-06, po ground-truth):
+    - (0) REFAKTOR-FIRST: logika importu (`hajlajty_import_process_fixture`,
+      orkiestracja live, `_tracked_leagues`, `_find_post_by_fixture_id`) jest dziś
+      ZA guardem `if ( ! WP_CLI ) return;` w cli.php/cli-live.php → niedostępna dla
+      callbacku crona. Pierwszy commit 3e-iv-a wydziela ją do pliku ładowanego
+      ZAWSZE (slice `match-import`), zwracającą strukturalny wynik; komendy WP-CLI
+      zostają cienkimi wrapperami. Bez tego cron nie ma czego wywołać.
+    - (1) KADENCJA ~1 min (własny `cron_schedules`). „~15 s" NIEOSIĄGALNE przez
+      WP-Cron (request-driven; granulacja OS-crona min 1 min) — dla redakcji i
+      pollera (30 s) w pełni wystarcza. W Local WP-Cron jest request-driven
+      (`DISABLE_WP_CRON` niezdefiniowane, `wp cron test` OK); PEWNA kadencja na
+      prod wymaga systemowego crona bijącego `wp cron event run --due-now`
+      (kod działa na WP-Cron; reszta to ops/deploy, udokumentowane).
+    - (2) OKNO: cron odświeża, gdy istnieje śledzony mecz z `kickoff ∈
+      [teraz−180 min, teraz+5 min]` i jeszcze nie `FT`; poza oknem zero zapytań
+      do live-API. Pojedynczy mecz zamyka auto-FT.
+    - (3) AUTO-FT bez nowego magazynu stanu: porównaj posty DB-live (płaska meta
+      `status` ∈ kody live, reuse 3e-i) z bieżącym zbiorem `live=all`; mecz
+      obecny w DB-live, a nieobecny w `live=all` → domknij targetowanym
+      `fixtures?id=<id>` i zapisz cokolwiek API zwróci (idempotentne; `HT` → no-op,
+      `FT/AET/PEN` → finalizacja → poller dostaje `data-live="0"` i milknie).
   - Zależności: 3e-ii (`import-live`) + 3e-iii (poller — żeby `data-live="0"`
     faktycznie zatrzymał front po FT).
   - Weryfikacja: cron odpala live-import TYLKO w oknach meczowych śledzonych lig;
