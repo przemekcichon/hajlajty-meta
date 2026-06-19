@@ -446,8 +446,8 @@ i obie z osobnym uzasadnieniem budżetowym:
 #### Podział 3e na pod-slice'y (kolejność wymuszona zależnością)
 
 Każdy pod-slice = osobny branch + PR, jak 3a–3d. Filozofia „najpierw ręcznie":
-automatyczny harmonogram jest OSTATNI (3e-iv), nie pierwszy. Pod-slice'y rosną od
-najtańszego (domknięcie placeholdera bez live-API) do najbogatszego (auto-refresh).
+automatyczny harmonogram jest OSTATNI (3e-iv-a/b), nie pierwszy. Pod-slice'y rosną od
+najtańszego (domknięcie placeholdera bez live-API) do najbogatszego (automatyzacja).
 
 - **3e-i — Płaska meta `status` + filtr list po statusie (domyka placeholder 3d).**
   - hajlajty-core: istniejący `wp hajlajty import` dopisuje PŁASKĄ meta `status`
@@ -473,37 +473,73 @@ najtańszego (domknięcie placeholdera bez live-API) do najbogatszego (auto-refr
     term meta `league_id`, nie `live=all` globalnie — inaczej proces pobiera detale
     setek nietrackowanych meczów, marnotrawstwo API); (b) UPDATE-ONLY (pre-check po
     `fixture_id` — tworzenie wpisów zostaje przy zwykłym imporcie).
-  - RĘCZNA, bez crona (D3.7). Bez transientów/overlay (D3.5 → 3e-iv): komenda
+  - RĘCZNA, bez crona (D3.7). Bez transientów/overlay (D3.5 → 3e-iv-b): komenda
     ręczna = niska częstotliwość, więc zapis `match_data` wprost wystarcza.
   - SLICE: `import-live` żyje w `match-import`, bo reużywa jego client/transform/
     upsert — to import z innym źródłem fixture'a; osobny slice dodałby tylko
     zależność między slice'ami (korekta pierwotnego „nowy slice match-live").
-  - OGRANICZENIE (domknięcie 3e-iv): mecz tuż po `FT` znika z `live=…`, więc
+  - OGRANICZENIE (domknięcie 3e-iv-a): mecz tuż po `FT` znika z `live=…`, więc
     import-live go nie sfinalizuje — status zostaje na ostatniej wartości live.
-    Finalizacja przez zwykły `wp hajlajty import --league --season` po meczu.
+    Finalizacja ręczna przez `wp hajlajty import --fixture=<id>` (lub `--league
+    --season`) po meczu; auto-finalizacja przychodzi w 3e-iv-a.
   - Zależności: 3e-i (płaska `status` w `process_fixture`). Kod nie koliduje.
   - Weryfikacja: `wp hajlajty import-live` w trakcie meczu → mecz wpada na
     `/na-zywo/`, `single-live` + karty po F5 pokazują realną minutę/wynik.
 
-- **3e-iii — Theme: auto-refresh frontu (polling fragmentu HTML, rekomendacja B1).**
+- **3e-iii — Theme: auto-refresh frontu (polling fragmentu HTML, rekomendacja B1).
+  (✓ zmergowane na `main`.)**
   - REST route renderujący FRAGMENT widoku live (telebim + oś + statystyki) TYM
     SAMYM partialem co 3c; mały JS polluje co N s i podmienia wycinek w DOM (D3.8).
   - Zależności: 3e-ii (świeży `match_data`) + 3c (`single-live` na `main`).
   - Weryfikacja: otwarty mecz live odświeża telebim/oś bez F5; po `FT` polling się
     zatrzymuje (status ≠ LIVE); brak równoległego renderera w JS (jedno źródło
     znacznika).
+  - ZWERYFIKOWANE runtime: endpoint 200/404; podmiana fragmentu bez F5 (Test A);
+    pełna pętla `import-live` → front. Świeżość danych w trakcie i finalizacja FT
+    nadal RĘCZNE — pełny hands-off dopiero w 3e-iv-a (cron + auto-FT).
 
-- **3e-iv — Automatyzacja harmonogramu + transienty (OPCJONALNE, na końcu).**
-  - Zastępuje ręczne `import-live` zaplanowanym WP-Cronem w OKNACH wokół znanych
-    `kickoff` (budżet API — nie ślepy polling co 15 s całą dobę). Robimy DOPIERO
-    gdy tryb ręczny (3e-ii) się sprawdzi.
-  - Tu wracają TRANSIENTY + overlay renderu (D3.5): przy kadencji ~15 s zapis
-    `match_data` co poll to setki zapisów do `wp_postmeta` — dane live lądują w
-    transiencie (TTL rzędu minut), render nakłada je na `match_data`, a finalny
-    `match_data` zapisujemy raz, po `FT`. Tu też auto-finalizacja FT (mecz znikający
-    z `live=…` domykany targetowanym `fixtures?id=`).
-  - Weryfikacja: cron odpala `import-live` tylko w oknach meczowych śledzonych lig;
-    poza oknami zero zapytań do live-API.
+3e-iv ROZBITE na dwa pod-slice'y (decyzja porządkująca, 2026-06): 3e-iv-a daje
+hands-off live minimalnym kosztem i ryzykiem (samo core), 3e-iv-b to najtrudniejszy
+kawałek (transienty + overlay = kontrakt CROSS-REPO). Ta sama logika „najpierw
+prościej", którą rozbito całe 3e. Operacyjne decyzje rozkładają się między a i b.
+
+- **3e-iv-a — Core: zautomatyzowany live-import w oknach (WP-Cron) + auto-FT
+  (OPCJONALNE, na końcu).**
+  - Zastępuje ręczne odpalanie `import-live` zaplanowanym WP-Cronem, ale TYLKO w
+    OKNACH wokół znanych `kickoff` śledzonych lig (budżet API — nie ślepy polling
+    24/7). Cron ORKIESTRUJE istniejącą komendę, nie kopiuje pipeline'u. Robimy
+    DOPIERO gdy tryb ręczny (3e-ii/3e-iii) się sprawdzi.
+  - Auto-finalizacja FT: mecz znikający z `live=…` domykany targetowanym
+    `fixtures?id=<id>` (istniejąca ścieżka `import --fixture`) → zapis `FT` do
+    `match_data` + płaskiej `status` → poller 3e-iii dostaje `data-live="0"` i milknie.
+  - BEZ transientów — zapis wprost do `match_data` jak w 3e-ii (transienty dopiero
+    w 3e-iv-b, gdy realna kadencja crona to uzasadni — D3.5).
+  - Wyłącznie hajlajty-core; ręczne `import-live` i `import --fixture` zostają działające.
+  - DO ROZSTRZYGNIĘCIA (przed kodem, z ground-truth): kadencja crona w Local
+    (WP-Cron request-driven vs systemowy cron na ~15 s), granice okna (ile przed
+    kickoffem / ile po — do pewnego wykrycia FT), wykrywanie „zniknął z live=all"
+    (diff względem poprzedniego biegu — gdzie trzymany stan).
+  - Zależności: 3e-ii (`import-live`) + 3e-iii (poller — żeby `data-live="0"`
+    faktycznie zatrzymał front po FT).
+  - Weryfikacja: cron odpala live-import TYLKO w oknach meczowych śledzonych lig;
+    poza oknami zero zapytań do live-API; mecz po gwizdku sam dostaje `FT`, poller milknie.
+
+- **3e-iv-b — Transienty + overlay renderu (OPCJONALNE, najtrudniejsze — CROSS-REPO).**
+  - Przy kadencji crona ~15 s zapis `match_data` co cykl to setki zapisów do
+    `wp_postmeta`. Dane live lądują w TRANSIENCIE (TTL rzędu minut); render NAKŁADA
+    transient na `match_data` w JEDYNYM punkcie odczytu (`hajlajty_get_match_data`),
+    więc i `single-live`, i endpoint REST 3e-iii dostają świeże dane bez zmian; finalny
+    `match_data` zapisujemy RAZ, po `FT` (D3.5).
+  - CROSS-REPO: zapis transientu w hajlajty-core, odczyt/overlay w hajlajty-theme →
+    klucz transientu to KONTRAKT między repo (nazwa/TTL/kształt jawnie po obu
+    stronach). Stąd osobny, późniejszy pod-slice — granica artefakt↔artefakt.
+  - DO ROZSTRZYGNIĘCIA: kontrakt klucza (wzorzec nazwy per fixture/post, TTL, kształt
+    — cały `match_data` czy tylko live-zmienne pola, reguła nakładania na `match_data`).
+  - Zależności: 3e-iv-a (dopiero realna kadencja crona uzasadnia transienty —
+    rationale D3.5 jest częstotliwościowe).
+  - Weryfikacja: przy cronie ~15 s liczba zapisów do `wp_postmeta` nie rośnie
+    liniowo (dane w transiencie); front pokazuje świeże dane z overlayu; po `FT`
+    jeden finalny zapis `match_data`.
 
 ### Decyzje wymagające zatwierdzenia (3e)
 
@@ -516,8 +552,8 @@ najtańszego (domknięcie placeholdera bez live-API) do najbogatszego (auto-refr
   źródło prawdy mapowania.
 - **D3.5 — Magazyn danych live. ROZSTRZYGNIĘTE: w 3e-ii zapis WPROST do
   `match_data`** (jak zwykły import); transienty + overlay renderu ODROCZONE do
-  3e-iv. Powód: rationale „nie zapisuj co poll" jest CZĘSTOTLIWOŚCIOWE — bije
-  dopiero przy cronie ~15 s (3e-iv). Komenda 3e-ii jest RĘCZNA (niska
+  3e-iv-b. Powód: rationale „nie zapisuj co poll" jest CZĘSTOTLIWOŚCIOWE — bije
+  dopiero przy cronie ~15 s (3e-iv-a). Komenda 3e-ii jest RĘCZNA (niska
   częstotliwość), więc bezpośredni zapis wystarcza i jest prostszy (render bez
   zmian, zero kontraktu klucza transientu między repo).
 - **D3.6 — Składy live. ROZSTRZYGNIĘTE: bez `/fixtures/players`.** Po obejrzeniu
@@ -526,7 +562,7 @@ najtańszego (domknięcie placeholdera bez live-API) do najbogatszego (auto-refr
   `hajlajty_import_map_lineups`, podpięte w `process_fixture`). 3e-ii reużywa
   istniejącą ścieżkę — zero nowego mapowania, „punkt zapalny" znika.
 - **D3.7 — Tryb uruchamiania: RĘCZNY najpierw. ROZSTRZYGNIĘTE** —
-  `wp hajlajty import-live` (3e-ii), cron dopiero w 3e-iv. Zgodne z „najpierw
+  `wp hajlajty import-live` (3e-ii), cron dopiero w 3e-iv-a. Zgodne z „najpierw
   ręcznie" i z realiami dev (agent pisze kod, człowiek odpala runtime).
 - **D3.8 — Transport frontu (3e-iii): REST** (`/wp-json/hajlajty/v1/mecz/{id}/live`),
   nie admin-ajax — headless-friendly, spójne z decyzją #6 (migracja do WPGraphQL).
