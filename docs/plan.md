@@ -443,6 +443,80 @@ i obie z osobnym uzasadnieniem budżetowym:
   demo) — 3c świadomie ich nie portuje; jeśli wrócą, to jako efekt na realnym
   zdarzeniu z odświeżonego fragmentu, nie symulacja.
 
+#### Podział 3e na pod-slice'y (kolejność wymuszona zależnością)
+
+Każdy pod-slice = osobny branch + PR, jak 3a–3d. Filozofia „najpierw ręcznie":
+automatyczny harmonogram jest OSTATNI (3e-iv), nie pierwszy. Pod-slice'y rosną od
+najtańszego (domknięcie placeholdera bez live-API) do najbogatszego (auto-refresh).
+
+- **3e-i — Płaska meta `status` + filtr list po statusie (domyka placeholder 3d).**
+  - hajlajty-core: istniejący `wp hajlajty import` dopisuje PŁASKĄ meta `status`
+    (grupa 3, patrz D3.4) obok `match_data.status`; jednorazowy backfill wpisów już
+    zaimportowanych.
+  - hajlajty-theme: `pre_get_posts` (slice `match-lists`) i sekcje `front-page.php`
+    przechodzą z OKNA czasowego (~150 min wokół `kickoff`) na `meta_query` po
+    `status`.
+  - Zależności: 3d na `main` (✓ zmergowane). NIE wymaga live-API — używa statusu
+    z normalnego importu (świeży po imporcie; pętla live dokłada świeżość w 3e-ii).
+  - Weryfikacja: po imporcie wpisy mają płaską `status`; `/na-zywo/` listuje TYLKO
+    mecze o statusie LIVE; mecz po `FT` natychmiast wypada z „Na żywo" (koniec
+    sztucznego okna 150 min); zapowiedzi/skróty bez regresji.
+
+- **3e-ii — Core: ręczna pętla live-import + transienty + overlay renderu.**
+  - hajlajty-core, NOWY slice `features/match-live/`: komenda `wp hajlajty
+    import-live` → `fixtures?live=all` (parametr `league` wielowartościowy) → per
+    mecz (dopasowanie po `fixture_id`): aktualizuje płaską `status`, zapisuje
+    ZMIENNE dane live (goals, `status.elapsed`/`extra`, events, statistics, składy
+    z `/fixtures/players`) do TRANSIENTU (TTL rzędu minut, patrz D3.5). Po `FT`:
+    jeden finalny zapis do `match_data` (kontrakt 3b/3c).
+  - Render overlay: helper czyta transient (gdy jest) i nakłada go na `match_data`
+    — `single-*` i karty pokazują świeże dane BEZ zmiany swojego kodu.
+  - KOMENDA RĘCZNA, bez crona (D3.7) — człowiek odpala ją w trakcie meczu.
+  - Zależności: 3e-i (płaska `status`). Kodowo niezależne od 3d (inny artefakt),
+    logicznie po 3e-i.
+  - Weryfikacja: `wp hajlajty import-live` w trakcie meczu → transient ustawiony,
+    `single-live` + karty po F5 pokazują realną minutę/wynik; po `FT` `match_data`
+    utrwalone, transient wygasa, status = ZAKONCZONY.
+
+- **3e-iii — Theme: auto-refresh frontu (polling fragmentu HTML, rekomendacja B1).**
+  - REST route renderujący FRAGMENT widoku live (telebim + oś + statystyki) TYM
+    SAMYM partialem co 3c; mały JS polluje co N s i podmienia wycinek w DOM (D3.8).
+  - Zależności: 3e-ii (świeże dane w transiencie) + 3c (`single-live` na `main`).
+  - Weryfikacja: otwarty mecz live odświeża telebim/oś bez F5; po `FT` polling się
+    zatrzymuje (status ≠ LIVE); brak równoległego renderera w JS (jedno źródło
+    znacznika).
+
+- **3e-iv — Automatyzacja harmonogramu (OPCJONALNE, na końcu).**
+  - Zastępuje ręczne `import-live` zaplanowanym WP-Cronem w OKNACH wokół znanych
+    `kickoff` (budżet API — nie ślepy polling co 15 s całą dobę). Robimy DOPIERO
+    gdy tryb ręczny (3e-ii) się sprawdzi.
+  - Weryfikacja: cron odpala `import-live` tylko w oknach meczowych śledzonych lig;
+    poza oknami zero zapytań do live-API.
+
+### Decyzje wymagające zatwierdzenia (3e)
+
+- **D3.4 — Co trzyma płaska meta `status`?** Proponuję ENUM 4-stanowy
+  (`LIVE`/`ZAPOWIEDZ`/`ZAKONCZONY`/`ODWOLANY`) z `hajlajty_lookup_status`, NIE
+  surowy `status.short`. Powód: listy filtrują prosto `status = 'LIVE'`
+  (indeksowalne, jeden warunek); surowy kod + minuta i tak żyją w `match_data` do
+  renderu. Grupa 3 zostaje mała (jedno pole, klucz filtra). Do akceptacji.
+- **D3.5 — Magazyn danych live: TRANSIENT + overlay renderu**, nie zapis
+  `match_data` co poll (to setki zapisów do `wp_postmeta` na mecz i niepotrzebne
+  wersjonowanie). Render: transient → fallback `match_data`. Finalny `match_data`
+  raz, po `FT`. Do akceptacji.
+- **D3.6 — Mapowanie `/fixtures/players` → kształt `lineups`** (rozstrzygnąć przy
+  3e-ii): mapować 1:1 do `{formation,colors,coach,startXI[],substitutes[]}` (render
+  bez zmian) czy świadomie rozszerzyć kontrakt? Decyzja po obejrzeniu próbki w
+  `docs/api-samples/fixtures-live.jsonl`. Rekomendacja: mapować do istniejącego
+  kształtu (`hajlajty_import_map_lineups`).
+- **D3.7 — Tryb uruchamiania pętli: RĘCZNY najpierw** (`wp hajlajty import-live`),
+  cron dopiero w 3e-iv. Zgodne z „najpierw ręcznie" i z realiami dev (agent pisze
+  kod, człowiek odpala runtime). Do potwierdzenia.
+- **D3.8 — Transport frontu (3e-iii): REST** (`/wp-json/hajlajty/v1/mecz/{id}/live`),
+  nie admin-ajax — headless-friendly, spójne z decyzją #6 (migracja do WPGraphQL).
+  Interwał pollingu N ≈ 30 s (front nie musi gonić kadencji API 15 s). Wartości do
+  akceptacji.
+
 ### Decyzje podjęte
 
 - **D3.1 — JEDEN `single-mecz.php` z gałęziami wg 4 stanów** (nie 3 — doszedł
