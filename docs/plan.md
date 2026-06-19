@@ -374,6 +374,13 @@ osobne PR-y, kolejność wymuszona zależnością.
   `card-*`.
 - Sortowanie listy po meta `kickoff` (`orderby meta_value`), bez N+1 (jeden
   `WP_Query`).
+- UWAGA — stan LIVE listy to PLACEHOLDER (domknięcie → §3e): brak płaskiej meta
+  statusu, więc lista „Na żywo" i sekcja LIVE na home filtrują po OKNIE czasowym
+  wokół `kickoff` (~150 min), NIE po realnym statusie. Skutki przybliżenia: mecz
+  `FT` potrafi wisieć na liście do ~150 min po kickoffie, a mecz w dogrywce/karnych
+  >150 min od kickoffu z niej znika. Świadome do czasu §3e. (Listy zmieniają
+  przynależność dynamicznie przy każdym ładowaniu — `kickoff` vs „teraz" — więc
+  reklasyfikacja po kickoffie NIE wymaga importu; to single zależy od `match_data`.)
 - Kontekst: 1 plik listowy (Skróty lub Na Żywo) + Strona Główna.
 - Weryfikacja: archiwum listuje, karty zgodne z `design/`, brak N+1, brak PHP
   notice (`WP_DEBUG=true`). `assets` ładują się z motywu (nie z `design/`).
@@ -409,6 +416,21 @@ i obie z osobnym uzasadnieniem budżetowym:
   zmapować `players` do tego samego kształtu `lineups{ formation, colors, coach,
   startXI[], substitutes[] }`, co `hajlajty_import_map_lineups`, albo świadomie
   rozszerzyć kontrakt (decyzja przy 3e).
+
+**Filtrowanie LIST po realnym statusie (domknięcie placeholdera 3d).**
+- Listy 3d (`/na-zywo/` + sekcja LIVE na home) decydują „co jest live" po OKNIE
+  czasowym wokół `kickoff` (~150 min) — przybliżenie, bo nie ma płaskiego pola
+  statusu, po którym `WP_Query` mógłby filtrować na poziomie SQL.
+- 3e ma to zastąpić: dodać PŁASKĄ meta `status` (grupa 3 wg #3 — uzasadnienie:
+  klucz FILTRA na poziomie `WP_Query`, nie tylko render → kwalifikuje się do grupy
+  płaskich meta) zapisywaną przy imporcie i przy pętli live, i przełączyć
+  `pre_get_posts` (slice `match-lists`) oraz sekcje `front-page.php` z okna
+  czasowego na `meta_query` po statusie.
+- WAŻNE: sam auto-refresh `match_data` (warstwa serwerowa niżej) NIE poprawi
+  przynależności list — odświeży single i treść kart (minuta/wynik), ale o tym,
+  KTÓRE mecze trafiają na „Na żywo", dalej zdecyduje filtr zapytania. Dlatego
+  płaska meta `status` jest osobnym, świadomym elementem zakresu 3e, nie pochodną
+  pętli live.
 
 **Warstwa front-end — auto-refresh widoku (to jest „3e" w wąskim sensie).**
 - Rekomendacja **B1: polling FRAGMENTU HTML renderowanego po stronie PHP** —
