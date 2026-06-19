@@ -17,6 +17,15 @@ Frontend chce **polskiego** → patrz sekcja zbiorcza „Pola ręczne".
 Główne źródło tożsamości meczu, wyniku, statusu i metadanych czasowych.
 Jeden element `response[i]` = jeden mecz.
 
+> **Param `live` (mecze w toku, dla `wp hajlajty import-live`, 3e-ii).**
+> `GET /fixtures?live=all` (wszystkie trwające na świecie) albo `live={id-id-id}`
+> — lista `league.id` DASH-separated (np. `live=1-2-39` = trwające mecze tylko
+> w ligach 1, 2, 39). Element `response[i]` ma TEN SAM kształt co przy
+> `?league=&season=`, więc karmi ten sam `process_fixture`.
+> Format `live={id-id-id}` **potwierdzony empirycznie** na demo api-football
+> (2026-06-19) — nie ma go w próbce [fixtures.jsonl](api-samples/fixtures.jsonl),
+> więc notujemy tu jako trwały kontrakt.
+
 ### 1. Tożsamość meczu
 | Pole frontendu (data-inventory) | Ścieżka w API | Uwagi |
 |---|---|---|
