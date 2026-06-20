@@ -560,22 +560,16 @@ prościej", którą rozbito całe 3e. Operacyjne decyzje rozkładają się międ
     domyka się w kolejnym tiku poza oknem; gdy nic nie wisi — poza oknem zero
     zapytań do API.
 
-- **3e-iv-b — Transienty + overlay renderu (OPCJONALNE, najtrudniejsze — CROSS-REPO).**
-  - Przy kadencji crona ~15 s zapis `match_data` co cykl to setki zapisów do
-    `wp_postmeta`. Dane live lądują w TRANSIENCIE (TTL rzędu minut); render NAKŁADA
-    transient na `match_data` w JEDYNYM punkcie odczytu (`hajlajty_get_match_data`),
-    więc i `single-live`, i endpoint REST 3e-iii dostają świeże dane bez zmian; finalny
-    `match_data` zapisujemy RAZ, po `FT` (D3.5).
-  - CROSS-REPO: zapis transientu w hajlajty-core, odczyt/overlay w hajlajty-theme →
-    klucz transientu to KONTRAKT między repo (nazwa/TTL/kształt jawnie po obu
-    stronach). Stąd osobny, późniejszy pod-slice — granica artefakt↔artefakt.
-  - DO ROZSTRZYGNIĘCIA: kontrakt klucza (wzorzec nazwy per fixture/post, TTL, kształt
-    — cały `match_data` czy tylko live-zmienne pola, reguła nakładania na `match_data`).
-  - Zależności: 3e-iv-a (dopiero realna kadencja crona uzasadnia transienty —
-    rationale D3.5 jest częstotliwościowe).
-  - Weryfikacja: przy cronie ~15 s liczba zapisów do `wp_postmeta` nie rośnie
-    liniowo (dane w transiencie); front pokazuje świeże dane z overlayu; po `FT`
-    jeden finalny zapis `match_data`.
+- **3e-iv-b — Transienty + overlay renderu → PRZENIESIONE DO FAZY 5** (decyzja
+  2026-06). Uzasadnienie 3e-iv-b było wyłącznie CZĘSTOTLIWOŚCIOWE (D3.5): transienty
+  bronią przed setkami zapisów `match_data` przy cronie ~15 s. Ale 3e-iv-a ustaliło
+  kadencję ~1 min — i to jest kadencja PRODUKCYJNA (crontab `* * * * *`), nie
+  ograniczenie Locala. Przy ~1 min bezpośredni zapis `match_data` (~120 zapisów na
+  mecz, zwykłe `update_post_meta` bez rewizji) jest tani, więc warunek z D3.5 NIE
+  zachodzi — budowanie transientów byłoby abstrakcją „na zapas" (CLAUDE.md #8).
+  Transienty wracają dopiero przy świadomym wyborze kadencji SUB-MINUTOWEJ (wymaga
+  innego harmonogramu niż crontab) lub przy zmierzonej presji zapisów. Pełny opis
+  techniczny i warunek wejścia: Faza 5.
 
 ### Decyzje wymagające zatwierdzenia (3e)
 
@@ -586,12 +580,16 @@ prościej", którą rozbito całe 3e. Operacyjne decyzje rozkładają się międ
   motyw wyprowadza zbiór kodów „live" ze swojej jedynej mapy
   (`hajlajty_status_live_codes`); listy filtrują `status IN (kody live)`. Jedno
   źródło prawdy mapowania.
-- **D3.5 — Magazyn danych live. ROZSTRZYGNIĘTE: w 3e-ii zapis WPROST do
-  `match_data`** (jak zwykły import); transienty + overlay renderu ODROCZONE do
-  3e-iv-b. Powód: rationale „nie zapisuj co poll" jest CZĘSTOTLIWOŚCIOWE — bije
-  dopiero przy cronie ~15 s (3e-iv-a). Komenda 3e-ii jest RĘCZNA (niska
-  częstotliwość), więc bezpośredni zapis wystarcza i jest prostszy (render bez
-  zmian, zero kontraktu klucza transientu między repo).
+- **D3.5 — Magazyn danych live. ROZSTRZYGNIĘTE: zapis WPROST do `match_data`**
+  (jak zwykły import); transienty + overlay renderu ODROCZONE. Powód: rationale
+  „nie zapisuj co poll" jest CZĘSTOTLIWOŚCIOWE — bije dopiero przy cronie ~15 s.
+  Komenda 3e-ii jest RĘCZNA (niska częstotliwość), więc bezpośredni zapis wystarcza
+  i jest prostszy (render bez zmian, zero kontraktu klucza transientu między repo).
+  **AKTUALIZACJA (2026-06):** także 3e-iv-a pisze WPROST do `match_data` — kadencja
+  crona to ~1 min (crontab, RÓWNIEŻ na produkcji), nie ~15 s, więc warunek
+  częstotliwościowy nie zachodzi i przy starcie. Transienty przeniesione z 3e-iv-b
+  do **Fazy 5**; wracają tylko przy świadomej kadencji sub-minutowej (inny
+  harmonogram niż crontab) lub zmierzonej presji zapisów.
 - **D3.6 — Składy live. ROZSTRZYGNIĘTE: bez `/fixtures/players`.** Po obejrzeniu
   próbki: element `fixtures?live=…` ma ten sam kształt co zwykły `fixtures`, a
   składy live dostarcza `/fixtures/lineups` (już mapowane przez
@@ -780,6 +778,21 @@ ciążyło na MVP. Każde to przyszły osobny slice + PR.
   faza) — automatyczne wciąganie nowych filmów z obserwowanych kanałów YouTube
   i dopasowywanie skrótu do właściwego meczu po TYTULE przez LLM. Nadbudowa nad
   ręcznym dodawaniem `skrot_url` (ścieżka „najpierw ręcznie, potem z AI").
+- **Transienty + overlay renderu danych live (było 3e-iv-b, CROSS-REPO)** —
+  przeniesione tu z Fazy 3 (decyzja 2026-06). **Warunek wejścia (żaden = nie
+  robimy):** świadoma kadencja SUB-MINUTOWA (~15 s) na produkcji — która wymaga
+  innego harmonogramu niż crontab (systemd timer / wrapper ze `sleep`, bo crontab
+  nie zejdzie poniżej 1 min) — LUB zmierzona presja zapisów do `wp_postmeta`. Przy
+  obecnej kadencji ~1 min (crontab, też na prodzie) zapis WPROST do `match_data`
+  wystarcza i jest prostszy. Gdy warunek zajdzie: dane live lądują w TRANSIENCIE
+  (TTL rzędu minut), render NAKŁADA transient na `match_data` w JEDYNYM punkcie
+  odczytu (`hajlajty_get_match_data`), więc `single-live` i endpoint REST 3e-iii
+  dostają świeże dane bez zmian; finalny `match_data` zapisujemy RAZ po `FT`.
+  CROSS-REPO: klucz transientu = KONTRAKT między hajlajty-core (zapis) a
+  hajlajty-theme (odczyt/overlay) — nazwa/TTL/kształt jawnie po obu stronach;
+  granica artefakt↔artefakt. DO ROZSTRZYGNIĘCIA przy realizacji: wzorzec nazwy
+  klucza (per fixture/post), TTL, kształt (cały `match_data` czy tylko pola
+  live-zmienne), reguła nakładania na `match_data`. Zależność: 3e-iv-a (✓).
 
 ---
 
