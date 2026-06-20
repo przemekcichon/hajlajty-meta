@@ -618,13 +618,15 @@ prościej", którą rozbito całe 3e. Operacyjne decyzje rozkładają się międ
 Render Fazy 3 to publiczne widoki meczu (odczyt). Pozostałe widoki designu mają
 wskazany dom; szczegółowy zakres każdej z tych faz powstaje, gdy są bliskie (zero
 abstrakcji na zapas również w planowaniu):
-- **Terminarz Turnieju** → osobno tuż po Fazie 3 (dane już z importu).
-- **Tabele Grup** → Faza 5 (standings).
-- **Reprezentacje / Profil kraju** → faza po Fazie 5. (4A ich NIE tworzy: chip
-  filtruje karty w kontekście bieżącego widoku, nie buduje strony drużyny — brak
-  kolizji URL-i. Patrz USTALENIA 4A.)
-- **Ulubione / Obserwowane / Konto / Ustawienia** → Faza 4 (`hajlajty-user`).
-- **Panel Redaktora** → faza `hajlajty-editor` (na koniec).
+- **Terminarz Turnieju, Tabele Grup, Reprezentacje / Profil kraju** → wciągnięte
+  do **Fazy MVP — na produkcję** (decyzja 2026-06: to widoki potrzebne na launch,
+  nie „później"). Reprezentacje: 4A ich NIE tworzy (chip filtruje karty, nie buduje
+  strony drużyny — brak kolizji URL-i, patrz USTALENIA 4A); strona drużyny powstaje
+  jako osobny widok w Fazie MVP. Grupy/Reprezentacje ciągną za sobą źródła
+  `/standings` i `/teams/statistics` (były Faza 5 — patrz tam).
+- **Ulubione / Obserwowane / Konto / Ustawienia** → Faza 4 (`hajlajty-user`),
+  PO MVP (MVP bez rejestracji). W sidebarze do tego czasu boks „wkrótce" (Faza MVP).
+- **Panel Redaktora** → faza `hajlajty-editor`, PO MVP (do launchu redakcja w WP admin).
 
 ---
 
@@ -761,6 +763,79 @@ Zakres:
 
 ---
 
+## Faza MVP — na produkcję: treści turniejowe + trim launchowy
+
+Bramka po 4A i ostatni krok przed wejściem na produkcję (decyzja 2026-06). ZAKRES
+MVP zawężony świadomie: BEZ rejestracji/logowania, BEZ panelu redaktora „z
+prawdziwego zdarzenia" (redakcja wzbogaca mecze w WP admin jak dotąd — CLAUDE.md
+#10). W zamian MVP MUSI dostać trzy widoki turniejowe (były „później") i kosmetyczny
+trim, który chowa to, czego MVP jeszcze nie obsługuje.
+
+Każdy widok/trim = osobny slice/branch + PR (jak dotąd). Render READ-ONLY z
+importu/`match_data`/taksonomii; wzorce w `design/` (strony już istnieją).
+
+### Treści turniejowe (wciągnięte z Fazy 5 / „po Fazie 5")
+
+- **Terminarz turnieju** (`design/Hajlajty - Terminarz Turnieju.html` + „Terminarz
+  Modularny (wzorzec)"). Dane JUŻ z importu (`fixtures` → kickoff, rozgrywki,
+  drużyny) — zero nowego źródła. Lista meczów pogrupowana po dniu/kolejce. Link
+  sidebara „Mundial 2026" → realny.
+- **Tabele grup** (`design/Hajlajty - Tabele Grup.html`, widok TG). ⚠️ WYMAGA
+  `/standings` — ŹRÓDŁO WCIĄGNIĘTE z Fazy 5 do MVP (patrz Faza 5 / mapping A5). Z
+  nim przychodzi **litera grupy A–L** (12 grup, decyzja #6) — domyka pominięcie
+  litery grupy z 3b. Najpierw slice importu standings (core), potem widok (motyw).
+- **Reprezentacje / Profil kraju** (`design/Hajlajty - Reprezentacje.html` +
+  „Profil Belgia"). ⚠️ WYMAGA `/teams/statistics` — ŹRÓDŁO WCIĄGNIĘTE z Fazy 5
+  (próbka `teams-statistics.jsonl` jest; najpierw dobór pól wg odpowiedzi #10).
+  Strona drużyny to osobny widok — bez kolizji URL z permalinkiem meczu (#7).
+
+KONSEKWENCJA (zapisana świadomie): wciągnięcie STRON wciąga ich DANE. Sloty
+`/standings` i `/teams/statistics` przestają być „później" — stają się
+zależnością MVP. Faza 5 zachowuje je tylko jako zapis + to, co ZOSTAJE później
+(injuries, forma, YouTube duration, transienty live).
+
+### Trim launchowy (kosmetyka pod brak konta/edytora)
+
+- **(1) Efekty eventów na single LIVE.** Port z prototypu (`design/Hajlajty - Mecz
+  na Żywo.html`): `@keyframes golPop` (gol), `scoreBump` (wynik), `cardFlip`
+  (kartka) + efekt zmiany. W prototypie odpalane SYMULACJĄ (`data-demo`); w MVP
+  mają być reakcją na REALNE zdarzenie z odświeżanego fragmentu live (3e-iii) —
+  bez symulacji/przycisków demo. Domyka świadome pominięcie „teatru live" z 3c/3e.
+  Slice: rozszerzenie `match-display` (single-live) + ewentualnie fragment REST
+  3e-iii; ZERO nowego źródła danych (efekt na bazie zdarzeń z `match_data`).
+- **(2) Schowanie afordancji konta.** Do czasu `hajlajty-user`: ukryć ikonę
+  „Profil" w topbarze (`layout/partials/header.php`) oraz przyciski kibica „dodaj
+  do ulubionych"/„przypomnij mi" (fav/bell). UWAGA: z decyzji 3b/3c akcje kibica
+  NIE były portowane na karty/single, więc realna powierzchnia = głównie ikona
+  Profil; przy implementacji zweryfikować, czy fav/bell nie wyciekły gdzie indziej.
+  „Schować", NIE usuwać — wracają z `hajlajty-user`.
+- **(3) Sidebar „Twoje" → boks „wkrótce" (decyzja 2026-06, wariant TEASER).** Trzy
+  martwe linki (Obserwowane/Ulubione/Ustawienia, dziś `href="#"`) zastąpione jednym
+  miękkim boksem-teaserem: „✨ Twoje Hajlajty — ulubione mecze, obserwowane drużyny
+  i konto: budujemy to teraz!" + plakietka „Już wkrótce". Informuje I buduje
+  oczekiwanie (spójne z charakterem projektu), zamiast wyglądać na zepsute.
+  Odrzucone: wyszarzone linki z tagiem „wkrótce" (słabszy komunikat) i jedna
+  dyskretna linijka (za mało „zapowiada"). Boks znika i wraca jako realne linki z
+  `hajlajty-user`. Równolegle: linki grupy „Mundial 2026" (Terminarz/Grupy/
+  Reprezentacje) z `#` → realne URL-e, gdy ich strony powstaną wyżej.
+
+### Zależności i kolejność
+
+1. **Core (dane):** import `/standings` (+litera grupy) i `/teams/statistics`
+   (dobór pól) — dwa slice'y, warunek wstępny widoków Grupy/Reprezentacje.
+2. **Motyw (widoki):** Terminarz (bez nowych danych — może iść równolegle), potem
+   Grupy i Reprezentacje (po swoich danych). Trim (1)/(2)/(3) niezależny — kiedykolwiek.
+3. Po komplecie → ops wdrożenia (klucz API, seed, crontab wg `cron-produkcja.md`)
+   → produkcja.
+
+### Po MVP (potwierdzenie, bez zmian zakresu)
+
+- **`hajlajty-user`** (Faza 4: ulubione/obserwowane/konto + rejestracja) — PO MVP.
+- **`hajlajty-editor`** (panel redaktora) — PO MVP; do launchu redakcja w WP admin.
+- **4B (Algolia, redakcyjne)** — PO MVP (jak dotąd).
+
+---
+
 ## Faza — `hajlajty-editor`: pulpit redaktora (zapis skrótu)
 
 Redakcyjne wzbogacanie zaimportowanego meczu (CLAUDE.md #10): redaktor-nastolatek
@@ -809,10 +884,12 @@ osobną warstwą nad nim są:
 Branch(e) osobne, gdy ruszymy. Cel: zebrać tu wszystko odłożone, żeby nie
 ciążyło na MVP. Każde to przyszły osobny slice + PR.
 
-- **`/standings`** — tabele grupowe (data-inventory §9, widok TG) + **litera
-  grupy A–L** (12 grup, decyzja #6). Źródło litery (`/standings` vs ręcznie)
-  rozstrzygamy tutaj. Próbki: brak (dograć).
-- **`/teams/statistics`** — profil drużyny/reprezentacji (§10, widok PB).
+- **`/standings`** — ⚠️ WCIĄGNIĘTE DO „Fazy MVP — na produkcję" (decyzja 2026-06:
+  wymaga go widok Tabele grup na launch). Tabele grupowe (data-inventory §9, widok
+  TG) + **litera grupy A–L** (12 grup, decyzja #6). Źródło litery (`/standings` vs
+  ręcznie) rozstrzygamy przy realizacji. Próbki: brak (dograć).
+- **`/teams/statistics`** — ⚠️ WCIĄGNIĘTE DO „Fazy MVP — na produkcję" (wymaga go
+  widok Reprezentacje/Profil). Profil drużyny/reprezentacji (§10, widok PB).
   Próbka `teams-statistics.jsonl` jest. Najpierw wybór pól wg odpowiedzi #10
   (zaproponować realny zestaw z danych API: śr. goli, posiadanie, czyste konta,
   kartki — to, co faktycznie jest w próbce). Forma drużyny — odpuszczona.
@@ -866,9 +943,9 @@ ciążyło na MVP. Każde to przyszły osobny slice + PR.
 | Oznaczenie własnej bramki / karnego / niewykorzystanego karnego | mapping §events | **Faza 3** | Decyzja UI: czy i jak oznaczać `Own Goal`/`Penalty`/`Missed Penalty`. Dane są; brak w designie. |
 | Eventy `Var` (np. Goal cancelled) | mapping §events | **Faza 3** | Pomijać czy pokazywać. Domyślnie: pomijać (brak w enumie designu). |
 | Czas trwania wideo (źródło) | mapping A2 | **Faza 1** (pole) / **Faza 5** (pobieranie) | Rozstrzygnięte: źródłem YouTube Data API. Faza 1 definiuje pole ACF; slice pobierający = faza danych zewnętrznych (Faza 5). Do tego czasu ręcznie. Klucz YT w `.env`. |
-| `/standings` (tabele grup) | mapping A5 | **Faza 5** | później. |
-| Litera grupy A–L (12 grup) | mapping A5, §3 | **Faza 5** | później; razem ze standings. |
-| `/teams/statistics` (profil drużyny) | mapping A5 | **Faza 5** | później; najpierw dobór pól. |
+| `/standings` (tabele grup) | mapping A5 | **Faza MVP** | wciągnięte z Fazy 5 — wymaga go widok Tabele grup na launch. |
+| Litera grupy A–L (12 grup) | mapping A5, §3 | **Faza MVP** | razem ze standings (warunek widoku Tabele grup). |
+| `/teams/statistics` (profil drużyny) | mapping A5 | **Faza MVP** | wciągnięte z Fazy 5 — widok Reprezentacje/Profil; najpierw dobór pól. |
 | `/injuries` (status nieobecności) | mapping A5 | **Faza 5** | później / ew. pole ręczne. |
 | Statystyki rozszerzone (xG, insidebox itd.) | mapping §statistics | **Faza 2/3** | Import: które `type` wpuścić do `match_data`. Wg odpowiedzi #4 — wziąć wszystkie dostępne, tłumaczyć i pokazać te, co się mieszczą. Lista typów do zatwierdzenia. |
 | Status `SUSP`/`AWD`/`WO` (mapowanie enum) | mapping §status | **Faza 3** | ROZSTRZYGNIĘTE: pełna mapa kod→stan PL w [api-mapping.md](api-mapping.md) („Mapowanie statusu"). `SUSP`/`INT`→LIVE, `AWD`/`WO`→ODWOŁANY. `lookups.php` (3a) realizuje ją 1:1. |
