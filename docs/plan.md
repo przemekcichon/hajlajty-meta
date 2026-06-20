@@ -620,13 +620,9 @@ wskazany dom; szczegółowy zakres każdej z tych faz powstaje, gdy są bliskie 
 abstrakcji na zapas również w planowaniu):
 - **Terminarz Turnieju** → osobno tuż po Fazie 3 (dane już z importu).
 - **Tabele Grup** → Faza 5 (standings).
-- **Reprezentacje / Profil kraju (rich)** → faza po Fazie 5. UWAGA (rekoncyliacja
-  z 4A, 2026-06): 4A dostarcza już ARCHIWUM drużyny (`/druzyna/<slug>/` — LISTA
-  meczów reprezentacji przez taksonomię, karty per status). „Profil kraju"
-  (skład / informacje o kraju / bogaty design) WZBOGACA tę samą stronę później —
-  to ta sama encja (drużyna = reprezentacja), dwa poziomy bogactwa, nie sprzeczność.
-  Analogicznie `/rozgrywki/<slug>/` w 4A to LISTA meczów, nie „Tabele Grup"
-  (standings → Faza 5).
+- **Reprezentacje / Profil kraju** → faza po Fazie 5. (4A ich NIE tworzy: chip
+  filtruje karty w kontekście bieżącego widoku, nie buduje strony drużyny — brak
+  kolizji URL-i. Patrz USTALENIA 4A.)
 - **Ulubione / Obserwowane / Konto / Ustawienia** → Faza 4 (`hajlajty-user`).
 - **Panel Redaktora** → faza `hajlajty-editor` (na koniec).
 
@@ -672,26 +668,30 @@ Zakres:
 - BEZ statusu meczu jako filtra publicznego i BEZ `status_wideo` (pochodna,
   decyzja #9) — to kryteria redakcyjne (4B).
 
-USTALENIA 4A (2026-06, po ground-truth + decyzji zakresu):
-- (a+d) DEDYKOWANE ARCHIWA TAKSONOMII + TRWAŁOŚĆ PRZEZ URL (wybrany wariant pełny):
-  archiwa taksonomii dziś NIE mają renderu kart (`/druzyna/<slug>/` spada na
-  generyczny `index.php`). 4A je dodaje. RENDER należy do slice `match-lists`
-  (ekstrakcja wspólnej pętli kart z archive-mecz.php → reużywalny renderer; karta
-  dobierana PER STATUS meczu przez `hajlajty_lookup_status`); WARSTWA FILTRA
-  (chipsbar, pole szukania, `query.php`, `filters.js`) to NOWY slice `filters` —
-  granica vertical slice (render listy ≠ filtr). Trwałość chipa = URL: chip = link
-  do archiwum taksonomii; łączenie wielu chipów (AND między taksonomiami) = query
-  params na archiwum → `query.php` dokłada `tax_query`; tekst = klient na wierzchu.
-  Archiwum taksonomii = LISTA meczów, NIE „Profil kraju"/„Tabele Grup" (te później).
+USTALENIA 4A (2026-06, po ground-truth + doprecyzowaniu — WARIANT LEKKI, na stałe):
+- (a+d) FILTR LEPKI KLIENCKI, BEZ dedykowanych archiwów taksonomii. Chip NIE
+  nawiguje i NIE tworzy strony drużyny — filtruje karty AKTUALNEGO widoku
+  klient-side i TRZYMA się przy przełączaniu stron (`sessionStorage`), aż go
+  odznaczysz. Multi-select: OR w obrębie jednej taksonomii (Francja LUB Niemcy),
+  AND między taksonomiami (drużyna AND sezon); tekst łączony AND. Serwer renderuje
+  pełną listę stanu jak dziś — JS tylko ZAWĘŻA istniejące karty. BEZ `query.php`/
+  `tax_query`, BEZ zmian w `pre_get_posts` list, BEZ szablonów archiwum taksonomii,
+  BEZ nowych rewrite (więc bez flush). Dedykowane strony drużyny/grup = przyszłość
+  („Reprezentacje", „Grupy"), nie 4A.
+- WIDOCZNOŚĆ: chipsbar + pole szukania na WIDOKACH LIST (home + /na-zywo/,
+  /zapowiedzi/, /skroty/; w przyszłości terminarz/grupy/reprezentacje). NIGDY na
+  single (skrót/zapowiedź/live) — enqueue wyklucza `is_singular('mecz')`.
 - (b) DATA-* NA KARTACH: `data-teams="{HOME_FIFA} {AWAY_FIFA}"` +
-  `data-rozgrywki`/`data-sezon`/`data-kanal` (slugi) na kontenerze karty;
-  `data-filterable` na siatce. Źródło: rozszerzony batch-resolver (zero N+1);
-  `card-skrot` używa już-przekazanego `$args['terms']`. Zero drugiego renderera.
+  `data-rozgrywki`/`data-sezon`/`data-kanal` (slugi) na karcie; `data-filterable`
+  na siatce. Źródło: rozszerzony batch-resolver (zero N+1); `card-skrot` używa
+  już-przekazanego `$args['terms']`. Zero drugiego renderera, zero zapytań per karta.
 - (c) SZUKANIE PO DRUŻYNACH Z OGONKAMI: `data-team-names` = znormalizowane nazwy PL
   home+away; mały normalizator PL w PHP (slice `filters`) + port JS z designu
   (ł→l + NFD); dopasowanie substring. Szukamy po nazwach PL, nie po FIFA.
-- OTWARTE (do rozstrzygnięcia w implementacji): mecze ZAKOŃCZONE BEZ skrótu na
-  archiwum taksonomii (pominąć vs minimalna karta) — dziś brak dla nich typu karty.
+- SLICE: nowy `hajlajty-theme/features/filters/` = warstwa filtra (ui.php chipsbar +
+  pole, partials/chips-bar.php, assets/filters.js — lepki filtr w `sessionStorage`).
+  Render list bez zmian (slice `match-lists`, poza dołożeniem data-* do kart).
+  Granica vertical slice zachowana.
 
 ### 4B — Redakcyjne (admin): Algolia + slice synchronizacji indeksu
 
