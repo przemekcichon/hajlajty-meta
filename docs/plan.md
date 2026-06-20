@@ -693,7 +693,7 @@ Zakres:
 - **D4.1 — Publiczny front: lekki vanilla JS (live-filtrowanie) zamiast czystego
   reloadu.** Przyjęte: serwer renderuje kontekstową listę, JS zawęża karty bez
   przeładowania; chipy trwałe. Interactivity API ewentualnie później (spójnie
-  z decyzją dla `hajlajty-user`). Potwierdź, że vanilla JS wystarcza na MVP.
+  z decyzją dla `hajlajty-user`). **POTWIERDZONE (2026-06): vanilla JS na MVP 4A.**
 - **D4.2 — Status MECZU (ZAPOWIEDŹ/LIVE/ZAKOŃCZONY)** — pochodna z
   `fixture.status.short`, nie taksonomia. Listy publiczne są stałe per widok
   (Na Żywo/Zapowiedzi/Skróty), więc status meczu NIE jest publicznym filtrem
