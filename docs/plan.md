@@ -819,14 +819,36 @@ zależnością MVP. Faza 5 zachowuje je tylko jako zapis + to, co ZOSTAJE późn
   `hajlajty-user`. Równolegle: linki grupy „Mundial 2026" (Terminarz/Grupy/
   Reprezentacje) z `#` → realne URL-e, gdy ich strony powstaną wyżej.
 
-### Zależności i kolejność
+### Podział na pod-slice'y (branch + PR, kolejność wymuszona zależnością)
 
-1. **Core (dane):** import `/standings` (+litera grupy) i `/teams/statistics`
-   (dobór pól) — dwa slice'y, warunek wstępny widoków Grupy/Reprezentacje.
-2. **Motyw (widoki):** Terminarz (bez nowych danych — może iść równolegle), potem
-   Grupy i Reprezentacje (po swoich danych). Trim (1)/(2)/(3) niezależny — kiedykolwiek.
-3. Po komplecie → ops wdrożenia (klucz API, seed, crontab wg `cron-produkcja.md`)
-   → produkcja.
+Każdy pod-slice = osobny branch + PR (jak 3a–3e). Filozofia „najpierw prościej":
+najpierw tani trim dający „launch look", potem widoki niezależne od nowych danych,
+na końcu pary import→widok. Repo w nawiasie (granica artefakt↔artefakt).
+
+- **MVP-a — Trim afordancji konta + sidebar (motyw, slice `layout`).** Punkty trimu
+  (2) i (3): ukrycie ikony „Profil"/fav-bell + zamiana grupy „Twoje" na boks-teaser
+  „wkrótce". Zero danych, zero zależności — najtańsze, daje od razu produkcyjny
+  wygląd. (Branch np. `feature/mvp-trim-launchowy`.)
+- **MVP-b — Efekty eventów live (motyw, `match-display` + fragment 3e-iii).** Punkt
+  trimu (1): `golPop`/`scoreBump`/`cardFlip` + zmiana, na REALNYM zdarzeniu z
+  odświeżanego fragmentu. Zależy od 3e-iii (✓ na main) i `match_data` — ZERO nowego
+  źródła. Niezależny od a/c.
+- **MVP-c — Terminarz turnieju (motyw).** Dane już z importu (`fixtures`); zero
+  nowego źródła. Niezależny — może iść równolegle z a/b. Aktywuje link sidebara.
+- **MVP-d — Import `/standings` + litera grupy A–L (core, slice danych).** Warunek
+  MVP-e; rozstrzyga źródło litery (`/standings` vs ręcznie). Może startować
+  równolegle do a/b/c (osobne repo).
+- **MVP-e — Tabele grup (motyw).** Zależy od MVP-d (standings + litera). Aktywuje
+  link sidebara.
+- **MVP-f — Import `/teams/statistics` + dobór pól wg #10 (core, slice danych).**
+  Warunek MVP-g. Może startować równolegle do MVP-d.
+- **MVP-g — Reprezentacje / Profil kraju (motyw).** Zależy od MVP-f. Strona drużyny
+  jako osobny widok (bez kolizji URL z meczem, #7). Aktywuje link sidebara.
+
+Łańcuchy zależności: **d→e** (standings→grupy), **f→g** (statystyki→reprezentacje);
+**a, b, c** niezależne. Dwa tory danych (d, f) w core mogą iść równolegle do toru
+motywu. Po komplecie → ops wdrożenia (klucz API, seed, crontab wg
+`cron-produkcja.md`) → produkcja.
 
 ### Po MVP (potwierdzenie, bez zmian zakresu)
 
