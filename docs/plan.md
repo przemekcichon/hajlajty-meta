@@ -648,11 +648,12 @@ dane pójdą przez WPGraphQL). BEZ FacetWP, BEZ Algolii.
 ```
 hajlajty-theme/features/
   filters/
-    filters.php                         # bootstrap
-    query.php                           # pre_get_posts: kontekstowa lista (tax_query)
-    ui.php                              # render chipsbara + pola wyszukiwarki
-    assets/filters.js                   # live-filtrowanie kart (vanilla JS)
-    partials/chips-bar.php
+    filters.php                         # cienki bootstrap + enqueue (widoki LIST)
+    normalize.php                       # normalizator nazw PL (kontrakt PHP↔JS)
+    ui.php                              # chipsbar + pole + modal mobile + pigułka filtra
+    assets/filters.js                   # lepki filtr kliencki (vanilla JS, sessionStorage)
+    assets/filters.css                  # style paska/chipów/modalu (port z designu)
+    partials/chips-bar.php              # chipy DRUŻYN (teams-only — patrz (e))
 ```
 
 Zakres:
@@ -672,10 +673,13 @@ USTALENIA 4A (2026-06, po ground-truth + doprecyzowaniu — WARIANT LEKKI, na st
 - (a+d) FILTR LEPKI KLIENCKI, BEZ dedykowanych archiwów taksonomii. Chip NIE
   nawiguje i NIE tworzy strony drużyny — filtruje karty AKTUALNEGO widoku
   klient-side i TRZYMA się przy przełączaniu stron (`sessionStorage`), aż go
-  odznaczysz. Multi-select: OR w obrębie jednej taksonomii (Francja LUB Niemcy),
-  AND między taksonomiami (drużyna AND sezon); tekst łączony AND. Serwer renderuje
-  pełną listę stanu jak dziś — JS tylko ZAWĘŻA istniejące karty. BEZ `query.php`/
-  `tax_query`, BEZ zmian w `pre_get_posts` list, BEZ szablonów archiwum taksonomii,
+  odznaczysz. Multi-select: OR w obrębie taksonomii (Francja LUB Niemcy). Na 4A
+  chipy mają JEDNĄ taksonomię (drużyna — patrz (e)), więc „AND między taksonomiami"
+  wraca dopiero z rozgrywkami/sezonem w Fazie 5 (`filters.js` już obsługuje wiele
+  taksonomii — to dołożenie chipów, nie zmiana logiki). Tekst łączony AND z chipami.
+  Serwer renderuje pełną listę stanu — JS tylko ZAWĘŻA istniejące karty. BEZ
+  `query.php`/`tax_query`, BEZ SERWEROWEGO filtrowania list (jedyna zmiana zapytania
+  = zdjęcie stronicowania archiwów — patrz (f)), BEZ szablonów archiwum taksonomii,
   BEZ nowych rewrite (więc bez flush). Dedykowane strony drużyny/grup = przyszłość
   („Reprezentacje", „Grupy"), nie 4A.
 - WIDOCZNOŚĆ: chipsbar + pole szukania na WIDOKACH LIST (home + /na-zywo/,
@@ -688,6 +692,23 @@ USTALENIA 4A (2026-06, po ground-truth + doprecyzowaniu — WARIANT LEKKI, na st
 - (c) SZUKANIE PO DRUŻYNACH Z OGONKAMI: `data-team-names` = znormalizowane nazwy PL
   home+away; mały normalizator PL w PHP (slice `filters`) + port JS z designu
   (ł→l + NFD); dopasowanie substring. Szukamy po nazwach PL, nie po FIFA.
+- (e) ZAKRES CHIPÓW = TYLKO DRUŻYNY (decyzja 2026-06). Chipsbar i modal mają wyłącznie
+  chipy drużyn; rozgrywki i sezon jako chipy → Faza 5 (karty już niosą `data-rozgrywki`/
+  `data-sezon`, więc to dołożenie chipów, nie zmiana danych); kanał świadomie NIE jest
+  filtrem publicznym. Przycisk „Wyczyść filtry" zastąpiony PIGUŁKĄ aktywnego filtra
+  (nazwy filtrowanych drużyn + czyszczenie), wspólną dla desktopu i mobile.
+- (f) ARCHIWA BEZ STRONICOWANIA (decyzja 2026-06, korekta wcześniejszego „BEZ zmian
+  w `pre_get_posts`"). Filtr jest KLIENCKI — widzi tylko karty obecne w DOM. Przy
+  stronicowaniu trafienia ze strony 2+ byłyby nieosiągalne, a strona 1 mogłaby
+  fałszywie pokazać „brak wyników". Dlatego `pre_get_posts` (slice `match-lists`)
+  wymusza na zapytaniu archiwum `posts_per_page = -1` + `no_found_rows`, a
+  `archive-mecz.php` zdejmuje `the_posts_pagination` — serwer renderuje KOMPLET
+  stanu na jednej stronie, JS filtruje całość. To JEDYNE dotknięcie `pre_get_posts`
+  w 4A: nadal BEZ `tax_query`/serwerowego filtra, BEZ nowych rewrite, bez flush
+  (reguły `/page/N/` zostają nieszkodliwe przy `-1`). Świadomie BEZ capa (cap po
+  przekroczeniu po cichu wróciłby do tego samego błędu). Dla Mundialu (≲104 mecze/
+  lista) komplet w DOM jest tani; rewizja przy piłce klubowej → stronicowanie +
+  filtr serwerowy/Algolia (4B).
 - SLICE: nowy `hajlajty-theme/features/filters/` = warstwa filtra (ui.php chipsbar +
   pole, partials/chips-bar.php, assets/filters.js — lepki filtr w `sessionStorage`).
   Render list bez zmian (slice `match-lists`, poza dołożeniem data-* do kart).
@@ -827,6 +848,13 @@ ciążyło na MVP. Każde to przyszły osobny slice + PR.
   granica artefakt↔artefakt. DO ROZSTRZYGNIĘCIA przy realizacji: wzorzec nazwy
   klucza (per fixture/post), TTL, kształt (cały `match_data` czy tylko pola
   live-zmienne), reguła nakładania na `match_data`. Zależność: 3e-iv-a (✓).
+- **Chipy filtra: ROZGRYWKI + SEZON (rozszerzenie 4A)** — w 4A publiczny chipsbar
+  jest TYLKO po drużynach (decyzja 2026-06). Chipy rozgrywek i sezonu wracają
+  tutaj: dołożyć je do `partials/chips-bar.php` (z etykietami grup) i do `TAXES`
+  w `filters.js`; karty już niosą `data-rozgrywki`/`data-sezon` (slice match-lists,
+  zero zmian po stronie danych). KANAŁ świadomie NIE jest filtrem publicznym
+  (brak wartości dla użytkownika) — zostaje wyłącznie taksonomią redakcyjną
+  (źródło skrótu) i ewentualnym filtrem w narzędziu Algolii (4B).
 
 ---
 
