@@ -536,10 +536,29 @@ prościej", którą rozbito całe 3e. Operacyjne decyzje rozkładają się międ
       obecny w DB-live, a nieobecny w `live=all` → domknij targetowanym
       `fixtures?id=<id>` i zapisz cokolwiek API zwróci (idempotentne; `HT` → no-op,
       `FT/AET/PEN` → finalizacja → poller dostaje `data-live="0"` i milknie).
+    - (4) STALE-FT (korekta po runtime 3e-iv-a, 2026-06): samo AUTO-FT (3) działa
+      TYLKO, gdy tik trafi w OKNO (2). Gdy żaden tik nie odpali się w oknie — na
+      Localu brak nocnego ruchu napędzającego WP-Cron; na prodzie luka systemowego
+      crona dłuższa niż okno po zniknięciu meczu z `live=all` — mecz wypada z
+      `live=all` nieobserwowany i WISI na ostatnim statusie In-Play (poller bije
+      dalej, front pokazuje live) aż do ręcznego `import --fixture`. Ujawnił to
+      realny przypadek: mecz rozpoczęty w nocy zawisł na `2H`. Domknięcie: tik
+      POZA oknem dokłada stale-FT — jeśli istnieje post z płaską `status` ∈ kody
+      live i `kickoff` starszym niż DOLNA granica okna (teraz − 180 min; żaden
+      mecz tyle nie trwa → status utknął), domyka go targetowanym `fixtures?id`
+      (TEN SAM finalizator co AUTO-FT), BEZ `live=all`. Budżet: poza oknem API
+      dotykamy TYLKO gdy realnie coś wisi (pusta lista zawieszonych = zero
+      zapytań); zbiór sam się opróżnia po `FT`. Bez nowego magazynu stanu (spójne
+      z (3)); odpowiedź wciąż In-Play (rzadkie `SUSP/INT`) → retry w kolejnym tiku
+      aż do statusu terminalnego — ograniczone w praktyce. Ścieżka W OKNIE bez
+      zmian (tam AUTO-FT i tak domyka zawieszone, bo są nieobecne w `live=all`).
   - Zależności: 3e-ii (`import-live`) + 3e-iii (poller — żeby `data-live="0"`
     faktycznie zatrzymał front po FT).
   - Weryfikacja: cron odpala live-import TYLKO w oknach meczowych śledzonych lig;
-    poza oknami zero zapytań do live-API; mecz po gwizdku sam dostaje `FT`, poller milknie.
+    poza oknami zero zapytań do live-API; mecz po gwizdku sam dostaje `FT`, poller
+    milknie. STALE-FT: mecz zawieszony w statusie live (kickoff > 180 min temu)
+    domyka się w kolejnym tiku poza oknem; gdy nic nie wisi — poza oknem zero
+    zapytań do API.
 
 - **3e-iv-b — Transienty + overlay renderu (OPCJONALNE, najtrudniejsze — CROSS-REPO).**
   - Przy kadencji crona ~15 s zapis `match_data` co cykl to setki zapisów do
