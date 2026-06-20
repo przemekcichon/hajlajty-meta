@@ -636,6 +636,13 @@ osobne branche/PR-y i osobne slice'y. NIE mieszamy ich kodu.
 Branch: `feature/faza-4a-front-filtry`. Celowo proste, headless-friendly (te same
 dane pójdą przez WPGraphQL). BEZ FacetWP, BEZ Algolii.
 
+> **BRAMKA PRZED-PRODUKCYJNA (decyzja 2026-06).** 4A (wyszukiwarka po DRUŻYNACH +
+> chipsbar) to MINIMUM przed wyjściem na produkcję — bez tego front nie ma
+> podstawowej nawigacji po treści. Faza 3 (szablony + live: 3e-i…3e-iv-a +
+> stale-FT) jest domknięta; 4A jest NASTĘPNYM krokiem implementacyjnym. 4B
+> (Algolia, redakcyjne) zostaje PO MVP. Kolejność na launch: 4A → ops wdrożenia
+> (klucz API, seed, crontab wg `cron-produkcja.md`) → produkcja.
+
 ```
 hajlajty-theme/features/
   filters/
