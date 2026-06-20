@@ -688,6 +688,11 @@ USTALENIA 4A (2026-06, po ground-truth + doprecyzowaniu — WARIANT LEKKI, na st
 - (c) SZUKANIE PO DRUŻYNACH Z OGONKAMI: `data-team-names` = znormalizowane nazwy PL
   home+away; mały normalizator PL w PHP (slice `filters`) + port JS z designu
   (ł→l + NFD); dopasowanie substring. Szukamy po nazwach PL, nie po FIFA.
+- (e) ZAKRES CHIPÓW = TYLKO DRUŻYNY (decyzja 2026-06). Chipsbar i modal mają wyłącznie
+  chipy drużyn; rozgrywki i sezon jako chipy → Faza 5 (karty już niosą `data-rozgrywki`/
+  `data-sezon`, więc to dołożenie chipów, nie zmiana danych); kanał świadomie NIE jest
+  filtrem publicznym. Przycisk „Wyczyść filtry" zastąpiony PIGUŁKĄ aktywnego filtra
+  (nazwy filtrowanych drużyn + czyszczenie), wspólną dla desktopu i mobile.
 - SLICE: nowy `hajlajty-theme/features/filters/` = warstwa filtra (ui.php chipsbar +
   pole, partials/chips-bar.php, assets/filters.js — lepki filtr w `sessionStorage`).
   Render list bez zmian (slice `match-lists`, poza dołożeniem data-* do kart).
@@ -827,6 +832,13 @@ ciążyło na MVP. Każde to przyszły osobny slice + PR.
   granica artefakt↔artefakt. DO ROZSTRZYGNIĘCIA przy realizacji: wzorzec nazwy
   klucza (per fixture/post), TTL, kształt (cały `match_data` czy tylko pola
   live-zmienne), reguła nakładania na `match_data`. Zależność: 3e-iv-a (✓).
+- **Chipy filtra: ROZGRYWKI + SEZON (rozszerzenie 4A)** — w 4A publiczny chipsbar
+  jest TYLKO po drużynach (decyzja 2026-06). Chipy rozgrywek i sezonu wracają
+  tutaj: dołożyć je do `partials/chips-bar.php` (z etykietami grup) i do `TAXES`
+  w `filters.js`; karty już niosą `data-rozgrywki`/`data-sezon` (slice match-lists,
+  zero zmian po stronie danych). KANAŁ świadomie NIE jest filtrem publicznym
+  (brak wartości dla użytkownika) — zostaje wyłącznie taksonomią redakcyjną
+  (źródło skrótu) i ewentualnym filtrem w narzędziu Algolii (4B).
 
 ---
 
