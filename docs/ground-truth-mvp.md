@@ -269,18 +269,29 @@ Branch: własny. **Dane JUŻ z importu (`fixtures`) — zero nowego źródła.**
 ## MVP-d — Import `/standings` + litera grupy A–L (core, slice danych)
 Branch: własny (core). Warunek MVP-e. Może iść równolegle do a/b/c.
 
-### 🚩 BLOKER — brak próbki `/standings`
-**LUKA:** w [docs/api-samples/](api-samples) **NIE MA** pliku standings (jest:
-fixtures, fixtures-events, fixtures-live, fixtures-statistics, fixteres-lineups,
-teams-statistics, teams). Potwierdzone `ls`. Plan i mapping to odnotowują:
-- mapping A5: „Tabele grupowe → `/standings`"; „Litera grupy A–L → `/standings`
-  (lub ręcznie)" ([api-mapping.md:278-279](api-mapping.md)).
-- plan: „Próbki: brak" / „⚠️ WYMAGA `/standings`" ([plan.md:783-786,838-840](plan.md)).
+### ✅ Próbka `/standings` dograna — BLOKER zdjęty
+**FAKT:** [docs/api-samples/standings.jsonl](api-samples/standings.jsonl) (World Cup
+2026, `league=1&season=2026`, 2678 linii). Wcześniejsza LUKA („Próbki: brak",
+plan:783-786) — zamknięta. Kształt potwierdzony gripem:
 
-**KONSEKWENCJA:** MVP-d nie może być w pełni zaprojektowany (kształt
-`standings.response[].league.standings[][]`, mapowanie pól) bez próbki. **Dograć
-próbkę `/standings` PRZED startem MVP-d** (warunek MVP-e). Komenda dla człowieka
-niżej (RUNTIME-1).
+```
+response[0].league.standings  // TABLICA TABLIC — jedna wewnętrzna tablica = jedna grupa
+  standings[i] = [ { wiersz drużyny }, … ]
+    wiersz: rank, team{id,name,logo}, points, goalsDiff, group:"Group A",
+            form:"WW", status:"same", description:"Round of 32" (strefa awansu),
+            all{played,win,draw,lose,goals{for,against}}, home{…}, away{…}, update
+```
+
+Pełne pokrycie kolumn TG (data-inventory §9): `rank`→pozycja, `team`→flaga+nazwa
+(po `team.id`), `points`→pkt, `all.played/win/draw/lose`→M/Z/R/P, `all.goals.for/
+against`→bramki, `goalsDiff`→różnica bramek (**jest wprost** — domyka „DO USTALENIA"
+z §9). `description` = strefa (np. „Round of 32") → kolor wiersza `.qual`/`.play`.
+
+**ANOMALIA do obsługi w MVP-d** (FAKT, `uniq -c`): tablica ma **13 wewnętrznych
+tablic** — 12× `"Group A".."Group L"` po 4 drużyny (48 wierszy) **+ 1× `"Group
+Stage"` z 12 wierszami** (prawdopodobnie zbiorczy ranking, np. 3. miejsc / agregat).
+MVP-d musi **odfiltrować** „Group Stage" (render tylko 12 grup A–L), np. warunkiem
+`preg_match('/^Group [A-L]$/', $group)`.
 
 ### Co widok TG potrzebuje (data-inventory §9, [data-inventory.md:129-143](data-inventory.md))
 Pozycja, flaga+nazwa kraju, punkty, M/Z/R/P (rozegrane/wygrane/remisy/przegrane),
@@ -288,13 +299,20 @@ bramki zdobyte+stracone, różnica bramek (DO USTALENIA czy kolumna wprost),
 oznaczenie grupy A–L (12 grup — Mundial 2026). To są pola, które `/standings`
 ma dostarczyć (do weryfikacji na próbce).
 
-### Litera grupy A–L — rozstrzygnięcie źródła (część MVP-d)
-**LUKA/DECYZJA:** `fixtures` daje tylko `round` (numer kolejki), NIE literę grupy
-([api-mapping.md:103](api-mapping.md)). Źródło litery: `/standings` vs ręcznie —
-**rozstrzygnąć w MVP-d** (plan:838-839). Jeśli z `/standings`: gdzie zapisać literę?
-Reguła #3: jeśli front FILTRUJE po grupie (zakładki A–L w TG/REP) → kandydat na
-**taksonomię** lub term meta drużyny; jeśli tylko render → `match_data`/derive.
-Decyzja należy do MVP-d (po obejrzeniu próbki).
+### Litera grupy A–L — źródło rozstrzygnięte próbką (decyzja zapisu zostaje)
+**FAKT:** `fixtures` daje tylko `round` (numer kolejki), NIE literę grupy
+([api-mapping.md:103](api-mapping.md)). Próbka standings **dostarcza literę wprost**:
+`standings[i][j].group = "Group A"` na drużynę, łączoną z termem `druzyna` po
+`team.id` → `api_id`. To zamyka pytanie „`/standings` vs ręcznie" (plan:838-839) na
+korzyść **`/standings`** (litera przychodzi tym samym importem co tabela).
+
+**DECYZJA do podjęcia w MVP-d — GDZIE zapisać literę** (reguła #3):
+- jeśli front FILTRUJE po grupie (zakładki A–L w TG/REP) → kandydat na **term meta
+  drużyny** (`group_letter`) lub taksonomię (jeśli ma być natywny `tax_query`);
+- jeśli tylko render tabeli → wystarczy odczyt z zapisanego standings (`match_data`-
+  analog dla tabeli / osobna meta tabeli grupy).
+  Litera „A"..„L" = `substr` z `group` po prefiksie „Group ". Wybór miejsca zapisu
+  należy do MVP-d (zależy, czy REP/TG robią natywny filtr WP czy render po stronie JS).
 
 ### Struktura designu (FAKT, Explore — `design/Hajlajty - Tabele Grup.html`)
 `<article class="group-card" data-group="A" data-label="Grupa A">` →
@@ -383,10 +401,13 @@ Branch: własny. **Zależy od MVP-f.** Aktywuje sidebar „Reprezentacje". Stron
 ---
 
 ## LUKI / BLOKERY (zbiorczo)
-1. **🚩 BLOKER MVP-d/e:** brak próbki `/standings` w `docs/api-samples/`. Dograć
-   przed projektowaniem MVP-d (warunek MVP-e). → RUNTIME-1.
-2. **Litera grupy A–L:** źródło (`/standings` vs ręcznie) i miejsce zapisu
-   (taksonomia/term meta/derive) nierozstrzygnięte — decyzja w MVP-d po próbce.
+1. **✅ ZDJĘTE — próbka `/standings`:** dograna jako
+   [docs/api-samples/standings.jsonl](api-samples/standings.jsonl). MVP-d/e
+   odblokowane; kształt + pokrycie kolumn TG opisane w sekcji MVP-d.
+2. **Litera grupy A–L:** źródło rozstrzygnięte (`standings[].group`, łączone po
+   `team.id`); zostaje decyzja **gdzie zapisać** (term meta vs taksonomia vs odczyt
+   z tabeli) — w MVP-d, wg tego czy front robi natywny `tax_query`. Plus: MVP-d musi
+   **odfiltrować pseudo-grupę „Group Stage"** (13. wewnętrzna tablica, 12 wierszy).
 3. **MVP-b diff zdarzeń:** poller wymienia całe węzły, brak mechanizmu wykrycia
    „nowego" eventu — wykonawca MVP-b musi dodać diff (rekomendacja: delta w
    `CustomEvent.detail` z `live-refresh.js`).
@@ -405,16 +426,9 @@ Branch: własny. **Zależy od MVP-f.** Aktywuje sidebar „Reprezentacje". Stron
 ## DO POTWIERDZENIA RUNTIME (komendy do wklejenia w „Open Site Shell" Locala)
 Agent nie ma dostępu do runtime (Local poza shellem). Człowiek uruchamia i wkleja wynik.
 
-- **RUNTIME-1 — dograć próbkę `/standings`** (BLOKER MVP-d). Pobrać surową
-  odpowiedź i zapisać do `docs/api-samples/standings.jsonl` (analogicznie do
-  pozostałych próbek). Przykład (klucz API w env/wp-config; liga 1 = World Cup,
-  sezon 2026):
-  ```
-  curl -s "https://v3.football.api-sports.io/standings?league=1&season=2026" \
-    -H "x-apisports-key: <KLUCZ>" | head -c 8000
-  ```
-  Wkleić strukturę `response[].league.standings` (zagnieżdżenie grup, pola wiersza,
-  oznaczenie grupy) — na tym oprze się MVP-d.
+- **RUNTIME-1 — ✅ WYKONANE:** próbka `/standings` dograna jako
+  [docs/api-samples/standings.jsonl](api-samples/standings.jsonl)
+  (`league=1&season=2026`). Kształt opisany w sekcji MVP-d. Bloker zdjęty.
 
 - **RUNTIME-2 — potwierdzić działanie endpointu live (3e-iii) na realnym meczu**
   (fundament MVP-b). Dla istniejącego posta meczu o statusie live:
