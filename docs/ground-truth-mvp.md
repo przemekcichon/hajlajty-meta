@@ -223,46 +223,133 @@ do potwierdzenia w MVP-b. **Zero nowego źródła danych** — efekt liczony z
 ---
 
 ## MVP-c — Terminarz turnieju (theme)
-Branch: własny. **Dane JUŻ z importu (`fixtures`) — zero nowego źródła.** Niezależny
-(równolegle z a/b). Aktywuje sidebar link „Terminarz turnieju".
+Branch: własny. **Dane JUŻ z importu — zero nowego źródła.** Niezależny (równolegle
+z a/b). Aktywuje sidebar link „Terminarz turnieju". Render READ-ONLY; reużycie kart
+i helperów slice'a `match-lists` + chipsbara slice'a `filters`. Sekcja pogłębiona do
+poziomu KONTRAKTU po ground-truth MVP-c (2026-06) — decyzje 1–6 zatwierdzone.
 
-### Co daje import (FAKT, core)
-- **`kickoff`** — płaska meta, UTC `Y-m-d H:i:s` (sortowanie chronologiczne
-  leksykograficzne; NIGDY `_num`). [post-meta.php](../../hajlajty20/app/public/wp-content/plugins/hajlajty-core/features/match/post-meta.php),
-  zapis w `runner.php` (INSERT/UPDATE).
-- **`round`** — w `match_data.round` (surowy string, np. „Group Stage - 1").
-  Render PL przez `hajlajty_lookup_round` ([lookups.php:213-240](../../hajlajty20/app/public/wp-content/themes/hajlajty-theme/features/match-display/lookups.php)):
-  grupowe → „Faza grupowa — N. kolejka"; pucharowe wg mapy; fallback surowy string.
-- **Drużyny** — taksonomia `druzyna` ×2 (przypisanie po `api_id` term meta).
-  Nazwa PL = nazwa termu; flaga/kod przez term meta `fifa_code`.
-- **`status`** — płaska meta (surowy `status.short`), filtr stanu.
+### Decyzje MVP-c (PODJĘTE — wiążące)
+1. **URL = Page Template** (bez rewrite/flush). Plik z nagłówkiem
+   `Template Name: Terminarz turnieju`; człowiek tworzy Stronę w WP admin (slug
+   rekom. `terminarz`). Link sidebara rozwiązywany dynamicznie (np.
+   `get_page_by_path()` → `get_permalink()`), bez twardego URL.
+2. **Grupowanie PO DNIU** — klucz dnia = `substr( kickoff, 0, 10 )` z płaskiej meta
+   `kickoff` (UTC); nagłówek dnia `wp_date` (PL). Markup wg designu (niżej).
+3. **NOWY `WP_Query`** (NIE reużywa stanów `pre_get_posts`): `post_type=mecz`,
+   `meta_query` `kickoff EXISTS`, `orderby` `kick` ASC, `posts_per_page=-1`,
+   `no_found_rows=true`. Wszystkie stany w jednym ciągu, grupowane po dniu w PHP.
+   Powód: `pre_get_posts` zna tylko `live/zapowiedzi/skroty` — nie „wszystkie chrono".
+4. **BEZ litery grupy A–L** — `card__phase` = sama faza/kolejka z `round`
+   (`hajlajty_lookup_round`). „Grupa X" przychodzi z MVP-d/e.
+5. **Wybór karty per stan** (przez `hajlajty_lookup_status($status)['state']`,
+   patrz niżej). FT bez `skrot_url` i `CANC` → **nowa karta wyniku** (`card-wynik`):
+   redaktor widzi, co uzupełnić, zanim powstanie panel redaktora.
+6. **Chipsbar drużyn — terminarz JAK ARCHIWUM.** Reużycie slice'a `filters`
+   (chipsbar + topbar-search + body class) — szczegóły i KOSZT w „Kontrakt filtra".
 
-### Wzorce zapytań do reużycia (theme)
-- **Listy archiwum:** `pre_get_posts` w
-  [match-lists.php](../../hajlajty20/app/public/wp-content/themes/hajlajty-theme/features/match-lists/match-lists.php):
-  live = `status IN (live codes)` + `kickoff EXISTS`, `orderby kick ASC`;
-  zapowiedzi = `kickoff >= now` (`type CHAR`), ASC; skróty = `skrot_url != ''`,
-  `kickoff DESC`. Wszystkie `posts_per_page = -1`, `no_found_rows = true`.
-- **Batch-resolver termów** (zero N+1): `hajlajty_match_lists_resolve_terms($ids)`
-  w [terms.php](../../hajlajty20/app/public/wp-content/themes/hajlajty-theme/features/match-lists/terms.php) —
-  zwraca per post: home/away term + slug'i `rozgrywki`/`sezon`/`kanal`. Reużyć w
-  terminarzu (jedno `get_terms` na taksonomię).
-- **front-page.php** — wzorzec 3 sekcji z osobnym `WP_Query` (live `status IN`,
-  zapowiedzi `kickoff >= now`, skróty `skrot_url != ''`), `resolve_terms`, render
-  przez `get_template_part` na card partialach.
+### Co daje import (FAKT, kontrakt odczytu)
+- **`kickoff`** — płaska meta, UTC `Y-m-d H:i:s` (sort leksykograficzny =
+  chronologiczny; NIGDY `_num`). [post-meta.php](../../hajlajty20/app/public/wp-content/plugins/hajlajty-core/features/match/post-meta.php).
+  **Opcjonalne:** może nie istnieć (wpis bez kickoffa) → query wymaga `kickoff EXISTS`.
+- **`status`** — płaska meta, surowy `status.short` (np. `NS`/`1H`/`FT`/`CANC`).
+  [post-meta.php]. Mapa → stan: `hajlajty_lookup_status` (niżej).
+- **`match_data.round`** — surowy string (np. „Group Stage - 1"); render PL
+  `hajlajty_lookup_round` ([lookups.php:213-240](../../hajlajty20/app/public/wp-content/themes/hajlajty-theme/features/match-display/lookups.php)).
+  **Opcjonalne:** może być null/nieznane → fallback surowy string / pusta faza.
+- **`match_data.goals`** `{home,away}` — wynik (int lub null gdy brak). Źródło dla
+  karty wyniku (decyzja 5).
+- **Drużyny** — taksonomia `druzyna` ×2 (po `api_id`); nazwa PL = nazwa termu, flaga
+  z term meta `fifa_code` przez `hajlajty_flag_url`. **Opcjonalne:** term może nie
+  istnieć (seed gap) → helper zwraca `—`/pusty (null-safe w renderze).
 
-### Wzorzec designu (FAKT, Explore)
+### Helpery i karty do reużycia (sygnatury — FAKT)
+- `hajlajty_match_lists_resolve_terms( array $post_ids ): array`
+  ([terms.php:35](../../hajlajty20/app/public/wp-content/themes/hajlajty-theme/features/match-lists/terms.php))
+  — batch (zero N+1); zwraca per `post_id` ⇒ `{ home: WP_Term|null, away:
+  WP_Term|null, rozgrywki: string[], sezon: string[], kanal: string[] }`.
+- `hajlajty_match_lists_card_filter_attrs( array $entry ): string` ([terms.php:166])
+  — string `data-*` dla karty (klucze filtra: `data-teams`, `data-rozgrywki`,
+  `data-sezon`, `data-kanal`, `data-team-names`). `$entry` = wpis z resolvera.
+- `hajlajty_match_lists_team_code/_team_name( $term ): string` ([terms.php:130,144]).
+- `hajlajty_get_match_data( $post_id ): array` — dekoduje `match_data`.
+- `hajlajty_lookup_status( ?string $short ): array{state,show_minute,live_label}` —
+  `state ∈ {ZAPOWIEDZ, LIVE, ZAKONCZONY, ODWOLANY}` ([lookups.php:36-72](../../hajlajty20/app/public/wp-content/themes/hajlajty-theme/features/match-display/lookups.php)).
+- `hajlajty_lookup_round`, `hajlajty_flag_url` — jw.
+- **Karty** (`features/match-lists/partials/card-*.php`) biorą `$args`:
+  `post_id`, `terms` (wpis z resolvera), opcj. `data` (domyślnie
+  `hajlajty_get_match_data`) — [card-zapowiedz.php:25-30]. Stany: `card-live`,
+  `card-zapowiedz`, `card-skrot`.
+
+### Wybór karty per stan (decyzja 5 — matryca)
+| `state` (z `hajlajty_lookup_status`) | warunek | karta |
+|---|---|---|
+| `LIVE` | — | `card-live` |
+| `ZAPOWIEDZ` | — | `card-zapowiedz` |
+| `ZAKONCZONY` | niepuste `skrot_url` (ACF) | `card-skrot` (wideo) |
+| `ZAKONCZONY` | brak `skrot_url` | **`card-wynik`** (NOWA) — drużyny + wynik z `match_data.goals` + faza + link |
+| `ODWOLANY` | — | **`card-wynik`** ze statusem „Odwołany" (bez wyniku) |
+
+`card-wynik.php` — JEDYNY nowy render MVP-c; minimalny, na istniejących klasach
+(wzór `.vcard` z designu bez miniatury wideo). „Ma wideo" = niepuste `skrot_url`
+(pochodna #9), czytane jak na listach.
+
+### Kontrakt filtra (chipsbar) — ⚠️ koszt reużycia (FAKT)
+Slice `filters` bramkuje WSZYSTKO przez `hajlajty_filters_is_list_view()` =
+`is_post_type_archive('mecz') || is_front_page()` ([ui.php:28-30](../../hajlajty20/app/public/wp-content/themes/hajlajty-theme/features/filters/ui.php)).
+Strona z Page Template to **ani archiwum, ani front** → trzy punkty NIE odpalą się
+same dla terminarza:
+1. `hajlajty_filters_render_search()` (pole w topbarze) — self-gated [ui.php:37].
+2. `hajlajty_filters_body_class()` `hajlajty-has-search` (grid topbara) [filters.php:41-46].
+3. `hajlajty_filters_enqueue()` (filters.css/js) — gate **zduplikowany inline**
+   `is_post_type_archive('mecz') || is_front_page()` [filters.php:57].
+`hajlajty_filters_render_bar()` ([ui.php:60](../../hajlajty20/app/public/wp-content/themes/hajlajty-theme/features/filters/ui.php))
+NIE self-gate'uje — wołają go szablony list (archive-mecz.php:54-55), więc terminarz
+też może go wywołać; ale bez (1)–(3) chipsbar jest martwy (brak CSS/JS/has-search).
+- **Analogicznie `match-lists`**: `hajlajty_match_lists_enqueue()` ([match-lists.php:190](../../hajlajty20/app/public/wp-content/themes/hajlajty-theme/features/match-lists/match-lists.php))
+  ma TEN SAM gate inline → bez niego strona terminarza NIE dostanie styli kart
+  (`card-preview.css`, `match-lists.css`, `match-lists.js`).
+- **KONSEKWENCJA / DECYZJA dla MVP-c:** reużycie chipsbara + kart na Page Template
+  WYMAGA nauczenia obu slice'ów, że terminarz to „list view". Rekomendacja (DRY):
+  jeden predykat „widok-listy-meczów" konsultowany przez wszystkie gate'y, rozszerzony
+  o `is_page_template('<terminarz>')`. Dziś literał `archive||front` jest powtórzony
+  3× (match-lists:190, filters:57, filters `is_list_view` ui:29) — przy okazji zwęzić
+  do jednego źródła. To **świadomy, minimalny cross-slice edit** (match-lists + filters)
+  — wąski wyjątek od „nie ruszaj tych slice'ów"; prompt wykonawczy MVP-c musi go dopuścić.
+  Alternatywa (terminarz sam enqueue'uje cudze assety) = duplikacja + sięganie w cudze
+  ścieżki → ODRZUCONA.
+
+### Zasoby / enqueue terminarza
+- Własny `assets/styles/terminarz.css` (layout sekcji dnia/siatki, na tokenach),
+  enqueue warunkowo na stronie (`is_page_template`), wzorzec slice'a (filemtime).
+- Style kart + filtra: patrz „Kontrakt filtra" — przez rozszerzenie gate'ów, nie
+  duplikację.
+
+### URL / Page Template (FAKT)
+- WP 4.7+ skanuje nagłówek `Template Name` w CAŁYM motywie (też podkatalogi) →
+  plik szablonu MOŻE żyć w slice. Jeśli skan zawiedzie: fallback `page-terminarz.php`
+  w roocie motywu delegujący do partiala slice'a. **Runtime do potwierdzenia**:
+  czy szablon w podkatalogu pojawia się w „Atrybuty strony → Szablon".
+- **Aktywacja linku sidebara:** [sidebar.php:48](../../hajlajty20/app/public/wp-content/themes/hajlajty-theme/features/layout/partials/sidebar.php)
+  (grupa „Mundial 2026", dziś `href="#"`). MVP-c podmienia TYLKO „Terminarz turnieju"
+  na URL strony (dynamicznie) — świadome, minimalne dotknięcie slice'a `layout`;
+  „Tabele grup"/„Reprezentacje" zostają `#` do MVP-e/g.
+
+### Wzorzec designu (FAKT)
 - `design/Hajlajty - Terminarz Turnieju.html`: grupowanie **po dniu**, sekcja
   `<section class="schedule-day" data-day>` → `.schedule-day__head`
   (`.schedule-section__title` „Sobota, 6 czerwca 2026" + `.schedule-day__count`
   „4 mecze") → `.schedule-grid[data-filterable]`. Karty per stan: `.vcard`
   (zakończony/skrót), `.live-card` (live), `.card--preview` (zapowiedź z countdown).
-- `design/Hajlajty - Terminarz Modularny (wzorzec).html`: **czysty layout** —
-  `<main data-card-region>` + sekcje dni + siatki; karty jako autonomiczne
-  komponenty (`pages/terminarz.css`). To wzorzec reużywalny (delegacja kart).
-- **Decyzja wykonawcza MVP-c:** grupowanie po dniu czy po kolejce? Design grupuje
-  po **dniu**; plan ([plan.md:781](plan.md)) mówi „pogrupowana po dniu/kolejce" —
-  do potwierdzenia. Karty można reużyć z `match-lists/partials/` (już istnieją).
+- `design/Hajlajty - Terminarz Modularny (wzorzec).html`: czysty layout
+  (`<main data-card-region>` + sekcje dni); karty jako autonomiczne komponenty.
+
+### Luki / decyzje otwarte (do prompta wykonawczego)
+- **Cross-slice gate** (patrz „Kontrakt filtra") — prompt MVP-c MUSI dopuścić edycję
+  gate'ów w `match-lists` + `filters`; inaczej chipsbar i style kart nie zadziałają.
+- **Umiejscowienie pliku szablonu** (slice vs root) — wg wyniku runtime skanu.
+- **`card-wynik` markup** — minimalny, do złożenia z istniejących klas (bez nowego
+  systemu stylów).
+- **Istniejący kod terminarza:** BRAK (sprawdzone) — nowy szablon/render.
 
 ---
 
