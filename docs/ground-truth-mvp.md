@@ -231,10 +231,16 @@ poziomu KONTRAKTU po ground-truth MVP-c (2026-06) — decyzje 1–6 zatwierdzone
 ### Decyzje MVP-c (PODJĘTE — wiążące)
 1. **URL = Page Template** (bez rewrite/flush). Plik z nagłówkiem
    `Template Name: Terminarz turnieju`; człowiek tworzy Stronę w WP admin (slug
-   rekom. `terminarz`). Link sidebara rozwiązywany dynamicznie (np.
-   `get_page_by_path()` → `get_permalink()`), bez twardego URL.
-2. **Grupowanie PO DNIU** — klucz dnia = `substr( kickoff, 0, 10 )` z płaskiej meta
-   `kickoff` (UTC); nagłówek dnia `wp_date` (PL). Markup wg designu (niżej).
+   rekom. `terminarz`). Link sidebara rozwiązywany dynamicznie po SZABLONIE
+   (niezależnie od slug-a): `get_pages` z `meta_key='_wp_page_template'`,
+   `meta_value='template-terminarz.php'` → `get_permalink()`. Brak Strony → link
+   zostaje `#`. (Wcześniejsze „np. `get_page_by_path()`" było tylko poglądowe —
+   wariant po meta szablonu jest odporny na zmianę slug-a przez redaktora.)
+2. **Grupowanie PO DNIU** — klucz dnia = LOKALNA data PL: surowy `kickoff` (UTC
+   `Y-m-d H:i:s`) → `setTimezone( wp_timezone() )` → `Y-m-d`; nagłówek dnia `wp_date`
+   (też PL, spójny z kluczem). REWIZJA pierwotnego „substr(kickoff,0,10) UTC": dla
+   audytorium PL i meczów w Amerykach (rano UTC dnia+1) dzień nagłówka musi zgadzać
+   się z czasem PL na karcie. Markup wg designu (niżej).
 3. **NOWY `WP_Query`** (NIE reużywa stanów `pre_get_posts`): `post_type=mecz`,
    `meta_query` `kickoff EXISTS`, `orderby` `kick` ASC, `posts_per_page=-1`,
    `no_found_rows=true`. Wszystkie stany w jednym ciągu, grupowane po dniu w PHP.
@@ -368,6 +374,12 @@ też może go wywołać; ale bez (1)–(3) chipsbar jest martwy (brak CSS/JS/has
   + `hajlajty_filters_is_list_view()` rozszerzony (function_exists), gate enqueue w
   `filters`/`match-lists` przez predykat.
 - **Szablon w ROOCIE** (`template-terminarz.php`) — patrz korekta „URL / Page Template".
+- **Pusty-po-filtrze dzień:** sekcja dnia niesie `data-filter-section` (NIE piggyback
+  na klasie `.section`). `filters.js` toggluje `is-empty-by-filter` na
+  `container.closest("[data-filter-section], .section")` (wstecznie zgodne z home/
+  archiwami), a `filters.css` ukrywa `[data-filter-section].is-empty-by-filter`.
+  Świadomy, additywny edit `filters` (JS+CSS) — czystsze niż znacznik przez `.section`.
+- **Grupowanie po dniu = strefa PL** (`wp_timezone()`), nie UTC — patrz decyzja #2 (REWIZJA).
 - **Istniejący kod terminarza przed MVP-c:** BRAK (sprawdzone) — wszystko nowe.
 
 ---
