@@ -221,6 +221,61 @@ Mapowanie odbywa się po stringu `type`. `value` bywa int, stringiem ("66%", "0.
 jest opcjonalna — domyślnie wycinamy te, których design nie pokazuje (patrz sekcja zbiorcza #2).
 
 ---
+
+## Endpoint: standings
+`GET /standings?league={id}&season={rok}` — próbka: [standings.jsonl](api-samples/standings.jsonl)
+(kontrakt MVP-d; widok TG = Tabele Grup, data-inventory §9). Slice core
+`features/standings-import/` (tor danych, NIE render).
+
+Tabele grupowe ligi/turnieju. Koperta jak w pozostałych endpointach
+(`get`/`parameters`/`errors`/`results`/`paging`) — zdejmuje ją klient
+`hajlajty_import_request`, transform dostaje `response`. `response[0].league`
+niesie `id`/`season` (do resolucji termu) i `standings`.
+
+**`league.standings` to TABLICA TABLIC** — jedna wewnętrzna tablica = jedna grupa,
+element = wiersz drużyny. Klucze wiersza (VERBATIM): `rank`, `team{id,name,logo}`,
+`points`, `goalsDiff`, `group` ("Group A"), `form`, `status`, `description`,
+`all{played,win,draw,lose,goals{for,against}}`, `home{…}`, `away{…}`, `update`.
+
+### 9. Tabele grupowe (TG)
+| Pole frontendu (data-inventory §9) | Ścieżka w API | Uwagi |
+|---|---|---|
+| Pozycja | `rank` | int |
+| Flaga + nazwa kraju | `team.id` → term `druzyna` (`api_id`/`fifa_code`) | **NIE** z `team.name`/`team.logo` (EN/URL) — render resolwuje po ID |
+| Punkty | `points` | int |
+| Mecze rozegrane / Z / R / P | `all.played` / `all.win` / `all.draw` / `all.lose` | int |
+| Bramki zdobyte / stracone | `all.goals.for` / `all.goals.against` | int; design pokazuje „gf:ga" |
+| Różnica bramek | `goalsDiff` | int (bywa ujemny) — **jest wprost** |
+| Oznaczenie grupy A–L | `group` ("Group A") → litera `substr` po „Group " | filtr `^Group ([A-L])$` |
+| Strefa awansu (kolor wiersza `.qual`/`.play`) | `description` | np. „Round of 32"; **NULLABLE** (poza strefą) |
+
+**ANOMALIA „Group Stage" (FAKT z próbki, `uniq -c`):** `standings` ma 13 wewnętrznych
+tablic — 12× `"Group A".."Group L"` (po 4 drużyny) **+ 1× `"Group Stage"`** (zbiorczy
+ranking, np. 12 wierszy). Import bierze WYŁĄCZNIE grupy pasujące do `^Group ([A-L])$`;
+„Group Stage" odpada (litera się nie wyłuska).
+
+> **Uwaga do importu/storage (MVP-d):** transform (czysta funkcja) przycina wiersz do
+> `{ rank, team_id, points, played, win, draw, lose, gf, ga, diff, group, zone }`
+> (`group` = sama litera, `zone` = `description`|null) i grupuje po literze →
+> `{ "A":[wiersze…], …, "L":[…] }`. ODRZUCONE: `team.logo/name`, `home`/`away`,
+> `form`, `status`, `update`. Wartości SUROWE (int/null), zero koercji.
+>
+> **Zapis (NIE `match_data`):** standings to dane LIGOWE/GRUPOWE, nie per-mecz
+> (CLAUDE.md #3) → zapis na termie taksonomii `rozgrywki` (resolucja po term meta
+> `league_id` = `league.id`; brak termu → log + pominięcie, term NIE powstaje z
+> importu — #10). OSOBNE pole meta per sezon: `update_term_meta($term,
+> "standings_<sezon>", $json)`. Każdy sezon = niezależny wiersz meta (bez
+> read-modify-write; WŚ 2022/2026 i kolejne ligi się nie kolidują). Klucz dynamiczny
+> NIE jest rejestrowany przez `register_term_meta`; ekspozycja headless odroczona do
+> custom resolvera WPGraphQL `standings(season)` (spójne z decyzją #6). Litery grupy
+> NIE zapisujemy jako osobne term meta drużyny — jest częścią wiersza tabeli.
+
+### Dane standings obecne w API, a NIEUŻYWANE przez frontend
+`league.name`/`country`/`logo`/`flag` (nazwa PL z termu), `team.name`/`team.logo`
+(flaga/nazwa z termu po `api_id`/`fifa_code`), `home`/`away` (tabela liczy `all`),
+`form`, `status`, `update`. Cała pseudo-grupa „Group Stage".
+
+---
 ---
 
 # Sekcje zbiorcze
@@ -275,8 +330,8 @@ z `fixture.status.short`, nie taksonomia (listy publiczne stałe per widok).
 ### A5. Z INNYCH endpointów api-football (poza zakresem tego mapowania)
 | Obszar frontendu (data-inventory) | Endpoint | Status |
 |---|---|---|
-| Tabele grupowe (sekcja 9, TG) | `/standings` | osobne, późniejsze zadanie |
-| Litera grupy A–L (decyzja #6) | `/standings` (lub ręcznie) | osobne, późniejsze zadanie — źródło (`/standings` vs ręcznie) rozstrzygniemy tam |
+| Tabele grupowe (sekcja 9, TG) | `/standings` | **ZMAPOWANE** — patrz „Endpoint: standings" (slice `features/standings-import/`, MVP-d) |
+| Litera grupy A–L (decyzja #6) | `/standings` | **ROZSTRZYGNIĘTE: `/standings`** — `group` daje literę wprost (`^Group ([A-L])$`), jest częścią wiersza tabeli; patrz „Endpoint: standings" |
 | Profil drużyny: statystyki (sekcja 10, PB) | `/teams/statistics` | osobne, późniejsze zadanie; próbka `teams-statistics.jsonl` już jest |
 | Status nieobecności: Kontuzja/Zawieszenie (sekcja 6) | `/injuries` | niezmapowane; alternatywnie pole ręczne |
 | Ostatnie mecze / forma drużyny (sekcja 10) | `/fixtures` (po drużynie) | ten sam endpoint, inne zapytanie |
