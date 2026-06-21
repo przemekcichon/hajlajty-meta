@@ -776,10 +776,14 @@ importu/`match_data`/taksonomii; wzorce w `design/` (strony już istnieją).
 
 ### Treści turniejowe (wciągnięte z Fazy 5 / „po Fazie 5")
 
-- **Terminarz turnieju** (`design/Hajlajty - Terminarz Turnieju.html` + „Terminarz
-  Modularny (wzorzec)"). Dane JUŻ z importu (`fixtures` → kickoff, rozgrywki,
-  drużyny) — zero nowego źródła. Lista meczów pogrupowana po dniu/kolejce. Link
-  sidebara „Mundial 2026" → realny.
+- **Terminarz turnieju.** ŹRÓDŁO STYLU = `design/Hajlajty - Terminarz Turnieju.html`
+  (pełny plik): pełnoekranowa powłoka aplikacji z TRWAŁYM, domyślnie widocznym
+  sidebarem (jak home/archiwa), nagłówek `.page-head` (eyebrow + tytuł + lead +
+  legenda stanów), karty `.vcard`/`.live-card`/`.card--preview`. Plik „Terminarz
+  Modularny (wzorzec)" to TYLKO referencja architektury (delegacja kart,
+  `data-card-region`) — NIE źródło wyglądu (inne klasy kart, minimalny chrome).
+  Dane JUŻ z importu (`fixtures` → kickoff, rozgrywki, drużyny) — zero nowego
+  źródła. Lista meczów pogrupowana po dniu/kolejce. Link sidebara „Mundial 2026" → realny.
 - **Tabele grup** (`design/Hajlajty - Tabele Grup.html`, widok TG). ⚠️ WYMAGA
   `/standings` — ŹRÓDŁO WCIĄGNIĘTE z Fazy 5 do MVP (patrz Faza 5 / mapping A5). Z
   nim przychodzi **litera grupy A–L** (12 grup, decyzja #6) — domyka pominięcie

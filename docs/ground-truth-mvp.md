@@ -324,32 +324,51 @@ też może go wywołać; ale bez (1)–(3) chipsbar jest martwy (brak CSS/JS/has
 - Style kart + filtra: patrz „Kontrakt filtra" — przez rozszerzenie gate'ów, nie
   duplikację.
 
-### URL / Page Template (FAKT)
-- WP 4.7+ skanuje nagłówek `Template Name` w CAŁYM motywie (też podkatalogi) →
-  plik szablonu MOŻE żyć w slice. Jeśli skan zawiedzie: fallback `page-terminarz.php`
-  w roocie motywu delegujący do partiala slice'a. **Runtime do potwierdzenia**:
-  czy szablon w podkatalogu pojawia się w „Atrybuty strony → Szablon".
+### URL / Page Template (FAKT — SKORYGOWANE)
+- **KOREKTA wcześniejszego założenia:** WP NIE skanuje podkatalogów na szablony.
+  `WP_Theme::get_post_templates()` woła `get_files('php', 1)` — **głębokość 1**, a w
+  `WP_Theme::scandir()` katalog napotkany na poziomie 1 (`features/`) jest rekurowany
+  z depth 0, więc podkatalog (`features/match-lists/`) zostaje pominięty
+  ([class-wp-theme.php:1338 + scandir:1494-1497]). Plik z `Template Name` w slice
+  NIE zostałby wykryty. **Decyzja:** szablon `template-terminarz.php` żyje w ROOCIE
+  motywu (jak `archive-mecz.php`), cienki — deleguje body do partiala slice'a
+  `features/match-lists/partials/terminarz.php` (vertical slice zachowany).
 - **Aktywacja linku sidebara:** [sidebar.php:48](../../hajlajty20/app/public/wp-content/themes/hajlajty-theme/features/layout/partials/sidebar.php)
   (grupa „Mundial 2026", dziś `href="#"`). MVP-c podmienia TYLKO „Terminarz turnieju"
   na URL strony (dynamicznie) — świadome, minimalne dotknięcie slice'a `layout`;
   „Tabele grup"/„Reprezentacje" zostają `#` do MVP-e/g.
 
-### Wzorzec designu (FAKT)
-- `design/Hajlajty - Terminarz Turnieju.html`: grupowanie **po dniu**, sekcja
-  `<section class="schedule-day" data-day>` → `.schedule-day__head`
-  (`.schedule-section__title` „Sobota, 6 czerwca 2026" + `.schedule-day__count`
-  „4 mecze") → `.schedule-grid[data-filterable]`. Karty per stan: `.vcard`
-  (zakończony/skrót), `.live-card` (live), `.card--preview` (zapowiedź z countdown).
-- `design/Hajlajty - Terminarz Modularny (wzorzec).html`: czysty layout
-  (`<main data-card-region>` + sekcje dni); karty jako autonomiczne komponenty.
+### Wzorzec designu (FAKT — ŹRÓDŁO STYLU)
+- **ŹRÓDŁO STYLU = `design/Hajlajty - Terminarz Turnieju.html` (pełny plik).** To z
+  niego bierzemy CAŁY wygląd: pełnoekranowa powłoka aplikacji z TRWAŁYM, domyślnie
+  widocznym sidebarem (jak home/archiwa), nagłówek `.page-head` (eyebrow „Mundial
+  2026 · …" + `.page-head__title` + lead `.page-head__sub` + `.legend` ze stanami),
+  grupowanie **po dniu** `<section class="schedule-day" data-day>` → `.schedule-day__head`
+  (`.schedule-section__title` + `.schedule-day__count` + `.schedule-day__today`) →
+  `.schedule-grid[data-filterable]`. Karty per stan: `.vcard` (skrót), `.live-card`
+  (live), `.card--preview` (zapowiedź z countdown) — te same klasy co partiale motywu.
+- `design/Hajlajty - Terminarz Modularny (wzorzec).html`: **TYLKO referencja
+  ARCHITEKTURY** (delegacja kart, `data-card-region`) — **NIE źródło wyglądu**. Ma
+  inne klasy kart (`.card--highlight`/`.card--live`) i minimalny chrome (`.demo-bar`,
+  bez sidebara). NIE portować z niego stylu.
 
-### Luki / decyzje otwarte (do prompta wykonawczego)
-- **Cross-slice gate** (patrz „Kontrakt filtra") — prompt MVP-c MUSI dopuścić edycję
-  gate'ów w `match-lists` + `filters`; inaczej chipsbar i style kart nie zadziałają.
-- **Umiejscowienie pliku szablonu** (slice vs root) — wg wyniku runtime skanu.
-- **`card-wynik` markup** — minimalny, do złożenia z istniejących klas (bez nowego
-  systemu stylów).
-- **Istniejący kod terminarza:** BRAK (sprawdzone) — nowy szablon/render.
+### Zrealizowano (stan po implementacji — FAKT)
+- **Karta wyniku `card-wynik.php` / `.rcard`** (FT bez skrótu + odwołany) — styl
+  ZATWIERDZONY, **zachować**: chrome karty na tokenach (`--surface`/`--border`/`--r-lg`,
+  hover translateY+shadow jak `.live-card`), `rcard__top` (faza + badge stanu),
+  `rcard__match` grid 1fr/auto/1fr (drużyna · wynik · drużyna), `rcard--off` dla
+  odwołanego (bez wyniku). Bez miniatury wideo. Definicja w `assets/styles/terminarz.css`.
+- **Pełna powłoka z trwałym sidebarem:** slice `match-lists` dokłada `body.hajlajty-terminarz`
+  (`hajlajty_match_lists_terminarz_body_class`), a layout.css włącza tę klasę do
+  selektorów „WIDOKI Z TRWAŁYM MENU" obok `body.home`/`body.post-type-archive` →
+  desktop ≥1100px: sidebar STAŁY (nie drawer), treść pełnej szerokości.
+- **Nagłówek + legenda** sportowane 1:1 z pełnego designu do `terminarz.css`
+  (`.page-head*`, `.legend*`).
+- **Cross-slice gate:** zrobione — wspólny predykat `hajlajty_match_lists_is_terminarz()`
+  + `hajlajty_filters_is_list_view()` rozszerzony (function_exists), gate enqueue w
+  `filters`/`match-lists` przez predykat.
+- **Szablon w ROOCIE** (`template-terminarz.php`) — patrz korekta „URL / Page Template".
+- **Istniejący kod terminarza przed MVP-c:** BRAK (sprawdzone) — wszystko nowe.
 
 ---
 
