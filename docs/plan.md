@@ -961,6 +961,64 @@ ciążyło na MVP. Każde to przyszły osobny slice + PR.
 
 ---
 
+## Faza — Monetyzacja (płatna subskrypcja)
+
+Faza NAJDALSZA (po MVP i Fazie 5). Cel: funkcje premium za płatną subskrypcją —
+NADBUDOWA nad darmowym rdzeniem, nigdy jego okrojenie. Charakter projektu bez zmian:
+tryb darmowy zostaje pełnowartościowy i edukacyjny; premium DOKŁADA, nie zabiera.
+Każda funkcja to osobny slice + PR; żadna nie startuje przed MVP (wymagają kompletu
+danych z importu) ani przed warstwą uprawnień (niżej).
+
+**Fundament (warunek wszystkich 4): warstwa uprawnień / subskrypcji.** Mechanizm
+„kto ma płatny dostęp" + bramkowanie (gating) treści/funkcji. DECYZJE przy realizacji:
+gdzie żyje model subskrypcji (rozszerzenie `hajlajty-user` — relacje użytkownika — czy
+osobny plugin `hajlajty-billing`; granica artefakt↔artefakt), integracja płatności
+(provider zewnętrzny; klucze w wp-config/.env, NIGDY w repo), reguła bramki spójna
+headless (te same uprawnienia przez REST/WPGraphQL pod przyszły Next.js, decyzja #6).
+Backend (model + endpointy z autoryzacją) = trwała wartość; warstwa frontowa wymienna
+(jak w `hajlajty-user`).
+
+1. **Zaawansowana wyszukiwarka (premium).** Kwerendy ZAWODNIK×ZDARZENIE×ROZGRYWKI —
+   np. „wszystkie skróty z różnych rozgrywek, gdzie Lewandowski LUB Mbappé zrobili
+   hat-trick". Wykracza poza darmową wyszukiwarkę publiczną (CLAUDE.md „Wyszukiwanie
+   i filtry": darmowa = TYLKO po drużynach, bez Algolii) — to ŚWIADOME premium-
+   rozszerzenie bramkowane subskrypcją, NIE zmiana darmowego frontu. Dane są:
+   zawodnicy/zdarzenia siedzą w `match_data` (events: `player`/`player_id`, składy).
+   DECYZJA źródła (przy realizacji):
+   - **Algolia public-facing** — szybkie fasety/typo-tolerancja; ale CLAUDE.md trzyma
+     Algolię jako narzędzie REDAKCYJNE (admin-only). Tu byłby NOWY, publiczny indeks
+     premium — indeks = POCHODNA (nigdy źródło prawdy: CPT/`match_data`), sync przy
+     zapisie/imporcie = osobny slice, klucze w wp-config/.env;
+   - **WPGraphQL** — kwerendy po grafie bez drugiego magazynu; spójne z migracją
+     headless (#6), ale agregacje („hat-trick = ≥3 gole jednego zawodnika w meczu")
+     wymagają pola/resolvera pochodnego (gole per zawodnik liczone z `events`).
+   Wspólny warunek: derywacja „gole zawodnika / hat-trick" z `events` jako POCHODNA
+   (pole/indeks), NIE rozbijanie `match_data` (#3). Rozstrzygnięcie Algolia vs
+   WPGraphQL przy realizacji (koszt indeksu vs złożoność agregacji w grafie).
+
+2. **Tryb teatru (premium).** Kinowy tryb odtwarzania skrótu: pełnoekranowy/
+   przyciemniony widok wideo. Nadbudowa renderu nad `skrot_url`; ZERO nowego źródła
+   danych. Bramkowany subskrypcją. Granica artefaktu: motyw (warstwa frontowa).
+
+3. **Śledzenie kilku meczów na żywo naraz + statystyki (premium).** Pulpit „multi-
+   live": kilka trwających meczów obok siebie z bieżącym wynikiem/minutą/statystykami.
+   Nadbudowa nad importem live (cron 3e-iv-a + `match_data` live) i listą „Na żywo".
+   Zależność: jeśli świeżość ma być sub-minutowa, wchodzi overlay transientów (Faza 5:
+   „Transienty + overlay renderu danych live") — wspólny warunek kadencji. Bramkowany
+   subskrypcją. Granica: odczyt motyw + ewentualny endpoint agregujący (REST/WPGraphQL),
+   bez nowego źródła prawdy.
+
+4. **Inne ligi poza głównymi (premium).** Darmowy tier = ligi główne (np. Mundial +
+   wybrane); premium = dostęp do POZOSTAŁYCH rozgrywek. Bramkowanie po taksonomii
+   `rozgrywki` (mecz już niesie term; gating = reguła uprawnień na liście/single, nie
+   nowy model danych). Pozyskanie danych tych lig to TEN SAM slice co dziś (`league.id`
+   → term `rozgrywki`, seed + `/fixtures`/`/standings`) — różnica jest w DOSTĘPIE, nie
+   w imporcie (#10: nadal tylko z importu, nigdy ręcznie). DECYZJA: jak oznaczyć ligę
+   darmową vs płatną (atrybut termu `rozgrywki`?) — reguła bramki czyta to przy
+   renderze/zapytaniu.
+
+---
+
 ## Otwarte kwestie z mapowania (przypisanie do faz)
 
 | Kwestia | Źródło | Faza | Status / akcja |
