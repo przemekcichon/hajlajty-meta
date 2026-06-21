@@ -230,12 +230,11 @@ poziomu KONTRAKTU po ground-truth MVP-c (2026-06) — decyzje 1–6 zatwierdzone
 
 ### Decyzje MVP-c (PODJĘTE — wiążące)
 1. **URL = Page Template** (bez rewrite/flush). Plik z nagłówkiem
-   `Template Name: Terminarz turnieju`; człowiek tworzy Stronę w WP admin (slug
-   rekom. `terminarz`). Link sidebara rozwiązywany dynamicznie po SZABLONIE
-   (niezależnie od slug-a): `get_pages` z `meta_key='_wp_page_template'`,
-   `meta_value='template-terminarz.php'` → `get_permalink()`. Brak Strony → link
-   zostaje `#`. (Wcześniejsze „np. `get_page_by_path()`" było tylko poglądowe —
-   wariant po meta szablonu jest odporny na zmianę slug-a przez redaktora.)
+   `Template Name: Terminarz turnieju`; człowiek tworzy Stronę w WP admin pod
+   slug-iem **`terminarz`** (wymagane). Link sidebara = STAŁY `home_url('/terminarz/')`
+   — świadomy wybór po recenzji (M2): bez zapytania `get_pages` przy każdym renderze
+   powłoki. Koszt: slug MUSI być `terminarz` (inaczej link 404). Stan `.is-active`
+   nadal po `is_page_template('template-terminarz.php')` (niezależny od slug-a).
 2. **Grupowanie PO DNIU** — klucz dnia = LOKALNA data PL: surowy `kickoff` (UTC
    `Y-m-d H:i:s`) → `setTimezone( wp_timezone() )` → `Y-m-d`; nagłówek dnia `wp_date`
    (też PL, spójny z kluczem). REWIZJA pierwotnego „substr(kickoff,0,10) UTC": dla
