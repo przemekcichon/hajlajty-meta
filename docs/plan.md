@@ -843,7 +843,11 @@ na końcu pary import→widok. Repo w nawiasie (granica artefakt↔artefakt).
   MVP-e; rozstrzyga źródło litery (`/standings` vs ręcznie). Może startować
   równolegle do a/b/c (osobne repo).
 - **MVP-e — Tabele grup (motyw).** Zależy od MVP-d (standings + litera). Aktywuje
-  link sidebara.
+  link sidebara. UWAGA renderu: strefę wiersza (`.qual`/`.play`) wyznaczaj po
+  POZYCJI (`rank`) / obecności niepustego `zone`, NIE przez string-match na `zone`
+  — string różni się między edycjami turnieju (2026 „Round of 32" vs 2022
+  „Promotion - World Cup (Play Offs)"). MVP-d zapisuje `zone` SUROWO; interpretacja
+  należy do renderu (patrz pamięć projektu „standings-zone-varies").
 - **MVP-f — Import `/teams/statistics` + dobór pól wg #10 (core, slice danych).**
   Warunek MVP-g. Może startować równolegle do MVP-d.
 - **MVP-g — Reprezentacje / Profil kraju (motyw).** Zależy od MVP-f. Strona drużyny
@@ -910,10 +914,26 @@ osobną warstwą nad nim są:
 Branch(e) osobne, gdy ruszymy. Cel: zebrać tu wszystko odłożone, żeby nie
 ciążyło na MVP. Każde to przyszły osobny slice + PR.
 
-- **`/standings`** — ⚠️ WCIĄGNIĘTE DO „Fazy MVP — na produkcję" (decyzja 2026-06:
-  wymaga go widok Tabele grup na launch). Tabele grupowe (data-inventory §9, widok
-  TG) + **litera grupy A–L** (12 grup, decyzja #6). Źródło litery (`/standings` vs
-  ręcznie) rozstrzygamy przy realizacji. Próbki: brak (dograć).
+- **`/standings`** — ✅ ZREALIZOWANE w „Fazie MVP" jako slice core
+  `features/standings-import/` (MVP-d, PR hajlajty-core#11): import 12 grup A–L do
+  meta `standings_<sezon>` na termie `rozgrywki`; litera = część wiersza tabeli
+  (źródło rozstrzygnięte: `/standings`, nie ręcznie). Próbka dograna
+  (`api-samples/standings.jsonl`). **Odłożone follow-upy (post-MVP-d, do rozważenia
+  tutaj — NIE blokery):**
+  - **Cron odświeża zakończone turnieje w nieskończoność.** Raz zaimportowany,
+    zamrożony sezon (np. WŚ 2022) jest re-fetchowany co godzinę bez końca
+    (1 zapytanie/para/h). Dla MVP (1 liga × ~2 sezony, ~48/dzień z puli 7500)
+    nieszkodliwe, ale to stały, rosnący z czasem koszt API bez wartości dla sezonów
+    zakończonych. Do rozważenia: nie odświeżać sezonu starszego niż X / „zamrożenie"
+    tabeli po wykryciu końca turnieju (np. wszystkie statusy mecze FT). NIE w MVP-d.
+  - **Kadencja crona — ZAAKCEPTOWANE odstępstwo, do ew. rewizji stratega.** Prompt
+    MVP-d #7 kazał „mirror cadence fixtures", ale realny cron fixtures
+    (`match-import/cron.php`) to live-polling z oknami meczowymi + stale-FT (custom
+    interwał `hajlajty_one_minute`) — mechanizm nieprzenośny na wolno zmienne
+    standings. MVP-d użył wbudowanego `hourly` + bramy budżetowej (odświeża TYLKO
+    pary z istniejącym `standings_<sezon>`; świeża instalacja = 0 zapytań) — zgodne
+    z #8 (bez custom-interwału na zapas). Decyzja kadencyjna należy do stratega, gdyby
+    koszt/świeżość zaczęły uwierać (sprzężone z follow-upem o zakończonych turniejach).
 - **`/teams/statistics`** — ⚠️ WCIĄGNIĘTE DO „Fazy MVP — na produkcję" (wymaga go
   widok Reprezentacje/Profil). Profil drużyny/reprezentacji (§10, widok PB).
   Próbka `teams-statistics.jsonl` jest. Najpierw wybór pól wg odpowiedzi #10
@@ -969,8 +989,8 @@ ciążyło na MVP. Każde to przyszły osobny slice + PR.
 | Oznaczenie własnej bramki / karnego / niewykorzystanego karnego | mapping §events | **Faza 3** | Decyzja UI: czy i jak oznaczać `Own Goal`/`Penalty`/`Missed Penalty`. Dane są; brak w designie. |
 | Eventy `Var` (np. Goal cancelled) | mapping §events | **Faza 3** | Pomijać czy pokazywać. Domyślnie: pomijać (brak w enumie designu). |
 | Czas trwania wideo (źródło) | mapping A2 | **Faza 1** (pole) / **Faza 5** (pobieranie) | Rozstrzygnięte: źródłem YouTube Data API. Faza 1 definiuje pole ACF; slice pobierający = faza danych zewnętrznych (Faza 5). Do tego czasu ręcznie. Klucz YT w `.env`. |
-| `/standings` (tabele grup) | mapping A5 | **Faza MVP** | wciągnięte z Fazy 5 — wymaga go widok Tabele grup na launch. |
-| Litera grupy A–L (12 grup) | mapping A5, §3 | **Faza MVP** | razem ze standings (warunek widoku Tabele grup). |
+| `/standings` (tabele grup) | mapping A5 | **Faza MVP** | ✅ ZREALIZOWANE — slice core `features/standings-import/` (MVP-d, PR core#11); zapis `standings_<sezon>` na termie `rozgrywki`. Follow-upy crona → Faza 5. |
+| Litera grupy A–L (12 grup) | mapping A5, §3 | **Faza MVP** | ✅ ZREALIZOWANE (MVP-d) — źródło `/standings` (`group` → litera `^Group ([A-L])$`), zapisana jako część wiersza tabeli. |
 | `/teams/statistics` (profil drużyny) | mapping A5 | **Faza MVP** | wciągnięte z Fazy 5 — widok Reprezentacje/Profil; najpierw dobór pól. |
 | `/injuries` (status nieobecności) | mapping A5 | **Faza 5** | później / ew. pole ręczne. |
 | Statystyki rozszerzone (xG, insidebox itd.) | mapping §statistics | **Faza 2/3** | Import: które `type` wpuścić do `match_data`. Wg odpowiedzi #4 — wziąć wszystkie dostępne, tłumaczyć i pokazać te, co się mieszczą. Lista typów do zatwierdzenia. |
