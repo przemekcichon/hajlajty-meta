@@ -957,6 +957,56 @@ ciążyło na MVP. Każde to przyszły osobny slice + PR.
        Template tabeli → meta strony `league_id`+`season`" (MVP-e parametryzuje to przez
        meta strony — patrz decyzja #2 MVP-e). Render rozgałęzia się po kształcie/markerze
        danych; redaktor robi DOKŁADNIE to samo dla obu.
+  3. **Nawigacja wieloturniejowa (decyzje IA — utrwalone w sesji 2026-06).** „Rozgrywki
+     to MIEJSCA, drużyny to FILTRY w obrębie miejsca." Ustalone:
+     - **Model A — strona-hub per (rozgrywka, sezon).** URL np. `/mundial-2026/`,
+       `/laliga-2024/` (sezon w slugu; URL-e „na zawsze", #7). Strona niesie REFERENCJE
+       do DWÓCH termów (`rozgrywki` + `sezon`), widoki = `tax_query` przecięcia
+       (`rozgrywki=X AND sezon=Y`) na `mecz`. `league_id` zostaje WYŁĄCZNIE na termie
+       `rozgrywki` (strona tylko wskazuje term) — redaktor WYBIERA term z listy, nie
+       wpisuje surowego api-football id. Taksonomie zostają „czyste" dla `mecz` (#4).
+     - **URL = jedyne źródło prawdy kontekstu.** Chipsbar/dropdown sezonu to PICKER
+       NAWIGUJĄCY (nie stan JS). Na poziomie rozgrywki chipsbar = JUŻ tylko drużyny
+       (bez przełączania trybu). Dropdown sezonu = skok do strony-RODZEŃSTWA (ta sama
+       rozgrywka, inny sezon; rodzeństwo powiązane wspólnym termem `rozgrywki`).
+     - **Wybór rozgrywki → najnowszy dostępny sezon** (wyliczany: max term `sezon` z
+       danymi dla tej rozgrywki). „Bieżący" NIE jest zapisaną flagą — jest pochodną.
+     - **Sidebar — rozdział per-URL vs per-użytkownik (KRYTYCZNE dla cache):**
+       podświetlenie „gdzie jestem" = per-URL → render SERWEROWY (cache-safe). Recency
+       („5 ostatnio przeglądanych") + piny (docelowo 15) = per-UŻYTKOWNIK → render
+       KLIENTOWY (localStorage anonim / uwierzytelniony fetch zalogowany), żeby NIE
+       psuć full-page cache. Jeden mechanizm, różny czas życia (recency=auto,
+       piny=kurowane). Piny: zalogowani (plugin `hajlajty-user`, cross-device) +
+       anonim localStorage (bez sync między urządzeniami — akceptowalne, nie zmuszamy
+       do rejestracji). Sekcje zwijalne.
+     - **Render dużych lig (~380 meczów) bez paginacji:** karty SERWER-render +
+       natywne `loading="lazy"` na grafice (zero logiki serwerowej) + `content-visibility:
+       auto` (CSS, pomija render poza ekranem). Filtr kliencki po `data-*` (wzorzec jak
+       dziś). NIE „JSON→DOM budowany w JS" (gubi SEO/cache). Serwerowe chunkowanie —
+       dopiero gdy ZMIERZONE wolne.
+     - **Zapis skrótu do rozgrywki+sezonu = JUŻ w modelu:** skrót to `mecz` otagowany
+       `rozgrywki`+`sezon` → natywny filtr huba (`mecz` z `skrot_url` + `rozgrywki=X` +
+       `sezon=Y`), zero nowego mechanizmu. Ulubione użytkownika dziedziczą termy meczu.
+     - **Panel redakcyjny (Algolia, później):** cel ZAPISU = WP (strona/termy = źródło
+       prawdy), Algolia tylko lustrzy do wyszukiwania (NIE magazyn zapisu). MVP-ścieżka:
+       redaktor tworzy stronę-hub w zwykłym adminie WP (term-picker) — bez Algolii.
+     - **Obserwowane ≠ przeglądanie rozgrywki** (inna logika): follow-set rozjeżdża się
+       po ligach → dla obserwowanych BRAK „tabeli" (grają w różnych rozgrywkach); to
+       osobny temat (plugin user). Ulubione mecze (dowolny status) widoczne na home/
+       archiwach.
+     - **Profil klubu jest WIELO-rozgrywkowy** (sprzężenie z MVP-g): obecny MVP-g/
+       Reprezentacje jest „mundialowy" (jedna rozgrywka, seed grup) i NIE przenosi się
+       1:1 na kluby (Barça: La Liga + LM + Puchar Króla). „Tabela" ma sens tylko w
+       kontekście (rozgrywka, sezon); profil klubu musi mieć sekcje per-rozgrywka. Do
+       uwzględnienia, gdy MVP-g spotka kluby. (Jedna drużyna = jeden term `druzyna`
+       współdzielony między rozgrywkami — to NIE problem danych, lecz cecha pożądana.)
+     - **OTWARTE pod-decyzje (NIEROZSTRZYGNIĘTE):**
+       - Adresowanie pod-widoków pod `/{rozgrywka-sezon}/` (Terminarz/Tabela/Drużyny):
+         (i) strony-dzieci `/…/terminarz|tabela|druzyny` (czyste URL-e, dużo stron, zero
+         customu) vs (ii) jedna strona + rewrite `/…/{widok}/` (jedna strona, custom
+         rewrite + ostrożność z flushem #7) vs (iii) jedna strona z zakładkami (najmniej
+         stron, słabszy deep-link). Kompromis: praca redaktora ↔ głębokość linkowania.
+       - Kształt strony głównej (kuracja redakcyjna: popularne ligi/mecze) — do projektu.
   Powiązanie (NIE mylić): „inne ligi" w fazie **Monetyzacja** to ACCESS-gating (kto
   widzi płatne ligi); TU chodzi o POZYSKANIE i WIDOK tabel ligowych — inny temat.
 - **`/teams/statistics`** — ⚠️ WCIĄGNIĘTE DO „Fazy MVP — na produkcję" (wymaga go
