@@ -934,6 +934,31 @@ ciążyło na MVP. Każde to przyszły osobny slice + PR.
     pary z istniejącym `standings_<sezon>`; świeża instalacja = 0 zapytań) — zgodne
     z #8 (bez custom-interwału na zapas). Decyzja kadencyjna należy do stratega, gdyby
     koszt/świeżość zaczęły uwierać (sprzężone z follow-upem o zakończonych turniejach).
+- **Piłka klubowa + TABELE LIGOWE (priorytet strategiczny post-MVP — PEWNIK, nie
+  „może").** Mundial to rozgrzewka; docelowy rdzeń serwisu to skróty KLUBOWE (La Liga,
+  Premier League itd.) w wielu sezonach. Dwie części:
+  1. **Skróty klubowe (treść)** — TEN SAM tor co dziś: import `/fixtures` dla lig
+     klubowych + sezonów, seed `rozgrywki`/`druzyna` po `league_id`/`api_id`,
+     taksonomie `rozgrywki`+`sezon`. Model danych JUŻ to udźwignie (skaluje na sezony
+     i ligi); realna praca to seed klubów/lig + redakcja `skrot_url`. Architektonicznie
+     nic nowego — przeglądanie/filtrowanie skrótów jest niezależne od widoku tabel.
+  2. **Tabele ligowe (import + widok)** — TU jest luka do domknięcia:
+     - **Import:** transform standings (`features/standings-import/transform.php`)
+       filtruje dziś `^Group ([A-L])$` — świadomie WC-specyficzny (MVP-d). Tabela
+       LIGOWA to jedna tabela (`group` = nazwa ligi / null, brak liter A–L), więc DZIŚ
+       odpada (zero grup → błąd). Do uogólnienia: rozpoznać tabelę ligową (pojedyncza
+       tablica) i zapisać pod tym samym `standings_<sezon>` na termie `rozgrywki`, w
+       kształcie „jedna tabela" (+ marker typu group|league). Przechowywanie
+       (per liga×sezon, term meta) JUŻ wystarcza — brakuje tylko gałęzi w transformie.
+     - **Widok:** render pojedynczej tabeli (jeden `<table class="standings">` bez
+       kart-grup) jako WARIANT obok MVP-e (tabele grup).
+     - **Mechanizm redaktora WSPÓLNY z MVP-e** (decyzja kierunkowa właściciela): „tabela
+       to tabela", niezależnie czy ligi czy grup — ta sama ścieżka „utwórz Stronę →
+       Template tabeli → meta strony `league_id`+`season`" (MVP-e parametryzuje to przez
+       meta strony — patrz decyzja #2 MVP-e). Render rozgałęzia się po kształcie/markerze
+       danych; redaktor robi DOKŁADNIE to samo dla obu.
+  Powiązanie (NIE mylić): „inne ligi" w fazie **Monetyzacja** to ACCESS-gating (kto
+  widzi płatne ligi); TU chodzi o POZYSKANIE i WIDOK tabel ligowych — inny temat.
 - **`/teams/statistics`** — ⚠️ WCIĄGNIĘTE DO „Fazy MVP — na produkcję" (wymaga go
   widok Reprezentacje/Profil). Profil drużyny/reprezentacji (§10, widok PB).
   Próbka `teams-statistics.jsonl` jest. Najpierw wybór pól wg odpowiedzi #10
