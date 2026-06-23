@@ -1009,6 +1009,27 @@ ciążyło na MVP. Każde to przyszły osobny slice + PR.
        - Kształt strony głównej (kuracja redakcyjna: popularne ligi/mecze) — do projektu.
   Powiązanie (NIE mylić): „inne ligi" w fazie **Monetyzacja** to ACCESS-gating (kto
   widzi płatne ligi); TU chodzi o POZYSKANIE i WIDOK tabel ligowych — inny temat.
+- **Filtr publiczny (chipsbar + wyszukiwarka) — niespójność „zaznaczony chip vs
+  tekst", DO ROZWAŻENIA (nie decyzja).** Dotyczy slice'a `hajlajty-theme`
+  `features/filters/` (Faza 4A, na produkcji); rozważyć przy ROZBUDOWIE chipsbara w
+  tej fazie (dojdą chipy `rozgrywki`/`sezon` — semantyka się komplikuje). Objaw:
+  zaznaczam chip „Niemcy" i wpisuję `fra` w wyszukiwarkę → w KARTACH zostaje tylko
+  Francja (karty Niemiec znikają, mimo że chip Niemcy jest zaznaczony), a w CHIPACH
+  widać Francję i (wciąż zaznaczone) Niemcy. Źródło asymetrii (`filters.js`):
+  `cardMatches()` wymaga od karty tekstu ORAZ trafienia w aktywny chip (tekst AND
+  chipy), więc karta Niemiec (brak „fra" w `data-team-names`) wypada; ale
+  `applyChipSearch()` CHRONI aktywny chip przed schowaniem tekstem — chip Niemcy
+  zostaje. Czyli chip jest „zabezpieczony", a jego karty już nie.
+  - **Za utrzymaniem kart zaznaczonych drużyn** (chip = filtr zablokowany,
+    przeżywa tekst): spójność z zachowaniem chipa; użytkownik czyta zaznaczenie jako
+    „to ZOSTAJE". Wpisany tekst byłby wtedy DODAniem (OR), nie zawężeniem.
+  - **Przeciw**: przy wielu zaznaczonych chipach wpisanie nazwy NIE zawęziłoby do
+    szukanej drużyny — karta „Francja" zginęłaby wśród wszystkich zabezpieczonych;
+    traci sens „szukam konkretnej".
+  - Do rozstrzygnięcia: czy tekst i chipy łączyć przez AND (dziś, ale wtedy też
+    chowaj niepasujące chipy bez wyjątku — usuń asymetrię) czy przez OR (zaznaczone
+    drużyny zawsze widoczne + dodatkowo trafienia tekstu). Decyzja UX właściciela;
+    rozstrzygnąć łącznie z rozbudową chipsbara o kolejne taksonomie.
 - **`/teams/statistics`** — ⚠️ WCIĄGNIĘTE DO „Fazy MVP — na produkcję" (wymaga go
   widok Reprezentacje/Profil). Profil drużyny/reprezentacji (§10, widok PB).
   Próbka `teams-statistics.jsonl` jest. Najpierw wybór pól wg odpowiedzi #10
