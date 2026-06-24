@@ -2,7 +2,7 @@
 
 Żywy rejestr uwag/feedbacku z produkcji. Każda uwaga: **zgłoszenie** (co napisał
 użytkownik), **analiza** (o co naprawdę chodzi), **kierunek** (propozycja zmiany),
-**lokalizacja** (gdzie w kodzie), **status**. Dopisuj nowe na górze listy.
+**lokalizacja** (gdzie w kodzie), **status**. Dopisuj nowe na końcu listy (numeracja rosnąca).
 
 **Statusy:** `NOWE` · `DO ROZWAŻENIA` · `ZAAKCEPTOWANE` (kierunek przyjęty, czeka na
 realizację) · `W TOKU` · `ZROBIONE` (z linkiem do PR) · `ODRZUCONE` (z powodem).
@@ -84,3 +84,43 @@ realizację) · `W TOKU` · `ZROBIONE` (z linkiem do PR) · `ODRZUCONE` (z powod
 - **Lokalizacja:** `hajlajty-theme/features/match-display/partials/` — `single-live.php`,
   `single-ft.php`, `live-fragment.php`; style w `assets/styles/match-single.css`.
 - **Status:** `ZAAKCEPTOWANE` (kierunek), wymaga refaktoru — większy niż U1/U2.
+
+## U5 — Składy reprezentacji na stronie reprezentacji
+
+- **Zgłoszenie:** dodać składy reprezentacji na stronie reprezentacji.
+- **Analiza:** na **Profilu kraju** (`taxonomy-druzyna`) sekcja składu `.squad-block`
+  została **świadomie przycięta w MVP-g** — bo nie ma źródła **kadry imiennej**:
+  `/teams/statistics` (MVP-f) jej nie daje, a `match_data.lineups` to skład z KONKRETNEGO
+  meczu (11 + rezerwowi, którzy wystąpili — NIE oficjalna kadra 26). To udokumentowana
+  LUKA (ground-truth MVP-g, `data-inventory.md` §10).
+- **Kierunek (propozycja):** wymaga **nowego źródła danych** — najpewniej import
+  api-football `/players/squads` (oficjalna kadra per drużyna) jako osobny slice (styl
+  Faza 5) → zapis na termie `druzyna` (np. meta `squad_<sezon>` jako JSON, analogicznie
+  do `team_stats_…`) → render przywróconej sekcji składu na Profilu. **Alternatywa
+  tymczasowa:** „skład" z `lineups` ostatniego meczu — szybkie, ale NIEPEŁNE i mylące
+  jako „kadra" (tylko ci, co zagrali); raczej nie.
+- **DO DECYZJI:** oficjalny import `/players/squads` (porządnie, więcej pracy) vs
+  prowizorka ze składów meczowych (szybko, niepełne). Rekomendacja: import oficjalny.
+- **Lokalizacja:** core — nowy slice importu (`/players/squads`); theme —
+  `features/teams-view/partials/profile.php` (przywrócić sekcję kadry) + ew. nowy partial.
+- **Status:** `DO ROZWAŻENIA` (cel chciany, ale zależny od wyboru źródła kadry; to NIE
+  sama warstwa render — potrzebny nowy import).
+
+## U6 — Filtrowanie zdarzeń w osi czasu (np. wyłączyć zmiany)
+
+- **Zgłoszenie:** dodać filtrowanie eventów w osi czasu, np. żeby wyłączyć zmiany.
+- **Analiza:** oś czasu (single live + FT) pokazuje wszystkie typy zdarzeń (gole,
+  kartki, zmiany; VAR już pomijany). Użytkownik chce **klient-side przełączniki typów**,
+  by np. ukryć zmiany i skupić się na bramkach/kartkach. Elementy osi już mają
+  semantyczny `key`/`data-ev-kind` (goal/card/sub) — filtr po typie jest prosty (toggle +
+  ukrywanie `.tl-item` po typie), bez ruszania danych.
+- **Kierunek (propozycja):** przełączniki/chipy nad osią (np. „Gole", „Kartki",
+  „Zmiany") + lekki JS ukrywający `.tl-item` wg typu (stan może być lepki, jak filtr
+  drużyn). Uwaga: dziś `data-ev-kind` jest na elemencie osi tylko dla goal/card/sub
+  (pod overlaye live) — wystarcza do tego filtra; ewentualnie dołożyć generyczny
+  `data-ev-type` dla pełnego pokrycia typów.
+- **Sprzężenie:** z **U4** — jeśli ujednolicimy oś między live a FT, filtr dodać w
+  JEDNYM, wspólnym miejscu (nie dwa razy).
+- **Lokalizacja:** theme — `features/match-display/partials/live-fragment.php` (oś live)
+  + `single-ft.php` (oś FT) + mały JS/CSS filtra.
+- **Status:** `ZAAKCEPTOWANE` (kierunek; render + lekki JS).
