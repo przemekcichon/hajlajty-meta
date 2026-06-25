@@ -816,6 +816,12 @@ np. „Zwycięzca grupy A", runda bez przypisanych par), żeby użytkownik widzi
 turnieju, ZANIM API poda realne pary. Po pojawieniu się realnych fixtures placeholdery
 zastępuje import.
 
+**Źródło struktury i harmonogramu drabinki (pod placeholdery):** oficjalny terminarz +
+bracket FIFA — *Knockout stage match schedule & bracket*:
+https://ppr-www.fifa.com/en/tournaments/mens/worldcup/canadamexicousa2026/articles/knockout-stage-match-schedule-bracket
+Daje kształt drabinki (które miejsca grup się spotykają), daty i godziny meczów — można
+po nim budować placeholdery (i wyliczać pary ze standings) ZANIM api-football poda fixtures.
+
 **Powiązania (część jest gotowa):**
 - Render rund pucharowych JUŻ działa: D3.3 / `hajlajty_lookup_round` mapuje te stringi
   na PL (1/16, 1/8, ćwierćfinał, półfinał, mecz o 3. miejsce, finał) — gdy fixtures
