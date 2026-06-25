@@ -825,7 +825,12 @@ po nim budować placeholdery (i wyliczać pary ze standings) ZANIM api-football 
 **Powiązania (część jest gotowa):**
 - Render rund pucharowych JUŻ działa: D3.3 / `hajlajty_lookup_round` mapuje te stringi
   na PL (1/16, 1/8, ćwierćfinał, półfinał, mecz o 3. miejsce, finał) — gdy fixtures
-  dojdą, etykiety zadziałają bez zmian w kodzie.
+  dojdą, etykiety zadziałają bez zmian w kodzie. Stringi rund są **potwierdzone** przez
+  wsparcie api-football (lista z `fixtures/rounds` powyżej) i pokrywają się **1:1** z
+  kluczami `hajlajty_lookup_round` (`Round of 32`/`Round of 16`/`Quarter-finals`/
+  `Semi-finals`/`3rd Place Final`/`Final`) — wcześniej PRZEWIDYWANE, teraz PEWNE. (W
+  `lookups.php` zostaje stary komentarz „TODO zweryfikować round pucharowy" — do
+  usunięcia przy pierwszej okazji kodowej; merytorycznie już zweryfikowane.)
 - `/fixtures/rounds` to **tani sygnał wykrycia „czy puchar już jest"** (rośnie liczba
   rund) — można nim sterować przełączeniem placeholdery → realne dane.
 
@@ -833,9 +838,10 @@ po nim budować placeholdery (i wyliczać pary ze standings) ZANIM api-football 
 decyzją #10 (*mecze powstają WYŁĄCZNIE z importu, nigdy ręcznie*): placeholdery **nie
 mogą** być postami `mecz` z wymyślonymi danymi (to złamałoby #10 i mieszało się z
 importem przy dedupie `fixture_id`). Kierunki do rozważenia:
-1. **Warstwa prezentacyjna „drabinka"** — osobny widok/szkielet fazy pucharowej (pary
-   wyliczane ze standings: zwycięzcy/drudzy grup), NIE jako posty `mecz`. Najczystsze
-   wobec #10. Po realnych fixtures drabinka linkuje do prawdziwych meczów.
+1. **Warstwa prezentacyjna „drabinka"** — osobny widok/szkielet fazy pucharowej; pary
+   wg STAŁEGO bracketu FIFA (które miejsca grup się krzyżują — link wyżej), obsadzane
+   zwycięzcami/drugimi grup ze standings; NIE jako posty `mecz`. Najczystsze wobec #10.
+   Po realnych fixtures drabinka linkuje do prawdziwych meczów.
 2. **Świadomy, wąski wyjątek** od #10 dla „zapowiedzi-placeholderów" pucharu (oznaczone,
    bez `fixture_id`, automatycznie zastępowane/sprzątane po imporcie realnego fixture'a)
    — wymaga reguły dedup/sprzątania, większe ryzyko bałaganu.
