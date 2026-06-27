@@ -830,6 +830,12 @@ https://ppr-www.fifa.com/en/tournaments/mens/worldcup/canadamexicousa2026/articl
 Daje kształt drabinki (które miejsca grup się spotykają), daty i godziny meczów — można
 po nim budować placeholdery (i wyliczać pary ze standings) ZANIM api-football poda fixtures.
 
+**UWAGA o pozyskaniu danych (2026-06, runtime):** strona FIFA renderuje się JS-em i NIE
+da się jej pobrać maszynowo (fetch — preview `ppr-www` i publiczny `www.fifa.com` — zwraca
+pustkę), więc NIE jest źródłem nadającym się do automatycznego parsowania przez agenta.
+Dlatego harmonogram dostarcza CZŁOWIEK jako kuracyjny CSV (konwencja `roster-seed` —
+patrz DECYZJA 5), spisany ręcznie z oficjalnego bracketu FIFA jako źródła prawdy.
+
 **Powiązania (część jest gotowa):**
 - Render rund pucharowych JUŻ działa: D3.3 / `hajlajty_lookup_round` mapuje te stringi
   na PL (1/16, 1/8, ćwierćfinał, półfinał, mecz o 3. miejsce, finał) — gdy fixtures
@@ -844,9 +850,9 @@ po nim budować placeholdery (i wyliczać pary ze standings) ZANIM api-football 
 
 **DECYZJE (2026-06):**
 1. **Placeholdery = warstwa WIDOKU, NIGDY posty `mecz`** (rozstrzygnięte; #10 — mecze
-   tylko z importu). Struktura + daty/godziny placeholderów z kuracyjnego źródła FIFA
-   (link wyżej), nie z API i nie z DB jako wpisy meczu. Wyklucza to napięcie z dedupem
-   `fixture_id` (placeholder nie jest postem).
+   tylko z importu). Struktura + daty/godziny placeholderów z kuracyjnego źródła (CSV —
+   patrz DECYZJA 5, spisany z bracketu FIFA), nie z API i nie z DB jako wpisy meczu.
+   Wyklucza to napięcie z dedupem `fixture_id` (placeholder nie jest postem).
 2. **Terminarz → placeholdery + backfill** (NAJBLIŻSZY krok wykonawczy, motyw):
    terminarz scala realne posty `mecz` z placeholderami FIFA; **realny mecz WYGRYWA** z
    placeholderem po kluczu (`round`, `kickoff`). Gdy import wciągnie daną rundę,
@@ -864,6 +870,55 @@ po nim budować placeholdery (i wyliczać pary ze standings) ZANIM api-football 
 4. **Import / core bez zmian** — placeholdery to wyłącznie motyw; backfill dzieje się sam
    przez zwykły `wp hajlajty import` (nowe fixtures pucharowe pojawiają się, gdy obie
    drużyny znane — patrz DOPRECYZOWANIE supportu wyżej).
+5. **Źródło harmonogramu pucharowego = CSV dostarczany przez CZŁOWIEKA (konwencja
+   `roster-seed`)** — decyzja 2026-06, realizacja w OSOBNYM, KOLEJNYM etapie. Daty/
+   godziny/krzyżowania/numery meczów NIE są spisywane przez agenta z wtórnego źródła,
+   tylko dostarczane jako kuracyjny CSV w folderze `data/` (kolumny jak w roster-seed:
+   dane docelowe + ewentualna kolumna-ściągawka EN; nagłówek/komentarz na górze; wiersze
+   wadliwe odrzucane). Powód: (a) **proweniencja** — właściciel wkleja oficjalne dane
+   FIFA, agent nie zgaduje z Wikipedii; (b) **reużywalność** — kolejne rozgrywki (np.
+   **Liga Mistrzów**) dostają analogiczny CSV, bez dotykania kodu.
+   - **Kontrakt wiersza (zachowany z obecnej implementacji):** `round` (literał
+     `match_data.round`), `kickoff` (UTC `Y-m-d H:i:s`), `home`/`away` (etykiety PL
+     placeholderów; puste dla rund „tylko numer"), `no` (numer meczu). Klucz dedup/
+     lookup bez zmian: (`round`, `kickoff`).
+   - **GDZIE żyje CSV + parser — ROZSTRZYGNIĘTE (2026-06):** w slice `match-lists` w
+     MOTYWIE — własny `data/<rozgrywki>.csv` + czysty parser (z testem, wzór
+     `tests/knockout-merge`). Powód: placeholdery to warstwa WIDOKU (#10 / DECYZJA 1),
+     a parser produkuje view-modele renderu, NIE termy/posty — więc należy do motywu, po
+     stronie konsumenta. `roster-seed` (core) tworzy z CSV TERMY taksonomii (model
+     danych) — INNY cel; przejmujemy z niego wyłącznie KONWENCJĘ (kuracyjny CSV w
+     `data/`, kolumna-ściągawka EN ignorowana przez parser, odrzucanie wadliwych wierszy),
+     NIE lokalizację. Granica artefakt↔artefakt (CLAUDE.md) jest nadrzędna: dane widoku
+     nie wędrują do core. Wielorozgrywkowość (WŚ + **Liga Mistrzów**) = osobne pliki CSV
+     (np. `data/knockout-wc2026.csv`, `data/knockout-ucl-2026.csv`) albo kolumna
+     `rozgrywki` w jednym pliku — wybór formy przy budowie parsera.
+   - **STAN PRZEJŚCIOWY (PR#18 motywu „placeholdery + numery"):** harmonogram żyje na
+     razie jako kuracyjna TABLICA PHP `features/match-lists/data/knockout-schedule.php`
+     (R16…Final + numery R32 73–88), spisana z **Wikipedii** (NIE z linka FIFA — strona
+     niepobieralna, patrz UWAGA wyżej), z JEDNYM meczem zwalidowanym vs api-football
+     (mecz 73 = RPA–Kanada, 19:00 UTC); reszta godzin NIEZWERYFIKOWANA. Ten plik to
+     TYMCZASOWE źródło, do ZASTĄPIENIA przez CSV z tej decyzji (parser czyta CSV →
+     ten sam kontrakt wiersza, zero zmian w `hajlajty_knockout_merge`/`_match_no`).
+   - **WERYFIKACJA RUNTIME — zgodność godzin FIFA↔api-football (klucz dedup).** Klucz
+     (`round`,`kickoff`) to STRING; działa tylko, gdy godzina w `knockout-schedule.php`
+     jest IDENTYCZNA z płaską meta `kickoff` z importu (`gmdate('Y-m-d H:i:s')` UTC).
+     Dwa różne skutki rozjazdu, w dwóch momentach:
+     - **R32 (import startuje 2026-06-28, „jutro"):** wiersze R32 NIE mają etykiet →
+       NIE są placeholderami → rozjazd godziny NIE daje duplikatu, gasi tylko plakietkę
+       „Mecz N" na danej karcie (`_match_no → 0`, degradacja łagodna). To jednak
+       PIERWSZY i najtańszy cross-check, czy kuracyjne godziny w ogóle zgadzają się z
+       API. Po imporcie R32 sprawdź na `/terminarz/`, czy karty R32 pokazują numery
+       73–88; brak numeru = godzina w pliku ≠ godzina API dla tego meczu.
+     - **R16…Final (każda runda przy jej imporcie):** TU rozjazd godziny daje DUPLIKAT
+       karty — placeholder i realny mecz renderują się OBA, bo klucz nie trafia. Po
+       imporcie danej rundy potwierdź na `/terminarz/`, że żadna para slotów nie
+       dubluje się (placeholder obok realnego).
+     Naprawa w JEDNYM miejscu (gdy wykryjesz drift): poluzuj `hajlajty_knockout_key`
+     (np. `round` + sama data dnia zamiast pełnej godziny) i przelicz `tests/knockout-merge`.
+     Bez zmian w `_merge`/`_match_no`. Stan godzin: mecz 73 zwalidowany; R32 74–88 i całe
+     R16+ PRZEWIDYWANE do czasu importu danej rundy. Ta weryfikacja NIE blokuje dalszych
+     prac — to bramka runtime do odhaczenia przy imporcie kolejnych rund.
 
 ### Trim launchowy (kosmetyka pod brak konta/edytora)
 
