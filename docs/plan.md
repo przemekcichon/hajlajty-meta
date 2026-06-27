@@ -919,6 +919,36 @@ patrz DECYZJA 5), spisany ręcznie z oficjalnego bracketu FIFA jako źródła pr
      Bez zmian w `_merge`/`_match_no`. Stan godzin: mecz 73 zwalidowany; R32 74–88 i całe
      R16+ PRZEWIDYWANE do czasu importu danej rundy. Ta weryfikacja NIE blokuje dalszych
      prac — to bramka runtime do odhaczenia przy imporcie kolejnych rund.
+6. **Drabinka (osobna podstrona) = WIDOK READ-ONLY, ZERO zapisu do bazy** — decyzja
+   2026-06, realizacja w osobnym etapie (po ground-truth). Konsument (nowy szablon strony)
+   NIE pisze do DB ani nie tworzy postów/termów (#10; tak jak terminarz / standings-view).
+   Trzy źródła danych, trzy role:
+   - **Kuracyjne WEJŚCIE (jedyne, co trafia do repo jako plik):** struktura bracketu w
+     `features/match-lists/data/` w MOTYWIE — ta sama lokalizacja i konwencja co
+     `knockout-schedule.php` (DECYZJA 5; dane FIFA dostarcza CZŁOWIEK). Drabinka dokłada
+     BRAKUJĄCY element (ground-truth LUKA 1): **sloty R32** — które miejsce grupy gra w
+     meczu 73–88 (np. „1A vs 3. z B/E/F/…"). Krzyżowania R16→Final JUŻ są (stringi
+     „Zwycięzca meczu N" w `knockout-schedule.php`). Agent pisze tylko parser/render — NIE
+     wymyśla danych FIFA.
+   - **CZYTANE przy renderze (zero nowego zapisu), składane w view-model czystym helperem
+     per żądanie:** realne pary/wyniki z `match_data` postów `mecz` (`round` żyje w JSON —
+     dopasowanie po PŁASKIEJ meta `kickoff` do `hajlajty_knockout_schedule`, NIE po
+     `match_data.kickoff` w ISO); numery + krzyżowania z `hajlajty_knockout_schedule()` /
+     `hajlajty_knockout_match_no()`; obsada z `standings_<sezon>` (term meta `rozgrywki`) +
+     resolucja drużyn po `api_id`; runda→PL / flagi / drużyny z lookupów `match-display`.
+     Bez nowych meta, tabel ani cache.
+   - **STRONA:** Page Template w ROOcie motywu (wzór `template-terminarz.php`, scan
+     depth-1 — [[wp-page-template-scan-depth]]), logika w partialu slice'a `match-lists`;
+     link w sidebarze obok „Tabele grup" + przywrócenie ukrytego „Faza pucharowa" ze stopki
+     (footer `display:none`).
+   - **WYJĄTEK wymagający ODDZIELNEJ decyzji (NIE część tej):** utrwalenie 8 najlepszych
+     trzecich miejsc. Ground-truth (LUKA 3) wykazał, że zapisane `standings_<sezon>` gubi
+     3 z 8 (transform wycina tablicę „Group Stage", `^Group ([A-L])$`). Domyślnie NIE
+     ruszamy core: czytamy standings read-only, a sloty bez obsadzonej trzeciej = TBD do
+     czasu, aż per-grupowy `description` uzupełni się po komplecie fazy grupowej
+     (śródturniejowo było 5/8). Jeśli po zakończeniu grup nadal nie wystarcza → osobna
+     decyzja o zmianie importu w core (utrwalić agregat „Group Stage"). Patrz pamięć
+     [[standings-zone-varies]].
 
 ### Trim launchowy (kosmetyka pod brak konta/edytora)
 
