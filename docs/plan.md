@@ -900,6 +900,25 @@ patrz DECYZJA 5), spisany ręcznie z oficjalnego bracketu FIFA jako źródła pr
      (mecz 73 = RPA–Kanada, 19:00 UTC); reszta godzin NIEZWERYFIKOWANA. Ten plik to
      TYMCZASOWE źródło, do ZASTĄPIENIA przez CSV z tej decyzji (parser czyta CSV →
      ten sam kontrakt wiersza, zero zmian w `hajlajty_knockout_merge`/`_match_no`).
+   - **WERYFIKACJA RUNTIME — zgodność godzin FIFA↔api-football (klucz dedup).** Klucz
+     (`round`,`kickoff`) to STRING; działa tylko, gdy godzina w `knockout-schedule.php`
+     jest IDENTYCZNA z płaską meta `kickoff` z importu (`gmdate('Y-m-d H:i:s')` UTC).
+     Dwa różne skutki rozjazdu, w dwóch momentach:
+     - **R32 (import startuje 2026-06-28, „jutro"):** wiersze R32 NIE mają etykiet →
+       NIE są placeholderami → rozjazd godziny NIE daje duplikatu, gasi tylko plakietkę
+       „Mecz N" na danej karcie (`_match_no → 0`, degradacja łagodna). To jednak
+       PIERWSZY i najtańszy cross-check, czy kuracyjne godziny w ogóle zgadzają się z
+       API. Po imporcie R32 sprawdź na `/terminarz/`, czy karty R32 pokazują numery
+       73–88; brak numeru = godzina w pliku ≠ godzina API dla tego meczu.
+     - **R16…Final (każda runda przy jej imporcie):** TU rozjazd godziny daje DUPLIKAT
+       karty — placeholder i realny mecz renderują się OBA, bo klucz nie trafia. Po
+       imporcie danej rundy potwierdź na `/terminarz/`, że żadna para slotów nie
+       dubluje się (placeholder obok realnego).
+     Naprawa w JEDNYM miejscu (gdy wykryjesz drift): poluzuj `hajlajty_knockout_key`
+     (np. `round` + sama data dnia zamiast pełnej godziny) i przelicz `tests/knockout-merge`.
+     Bez zmian w `_merge`/`_match_no`. Stan godzin: mecz 73 zwalidowany; R32 74–88 i całe
+     R16+ PRZEWIDYWANE do czasu importu danej rundy. Ta weryfikacja NIE blokuje dalszych
+     prac — to bramka runtime do odhaczenia przy imporcie kolejnych rund.
 
 ### Trim launchowy (kosmetyka pod brak konta/edytora)
 
