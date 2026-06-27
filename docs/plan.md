@@ -882,13 +882,17 @@ patrz DECYZJA 5), spisany ręcznie z oficjalnego bracketu FIFA jako źródła pr
      `match_data.round`), `kickoff` (UTC `Y-m-d H:i:s`), `home`/`away` (etykiety PL
      placeholderów; puste dla rund „tylko numer"), `no` (numer meczu). Klucz dedup/
      lookup bez zmian: (`round`, `kickoff`).
-   - **DO DECYZJI przy realizacji — GDZIE żyje CSV + parser:** placeholdery to warstwa
-     WIDOKU (motyw, #10 / DECYZJA 1), więc naturalnie slice `match-lists` (theme) z
-     własnym `data/*.csv` + czysty parser (czytelny test, jak `tests/knockout-merge`).
-     roster-seed (core) tworzy z CSV TERMY taksonomii (model danych) — inny cel, więc
-     harmonogramu NIE wciskamy do core „na siłę"; przejmujemy KONWENCJĘ CSV, lokalizację
-     (theme) potwierdzić przy budowie. Wielorozgrywkowość (WŚ + LM) = osobne pliki CSV
-     / kolumna rozgrywek — do zaprojektowania w tym etapie.
+   - **GDZIE żyje CSV + parser — ROZSTRZYGNIĘTE (2026-06):** w slice `match-lists` w
+     MOTYWIE — własny `data/<rozgrywki>.csv` + czysty parser (z testem, wzór
+     `tests/knockout-merge`). Powód: placeholdery to warstwa WIDOKU (#10 / DECYZJA 1),
+     a parser produkuje view-modele renderu, NIE termy/posty — więc należy do motywu, po
+     stronie konsumenta. `roster-seed` (core) tworzy z CSV TERMY taksonomii (model
+     danych) — INNY cel; przejmujemy z niego wyłącznie KONWENCJĘ (kuracyjny CSV w
+     `data/`, kolumna-ściągawka EN ignorowana przez parser, odrzucanie wadliwych wierszy),
+     NIE lokalizację. Granica artefakt↔artefakt (CLAUDE.md) jest nadrzędna: dane widoku
+     nie wędrują do core. Wielorozgrywkowość (WŚ + **Liga Mistrzów**) = osobne pliki CSV
+     (np. `data/knockout-wc2026.csv`, `data/knockout-ucl-2026.csv`) albo kolumna
+     `rozgrywki` w jednym pliku — wybór formy przy budowie parsera.
    - **STAN PRZEJŚCIOWY (PR#18 motywu „placeholdery + numery"):** harmonogram żyje na
      razie jako kuracyjna TABLICA PHP `features/match-lists/data/knockout-schedule.php`
      (R16…Final + numery R32 73–88), spisana z **Wikipedii** (NIE z linka FIFA — strona
