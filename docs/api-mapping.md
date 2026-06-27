@@ -32,6 +32,20 @@ Jeden element `response[i]` = jeden mecz.
 > lig (w tym jednej) `import-live` pyta `live=all` i zawęża do śledzonych lig po
 > stronie klienta (po `league.id`) — patrz `cli-live.php`.
 
+> **PUŁAPKA — mecz pucharowy bez ustalonej obsady (potwierdzona RUNTIME 2026-06-27).**
+> api-football zwraca element `fixtures` rundy pucharowej **dopiero gdy znane są OBIE
+> drużyny**. W trakcie fazy grupowej `GET /fixtures?league=1&season=2026&round=Round of 32`
+> zwrócił `results: 9` (z 16 par R32) — tylko mecze o rozstrzygniętej obsadzie; pozostałe
+> 7 par było NIEOBECNYCH w odpowiedzi (nie jako TBD — po prostu ich nie ma). Konsekwencje:
+> - import (`fixtures?league=&season=`) wciąga tylko określone pary; sloty bez obsady
+>   dojdą przy kolejnym imporcie, gdy API je doda. Slug i `match_data` powstają dopiero
+>   przy realnym fixture (dedup po `fixture_id`); import bez termów OBU drużyn i tak
+>   pomija mecz (slug musi być stabilny — D1.1).
+> - widok drabinki nie ma z czego wyliczyć obsady nieokreślonych slotów — pokazuje TBD,
+>   dopóki fixture się nie pojawi (krzyżowania ze stałego bracketu FIFA, nie z API).
+> Powiązane: ranking najlepszych 3. miejsc w `/standings` dopina się analogicznie dopiero
+> po komplecie 3. kolejki grup — patrz „Endpoint: standings".
+
 ### 1. Tożsamość meczu
 | Pole frontendu (data-inventory) | Ścieżka w API | Uwagi |
 |---|---|---|
@@ -259,6 +273,16 @@ element = wiersz drużyny. Klucze wiersza (VERBATIM): `rank`, `team{id,name,logo
 tablic — 12× `"Group A".."Group L"` (po 4 drużyny) **+ 1× `"Group Stage"`** (zbiorczy
 ranking, np. 12 wierszy). Import bierze WYŁĄCZNIE grupy pasujące do `^Group ([A-L])$`;
 „Group Stage" odpada (litera się nie wyłuska).
+
+> **PUŁAPKA — awansujące 3. miejsca dopinają się dopiero po komplecie grup (RUNTIME
+> 2026-06-27).** `description="Round of 32"` na rank 1/2 jest pewny od razu (24 drużyny).
+> Dla TRZECICH MIEJSC w śródturniejowym snapshocie (przed 3. kolejką) per-grupowy
+> `description` oznaczał tylko CZĘŚĆ awansujących (5 z 8), a pełny ranking 8 najlepszych
+> trzecich żył WYŁĄCZNIE w odrzucanej tablicy „Group Stage". Czyli zapisane
+> `standings_<sezon>` (same grupy A–L) NIE wystarcza do ustalenia obsady R32 z trzecich,
+> dopóki faza grupowa trwa. Po komplecie 3. kolejki per-grupowy `description` powinien
+> oznaczyć wszystkie 8 — DO POTWIERDZENIA ponownym `GET /standings` po zakończeniu grup.
+> To samo źródło co pułapka „mecz pucharowy bez obsady" przy „Endpoint: fixtures".
 
 > **Uwaga do importu/storage (MVP-d):** transform (czysta funkcja) przycina wiersz do
 > `{ rank, team_id, points, played, win, draw, lose, gf, ga, diff, group, zone }`
