@@ -830,6 +830,12 @@ https://ppr-www.fifa.com/en/tournaments/mens/worldcup/canadamexicousa2026/articl
 Daje kształt drabinki (które miejsca grup się spotykają), daty i godziny meczów — można
 po nim budować placeholdery (i wyliczać pary ze standings) ZANIM api-football poda fixtures.
 
+**UWAGA o pozyskaniu danych (2026-06, runtime):** strona FIFA renderuje się JS-em i NIE
+da się jej pobrać maszynowo (fetch — preview `ppr-www` i publiczny `www.fifa.com` — zwraca
+pustkę), więc NIE jest źródłem nadającym się do automatycznego parsowania przez agenta.
+Dlatego harmonogram dostarcza CZŁOWIEK jako kuracyjny CSV (konwencja `roster-seed` —
+patrz DECYZJA 5), spisany ręcznie z oficjalnego bracketu FIFA jako źródła prawdy.
+
 **Powiązania (część jest gotowa):**
 - Render rund pucharowych JUŻ działa: D3.3 / `hajlajty_lookup_round` mapuje te stringi
   na PL (1/16, 1/8, ćwierćfinał, półfinał, mecz o 3. miejsce, finał) — gdy fixtures
@@ -844,9 +850,9 @@ po nim budować placeholdery (i wyliczać pary ze standings) ZANIM api-football 
 
 **DECYZJE (2026-06):**
 1. **Placeholdery = warstwa WIDOKU, NIGDY posty `mecz`** (rozstrzygnięte; #10 — mecze
-   tylko z importu). Struktura + daty/godziny placeholderów z kuracyjnego źródła FIFA
-   (link wyżej), nie z API i nie z DB jako wpisy meczu. Wyklucza to napięcie z dedupem
-   `fixture_id` (placeholder nie jest postem).
+   tylko z importu). Struktura + daty/godziny placeholderów z kuracyjnego źródła (CSV —
+   patrz DECYZJA 5, spisany z bracketu FIFA), nie z API i nie z DB jako wpisy meczu.
+   Wyklucza to napięcie z dedupem `fixture_id` (placeholder nie jest postem).
 2. **Terminarz → placeholdery + backfill** (NAJBLIŻSZY krok wykonawczy, motyw):
    terminarz scala realne posty `mecz` z placeholderami FIFA; **realny mecz WYGRYWA** z
    placeholderem po kluczu (`round`, `kickoff`). Gdy import wciągnie daną rundę,
@@ -864,6 +870,32 @@ po nim budować placeholdery (i wyliczać pary ze standings) ZANIM api-football 
 4. **Import / core bez zmian** — placeholdery to wyłącznie motyw; backfill dzieje się sam
    przez zwykły `wp hajlajty import` (nowe fixtures pucharowe pojawiają się, gdy obie
    drużyny znane — patrz DOPRECYZOWANIE supportu wyżej).
+5. **Źródło harmonogramu pucharowego = CSV dostarczany przez CZŁOWIEKA (konwencja
+   `roster-seed`)** — decyzja 2026-06, realizacja w OSOBNYM, KOLEJNYM etapie. Daty/
+   godziny/krzyżowania/numery meczów NIE są spisywane przez agenta z wtórnego źródła,
+   tylko dostarczane jako kuracyjny CSV w folderze `data/` (kolumny jak w roster-seed:
+   dane docelowe + ewentualna kolumna-ściągawka EN; nagłówek/komentarz na górze; wiersze
+   wadliwe odrzucane). Powód: (a) **proweniencja** — właściciel wkleja oficjalne dane
+   FIFA, agent nie zgaduje z Wikipedii; (b) **reużywalność** — kolejne rozgrywki (np.
+   **Liga Mistrzów**) dostają analogiczny CSV, bez dotykania kodu.
+   - **Kontrakt wiersza (zachowany z obecnej implementacji):** `round` (literał
+     `match_data.round`), `kickoff` (UTC `Y-m-d H:i:s`), `home`/`away` (etykiety PL
+     placeholderów; puste dla rund „tylko numer"), `no` (numer meczu). Klucz dedup/
+     lookup bez zmian: (`round`, `kickoff`).
+   - **DO DECYZJI przy realizacji — GDZIE żyje CSV + parser:** placeholdery to warstwa
+     WIDOKU (motyw, #10 / DECYZJA 1), więc naturalnie slice `match-lists` (theme) z
+     własnym `data/*.csv` + czysty parser (czytelny test, jak `tests/knockout-merge`).
+     roster-seed (core) tworzy z CSV TERMY taksonomii (model danych) — inny cel, więc
+     harmonogramu NIE wciskamy do core „na siłę"; przejmujemy KONWENCJĘ CSV, lokalizację
+     (theme) potwierdzić przy budowie. Wielorozgrywkowość (WŚ + LM) = osobne pliki CSV
+     / kolumna rozgrywek — do zaprojektowania w tym etapie.
+   - **STAN PRZEJŚCIOWY (PR#18 motywu „placeholdery + numery"):** harmonogram żyje na
+     razie jako kuracyjna TABLICA PHP `features/match-lists/data/knockout-schedule.php`
+     (R16…Final + numery R32 73–88), spisana z **Wikipedii** (NIE z linka FIFA — strona
+     niepobieralna, patrz UWAGA wyżej), z JEDNYM meczem zwalidowanym vs api-football
+     (mecz 73 = RPA–Kanada, 19:00 UTC); reszta godzin NIEZWERYFIKOWANA. Ten plik to
+     TYMCZASOWE źródło, do ZASTĄPIENIA przez CSV z tej decyzji (parser czyta CSV →
+     ten sam kontrakt wiersza, zero zmian w `hajlajty_knockout_merge`/`_match_no`).
 
 ### Trim launchowy (kosmetyka pod brak konta/edytora)
 
