@@ -805,13 +805,21 @@ zależnością MVP. Faza 5 zachowuje je tylko jako zapis + to, co ZOSTAJE późn
 tych meczów** — czyli w miarę rozstrzygania drabinki (po fazie grupowej i kolejnych
 rundach). **Do tego czasu z importu NIE da się pokryć pucharu.**
 
+**DOPRECYZOWANIE supportu (2026-06):** dopóki nie są znane OBIE drużyny, fixture po
+prostu **NIE ISTNIEJE** w API — **żadnych nulli/TBD, po prostu brak wpisu**. Skutek dla
+importu: NIE wymaga obsługi TBD (ścieżka „skip na null team" z `match-import/runner.php`
+nigdy nie odpala się dla pucharu); gdy obie drużyny znane → fixture się pojawia → zwykły
+`wp hajlajty import` wciąga go jako REALNY `mecz`. RUNTIME potwierdził: **Round of 32 jest
+już w API z realnymi drużynami** (seed pokrywa 48 reprezentacji) — wystarczy re-import.
+Placeholdery realnie dotyczą **Round of 16 … Final**.
+
 Dowód — `GET /fixtures/rounds?league=1&season=2026`:
 - **DZIŚ** (przed pucharem): `["Group Stage - 1", "Group Stage - 2", "Group Stage - 3"]`.
 - **DOCELOWO** (gdy pojawią się fixtures pucharowe): dochodzą `"Round of 32"`,
   `"Round of 16"`, `"Quarter-finals"`, `"Semi-finals"`, `"3rd Place Final"`, `"Final"`.
 
-**Konsekwencja:** terminarz i zapowiedzi **do czasu pojawienia się fixtures pucharowych
-trzeba uzupełnić PLACEHOLDERAMI** (szkielet drabinki + sloty „drużyna do ustalenia",
+**Konsekwencja:** terminarz **do czasu pojawienia się fixtures pucharowych trzeba
+uzupełnić PLACEHOLDERAMI** (sloty „drużyna do ustalenia",
 np. „Zwycięzca grupy A", runda bez przypisanych par), żeby użytkownik widział kształt
 turnieju, ZANIM API poda realne pary. Po pojawieniu się realnych fixtures placeholdery
 zastępuje import.
@@ -834,19 +842,28 @@ po nim budować placeholdery (i wyliczać pary ze standings) ZANIM api-football 
 - `/fixtures/rounds` to **tani sygnał wykrycia „czy puchar już jest"** (rośnie liczba
   rund) — można nim sterować przełączeniem placeholdery → realne dane.
 
-**DO DECYZJI (operacyjne, na czas turnieju):** jak realizować placeholdery. Napięcie z
-decyzją #10 (*mecze powstają WYŁĄCZNIE z importu, nigdy ręcznie*): placeholdery **nie
-mogą** być postami `mecz` z wymyślonymi danymi (to złamałoby #10 i mieszało się z
-importem przy dedupie `fixture_id`). Kierunki do rozważenia:
-1. **Warstwa prezentacyjna „drabinka"** — osobny widok/szkielet fazy pucharowej; pary
-   wg STAŁEGO bracketu FIFA (które miejsca grup się krzyżują — link wyżej), obsadzane
-   zwycięzcami/drugimi grup ze standings; NIE jako posty `mecz`. Najczystsze wobec #10.
-   Po realnych fixtures drabinka linkuje do prawdziwych meczów.
-2. **Świadomy, wąski wyjątek** od #10 dla „zapowiedzi-placeholderów" pucharu (oznaczone,
-   bez `fixture_id`, automatycznie zastępowane/sprzątane po imporcie realnego fixture'a)
-   — wymaga reguły dedup/sprzątania, większe ryzyko bałaganu.
-Rekomendacja wstępna: wariant 1 (prezentacyjna drabinka), żeby nie naruszać #10.
-Rozstrzygnąć przy realizacji terminarza pucharowego (zadanie na czas turnieju, nie MVP-startu).
+**DECYZJE (2026-06):**
+1. **Placeholdery = warstwa WIDOKU, NIGDY posty `mecz`** (rozstrzygnięte; #10 — mecze
+   tylko z importu). Struktura + daty/godziny placeholderów z kuracyjnego źródła FIFA
+   (link wyżej), nie z API i nie z DB jako wpisy meczu. Wyklucza to napięcie z dedupem
+   `fixture_id` (placeholder nie jest postem).
+2. **Terminarz → placeholdery + backfill** (NAJBLIŻSZY krok wykonawczy, motyw):
+   terminarz scala realne posty `mecz` z placeholderami FIFA; **realny mecz WYGRYWA** z
+   placeholderem po kluczu (`round`, `kickoff`). Gdy import wciągnie daną rundę,
+   placeholdery tej rundy znikają automatycznie. Zakres: TYLKO terminarz (zapowiedzi i
+   single bez zmian — pokazują wyłącznie realne mecze). Ryzyko: zgodność godzin
+   FIFA↔api-football (klucz dedup) — do potwierdzenia RUNTIME przy realizacji.
+3. **Interaktywna drabinka = OSOBNY ekran/link, alternatywnie do „Tabele grup"**
+   (decyzja właściciela 2026-06). NIE część terminarza — własna Strona + link w
+   sidebarze obok „Tabele grup" (oraz odkrycie dziś ukrytego linku „Faza pucharowa" w
+   stopce, motyw PR#17 `display:none`). Krzyżowania ze stałego bracketu FIFA; obsada ze
+   standings (`group`+`rank`); realne pary/wyniki z `match_data` zaimportowanych meczów.
+   ⚠ do „kto wszedł" czytaj `description` ze standings, NIE strefy `zones.php` liczone z
+   `rank` (rank 3 ≠ awans — pamięć [[standings-zone-varies]]). **ODŁOŻONE do osobnego
+   prompta** (po terminarzu).
+4. **Import / core bez zmian** — placeholdery to wyłącznie motyw; backfill dzieje się sam
+   przez zwykły `wp hajlajty import` (nowe fixtures pucharowe pojawiają się, gdy obie
+   drużyny znane — patrz DOPRECYZOWANIE supportu wyżej).
 
 ### Trim launchowy (kosmetyka pod brak konta/edytora)
 
