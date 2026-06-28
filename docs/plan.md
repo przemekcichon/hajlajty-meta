@@ -1005,10 +1005,44 @@ na końcu pary import→widok. Repo w nawiasie (granica artefakt↔artefakt).
 - **MVP-g — Reprezentacje / Profil kraju (motyw).** Zależy od MVP-f. Strona drużyny
   jako osobny widok (bez kolizji URL z meczem, #7). Aktywuje link sidebara.
 
+<!-- ============ ⭐ ZAKOTWICZENIE: REDESIGN KARTY SKRÓTU (MVP-h) ============ -->
+
+- **⭐ MVP-h — Karta skrótu: scalony, bogatszy układ (motyw, slice `match-lists`).**
+  **ZAZNACZONE DO ODWOŁANIA — REDESIGN KARTY SKRÓTU Z WIDEO.** Stan: DO REALIZACJI
+  (najpierw ground-truth, potem implementacja w osobnej sesji/branchu).
+  - **Problem.** Dziś istnieją dwa „kształty" karty skróconego meczu: karta WYNIKU
+    (mecz ZAKOŃCZONY bez wideo) ma BOGATY blok — flagi + pełne nazwy państw + wynik;
+    karta SKRÓTU z wideo ma DUŻO SKROMNIEJSZY, mniej przydatny opis (miniatura +
+    tekstowy tytuł „Home G–G Away · skrót" + runda + data DODANIA skrótu).
+  - **Cel (scalenie GÓRA+DÓŁ).** Połączyć GÓRĘ karty skrótu z wideo (miniatura/player)
+    z DOŁEM karty wyniku (blok flagi+nazwy+wynik). Trzy konkretne zmiany:
+    1. **Dół karty wideo = blok meczowy** (flagi + pełne nazwy państw + wynik) — jak
+       w karcie wyniku — zamiast obecnego skromnego tytułu tekstowego.
+    2. **Data ROZEGRANIA meczu** w miejscu, gdzie karta wyniku pokazuje badge
+       „Zakończony" — z płaskiej meta `kickoff` (UTC→czas PL). Datę DODANIA skrótu
+       (`skrot_published_at`) **IGNORUJEMY**.
+    3. **Chip rozgrywki w LEWYM GÓRNYM rogu miniatury** (overlay na wideo), DOKŁADNIE
+       w tym samym stylu i kolorach co OBECNY chip rozgrywki renderowany dziś POD
+       wideo — przenosimy ten sam chip na miniaturę (nie tworzymy nowego stylu).
+  - **Granice.** READ-ONLY, wyłącznie MOTYW; ZERO zmian w core/imporcie, zero nowych
+    danych/meta. Reużycie istniejących helperów renderu (batch-resolver drużyn,
+    `hajlajty_flag_url`, `hajlajty_match_lists_team_code/_name`, `hajlajty_lookup_round`,
+    `hajlajty_lookup_status`, `hajlajty_get_match_data`). Cała karta dalej linkuje do
+    single; atrybuty filtra 4A (`data-team-names`/`data-teams`/…) i sortowanie bez
+    regresji.
+  - **Zasięg (gdzie karta skrótu z wideo żyje).** Lista `/skroty/`, sekcja skrótów na
+    stronie głównej, aside „Inne skróty" na single (`single-ft.php`), oraz terminarz
+    (stan ZAKOŃCZONY ze skrótem). Zmiana ma objąć wszystkie te miejsca spójnie
+    (jedno źródło markupu karty, bez rozjazdu).
+  - Niezależne (zero nowych danych) — może iść równolegle do reszty MVP. Branch np.
+    `feature/mvp-h-karta-skrotu`.
+
+<!-- ============ KONIEC ZAKOTWICZENIA MVP-h ============ -->
+
 Łańcuchy zależności: **d→e** (standings→grupy), **f→g** (statystyki→reprezentacje);
-**a, b, c** niezależne. Dwa tory danych (d, f) w core mogą iść równolegle do toru
-motywu. Po komplecie → ops wdrożenia (klucz API, seed, crontab wg
-`cron-produkcja.md`) → produkcja.
+**a, b, c, h** niezależne (h = czysto motyw, bez nowych danych). Dwa tory danych
+(d, f) w core mogą iść równolegle do toru motywu. Po komplecie → ops wdrożenia
+(klucz API, seed, crontab wg `cron-produkcja.md`) → produkcja.
 
 ### Po MVP (potwierdzenie, bez zmian zakresu)
 
