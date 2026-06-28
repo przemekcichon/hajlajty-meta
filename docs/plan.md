@@ -1008,22 +1008,27 @@ na końcu pary import→widok. Repo w nawiasie (granica artefakt↔artefakt).
 <!-- ============ ⭐ ZAKOTWICZENIE: REDESIGN KARTY SKRÓTU (MVP-h) ============ -->
 
 - **⭐ MVP-h — Karta skrótu: scalony, bogatszy układ (motyw, slice `match-lists`).**
-  **ZAZNACZONE DO ODWOŁANIA — REDESIGN KARTY SKRÓTU Z WIDEO.** Stan: DO REALIZACJI
-  (najpierw ground-truth, potem implementacja w osobnej sesji/branchu).
+  **REDESIGN KARTY SKRÓTU Z WIDEO.** Stan: ZREALIZOWANE — PR #20
+  (`feature/mvp-h-karta-skrotu`, hajlajty-theme). Układ finalny niżej odbiega od
+  pierwotnego pomysłu w dwóch punktach (decyzje redakcyjne w trakcie pracy):
+  data rozegrania ZREZYGNOWANA, a etap/runda przeniesiony na miniaturę.
   - **Problem.** Dziś istnieją dwa „kształty" karty skróconego meczu: karta WYNIKU
     (mecz ZAKOŃCZONY bez wideo) ma BOGATY blok — flagi + pełne nazwy państw + wynik;
     karta SKRÓTU z wideo ma DUŻO SKROMNIEJSZY, mniej przydatny opis (miniatura +
     tekstowy tytuł „Home G–G Away · skrót" + runda + data DODANIA skrótu).
   - **Cel (scalenie GÓRA+DÓŁ).** Połączyć GÓRĘ karty skrótu z wideo (miniatura/player)
-    z DOŁEM karty wyniku (blok flagi+nazwy+wynik). Trzy konkretne zmiany:
-    1. **Dół karty wideo = blok meczowy** (flagi + pełne nazwy państw + wynik) — jak
-       w karcie wyniku — zamiast obecnego skromnego tytułu tekstowego.
-    2. **Data ROZEGRANIA meczu** w miejscu, gdzie karta wyniku pokazuje badge
-       „Zakończony" — z płaskiej meta `kickoff` (UTC→czas PL). Datę DODANIA skrótu
-       (`skrot_published_at`) **IGNORUJEMY**.
-    3. **Chip rozgrywki w LEWYM GÓRNYM rogu miniatury** (overlay na wideo), DOKŁADNIE
-       w tym samym stylu i kolorach co OBECNY chip rozgrywki renderowany dziś POD
-       wideo — przenosimy ten sam chip na miniaturę (nie tworzymy nowego stylu).
+    z DOŁEM karty wyniku (blok flagi+nazwy+wynik). Stan ZREALIZOWANY:
+    1. **Góra + dół = jedna karta.** Miniatura i blok meczowy zlane wizualnie: ramka,
+       tło i zaokrąglenie na `.vcard` (`overflow:hidden`), krawędź łącząca prosta.
+    2. **Dół karty = blok meczowy** (flagi + pełne nazwy państw + wynik) — jak w
+       karcie wyniku (tło/padding/ramka 1:1), zamiast skromnego tytułu tekstowego.
+    3. **Dwa chipy-overlay na miniaturze:** rozgrywki (turniej) w LEWYM górnym rogu,
+       etap/runda w PRAWYM górnym rogu — ciemna półprzezroczysta warstwa (czytelna na
+       zdjęciu YT), typografia jak dawny chip pod wideo.
+    4. **Data ROZEGRANIA — ZREZYGNOWANA.** Pierwotnie miała wejść w miejsce badge
+       „Zakończony" (z płaskiej meta `kickoff`), ale w finale ją usunięto, by skrócić
+       dół karty — etap turnieju niesie więcej wartości niż data rozegrania. Datę
+       DODANIA skrótu (`skrot_published_at`) i tak ignorowaliśmy.
   - **Granice.** READ-ONLY, wyłącznie MOTYW; ZERO zmian w core/imporcie, zero nowych
     danych/meta. Reużycie istniejących helperów renderu (batch-resolver drużyn,
     `hajlajty_flag_url`, `hajlajty_match_lists_team_code/_name`, `hajlajty_lookup_round`,
