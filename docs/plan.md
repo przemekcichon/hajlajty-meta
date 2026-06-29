@@ -1100,6 +1100,52 @@ osobną warstwą nad nim są:
 
 ---
 
+## Faza poprawek — drobne korekty UI po MVP
+
+Zbiorcza faza na drobne, niezależne poprawki widoków wychodzące z użytkowania po
+wdrożeniu MVP. Każda poprawka = osobny branch + PR, osobno testowalna (jak
+pod-etapy 3a–3d). Lista rośnie w miarę zgłoszeń; kolejność dowolna (poprawki są od
+siebie niezależne), chyba że zaznaczono zależność. Każda poprawka zaczyna się od
+ground-truth ([workflow-prompts.md](workflow-prompts.md)) — zderzenia zamiaru z
+realnym markupem/CSS, zanim cokolwiek zmienimy.
+
+### P-a — Metadane meczu: faza nad wideo, uproszczony blok faktów (zapowiedź + live)
+
+Kontekst: na single ZAPOWIEDŹ (`single-ns.php`) i LIVE (`single-live.php`) blok
+„METADANE MECZU" (`.match-head`, pod hero/telebimem) trzyma fazę (`.match-phase`),
+tytuł (`.match-title`) i fakty czasowe (`.match-facts`); górny pasek
+(`.watch-top.container`) trzyma „Wróć" (`.back-link`) + okruszek `.crumb`. Redesign
+(dwa screeny: desktop + mobile) przenosi fazę do paska górnego i upraszcza blok faktów.
+
+Zmiany (TE SAME na zapowiedzi i live):
+- **`.match-phase` wędruje z `.match-head` do `.watch-top.container`** (nad wideo),
+  obok „Wróć". Pasek dostaje `justify-content: flex-start` na desktopie i
+  `space-between` na mobile (na mobile „Wróć" do lewej, faza do prawej).
+- **`.crumb` znika całkowicie** z `.watch-top.container` (markup + reguła CSS).
+- **`.match-head` dostaje `display: flex; align-items: center;
+  justify-content: space-around`** — zostaje w nim wyśrodkowany blok faktów.
+- **W `.match-head` zostaje `.match-facts`**: pełna data z nazwą dnia + godzina,
+  z ikonami kalendarza i zegara.
+- **Usunięcie wzmianki „(czasu PL)"** z faktu godziny — DOTYCZY TYLKO zapowiedzi
+  ([single-ns.php], literał `(czasu PL)`; live nie ma tego dopisku — jego drugi
+  `.fact` to minuta/etykieta meczu).
+- **`.match-facts` traci `margin-top`** (dziś `var(--space-md)`).
+
+Decyzje do rozstrzygnięcia w sesji wykonawczej (po ground-truth):
+- **Los `.match-title` (h1 = nazwa meczu) w `.match-head`.** Zlecenie wymienia
+  jako „zostaje" tylko `.match-facts`; screeny nie pokazują osobnego tytułu (nazwy
+  drużyn żyją w hero/telebimie). Domyślne odczytanie: tytuł wypada z `.match-head` —
+  ale to wymaga POTWIERDZENIA przy realizacji (a11y: h1 strony, ewentualne
+  przeniesienie/sr-only).
+- **Współdzielenie CSS między wariantami single.** `.match-head`, `.watch-top`,
+  `.crumb`, `.match-phase` to selektory WSPÓLNE (`match-single.css`) — występują też
+  w `single-ft.php` / `single-canc.php`. Zmiana CSS globalnie dotknie WSZYSTKICH
+  single. Ground-truth ma to zinwentaryzować; sesja wykonawcza decyduje, czy
+  redesign jest globalny (spójnie wszystkie single), czy zakresowany modyfikatorem
+  na ns/live. Zakres tej poprawki wg zlecenia: zapowiedź + live.
+
+---
+
 ## Faza 5 — „później" (poza MVP)
 
 Branch(e) osobne, gdy ruszymy. Cel: zebrać tu wszystko odłożone, żeby nie
