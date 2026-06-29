@@ -1155,9 +1155,14 @@ Kontekst: na single LIVE (`single-live.php`), w układzie dwukolumnowym desktopu
 - **Statystyki** żyją w prawym ASIDE, na prawo od telebimu (render
   `part => 'stats'`, nagłówek `.aside-sec__title` „Statystyki").
 
-Zmiana (TYLKO desktop — na mobile kolumny i tak stackują się pionowo): zamiana
-TREŚCI obu sekcji między kolumnami — Oś czasu wędruje do prawego aside (na prawo
-od telebimu), Statystyki do kolumny głównej pod telebimem.
+Zmiana (desktop): zamiana TREŚCI obu sekcji między kolumnami — Oś czasu wędruje
+do prawego aside (na prawo od telebimu), Statystyki do kolumny głównej pod telebimem.
+
+Zmiana (mobile): na mobile kolumny stackują się pionowo, więc liczy się KOLEJNOŚĆ.
+Oś czasu ma być PIERWSZA po telebimie (placeholderze wideo) — czyli PRZED składami
+(`.panels` ze `.panel` „Składy"). Dziś w kolumnie głównej kolejność to telebim →
+składy → oś czasu; docelowo na mobile: telebim → oś czasu → składy. (Statystyki i
+„Inne mecze" z aside lądują dalej w stacku, bez zmian.)
 
 Krytyczne doprecyzowanie nagłówków (wg zlecenia, dosłownie): **ułożenie nagłówków
 zostaje jak teraz.** Nagłówek, jaki dziś mamy dla Statystyk na prawo od placeholdera
@@ -1179,6 +1184,11 @@ Decyzje do rozstrzygnięcia w sesji wykonawczej (po ground-truth):
   pozycji, treść się zamienia" może oznaczać rozdzielenie nagłówka od ciała w
   fragmencie albo przekazanie wariantu nagłówka per pozycja — do rozstrzygnięcia po
   zderzeniu z realnym markupem `live-fragment.php`.
+- **Napięcie desktop ↔ mobile (kolejność vs kolumna).** Desktop chce Osi czasu w
+  prawym aside; mobile chce jej PIERWSZEJ w głównym przepływie (przed składami). To
+  różne pozycje w DOM — do pogodzenia bez duplikowania markupu (np. kolejność źródłowa
+  + `order`/grid-placement per breakpoint, a nie dwie kopie sekcji). Rozstrzygnąć po
+  ground-truth, pilnując, że kotwice pollera live działają w obu układach.
 - **Zakres szablonów.** Dotyczy `single-live.php` (układ telebim + aside ze
   statystykami). `single-ft.php` (SKRÓT) ma Oś czasu/Statystyki w ZAKŁADKACH jednej
   kolumny (`.tabpanel`), nie w dwóch kolumnach — poza zakresem P-b, chyba że
