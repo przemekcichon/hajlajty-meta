@@ -1,13 +1,14 @@
-# Prompty robocze — szablony wielokrotnego użytku
+# Ground-truth — kontrakt na start fazy/poprawki (prompt roboczy)
 
-Ten plik zbiera **powtarzalne prompty** używane przy pracy z AI nad hajlajty.pl.
-To NIE są decyzje architektoniczne (te mieszkają w `CLAUDE.md`) — to **proces
-pracy**: gotowe szablony, które wklejasz na start określonych etapów, żeby nie
-odtwarzać ich z pamięci za każdym razem.
+Ten plik opisuje **proces ground-truth** i gotowy prompt do niego. To NIE są
+decyzje architektoniczne (te mieszkają w `CLAUDE.md`) — to **proces pracy**:
+szablon, który stosujesz na start realizacji punktu planu, żeby nie odtwarzać go
+z pamięci za każdym razem. (Gdyby z czasem doszły inne powtarzalne prompty, ten
+plik może urosnąć w ich zbiór.)
 
-**Zasada przewodnia wszystkich promptów tutaj:** źródłem prawdy jest **kod na
-dysku**, nie pamięć czatu ani plan. Każda faza zaczyna się od zderzenia tego, co
-zamierzamy zrobić, z tym, co realnie jest w repo — zanim cokolwiek napiszemy.
+**Zasada przewodnia:** źródłem prawdy jest **kod na dysku**, nie pamięć czatu ani
+plan. Każda faza/poprawka zaczyna się od zderzenia tego, co zamierzamy zrobić, z
+tym, co realnie jest w repo — zanim cokolwiek napiszemy.
 
 ---
 

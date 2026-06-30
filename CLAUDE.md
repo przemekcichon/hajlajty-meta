@@ -137,6 +137,16 @@ WordPress, ACF PRO, klasyczny motyw PHP, frontend przeniesiony z Claude Design.
    <branch>` i ponowny `git fetch --prune`. Na końcu `git status` ma pokazać
    czysty main zsynchronizowany z origin.
 
+## Realizacja punktu planu (ground-truth NAJPIERW)
+Gdy realizujesz punkt z `docs/plan.md` (faza albo poprawka):
+1. NAJPIERW przeczytaj ten punkt planu (zakres, decyzje, zależności).
+2. Potem zrób **ground-truth** realnego kodu wg `docs/ground-truth.md` — czytaj
+   kod na dysku, nie pamięć ani plan; zderz zamiar z tym, co realnie jest w repo,
+   ZANIM cokolwiek napiszesz.
+3. Dopiero wtedy implementuj.
+Jeden punkt/poprawka = jedna sesja + osobny branch + PR (patrz „Git workflow").
+Obowiązuje nawet przy lakonicznym poleceniu typu „zrealizuj P-x z planu".
+
 ## Wtyczka hajlajty-user (ulubione / obserwowane / powiadomienia)
 1. Osobny plugin, niezależny od hajlajty-core i od motywu.
 2. Trwała wartość = backend: model danych użytkownika + REST API endpointy

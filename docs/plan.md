@@ -1106,7 +1106,7 @@ Zbiorcza faza na drobne, niezależne poprawki widoków wychodzące z użytkowani
 wdrożeniu MVP. Każda poprawka = osobny branch + PR, osobno testowalna (jak
 pod-etapy 3a–3d). Lista rośnie w miarę zgłoszeń; kolejność dowolna (poprawki są od
 siebie niezależne), chyba że zaznaczono zależność. Każda poprawka zaczyna się od
-ground-truth ([workflow-prompts.md](workflow-prompts.md)) — zderzenia zamiaru z
+ground-truth ([ground-truth.md](ground-truth.md)) — zderzenia zamiaru z
 realnym markupem/CSS, zanim cokolwiek zmienimy.
 
 ### P-a — Metadane meczu: faza nad wideo, uproszczony blok faktów (zapowiedź + live)
