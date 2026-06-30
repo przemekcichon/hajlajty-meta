@@ -1293,6 +1293,37 @@ Decyzje do rozstrzygnięcia w sesji wykonawczej (po ground-truth):
 Zależność: NA P-b (#29, theme) — P-d przerabia układ `single-live.php` z P-b. Mergować
 P-b przed implementacją P-d (albo budować P-d na gałęzi P-b).
 
+### P-e — Składy: przełącznik drużyn (home/away) jako segmentowany control
+
+Kontekst: w zakładce Składy przełącznik `home/away` (`.lineup-tabs`/`.lineup-tab`,
+markup `#lineupTabs` WSPÓLNY dla `single-ft`/`single-live`/`single-ns`) renderował
+się jako pełne pill-e (40px) z aktywnym stanem na PEŁNYM akcencie (zielony fill).
+Wewnątrz panelu składów ta afordancja jest za ciężka i za duża — wygląda jak
+nawigacja główna, nie jak pod-przełącznik.
+
+Zmiana (czysto frontowa, TYLKO CSS — markup bez zmian): zwarty SEGMENTOWANY control
+— jeden track (`.lineup-tabs`) z dwoma segmentami; aktywny segment = lekkie
+wypełnienie (`--surface-hover`) zamiast pełnego akcentu; niższy (30px), mniejsza
+czcionka (13px). Inny idiom niż główne zakładki (Oś/Składy/Statystyki = podkreślenie),
+więc obie kontrolki się nie mylą.
+
+Decyzje podjęte:
+- **Wariant: segmentowany (compact)** — wybrany spośród trzech (segmentowany /
+  podkreślenie / miękkie mini-pille). Podkreślenie odrzucone: siedzi tuż pod głównymi
+  zakładkami (też podkreślanymi) → dwa rzędy podkreśleń pod sobą. Pełny akcent (stan
+  wyjściowy) zbyt krzykliwy.
+- **Aktywny WYRAŹNIE jaśniejszy od tracku (`--surface-2`)** — w ciemnym motywie
+  `oklch(0.39 0.02 250)` wprost (brak tokenu w tej okolicy; `--surface-hover` 0.30
+  okazał się za blisko tracku 0.27 — za mały kontrast); w jasnym biały „thumb"
+  (`--surface`) na szarym tracku. Bez koloru akcentu — akcent rezerwujemy dla
+  stanów ważniejszych.
+- **Tylko CSS, wspólny markup** — `#lineupTabs` jest ten sam we wszystkich wariantach
+  single, więc jeden arkusz (`match-single.css`) obejmuje skrót, live i zapowiedź.
+
+Zależność: niezależna (czysto prezentacyjny restyle, read-only z `match_data`).
+Zrealizowana w sesji P-d (theme PR #32) jako OSOBNY commit — korekta „rzutem na
+taśmę", nie wymagała osobnego brancha.
+
 ---
 
 ## Faza 5 — „później" (poza MVP)
