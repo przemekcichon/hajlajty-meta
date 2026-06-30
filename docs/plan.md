@@ -1312,9 +1312,11 @@ Decyzje podjęte:
   podkreślenie / miękkie mini-pille). Podkreślenie odrzucone: siedzi tuż pod głównymi
   zakładkami (też podkreślanymi) → dwa rzędy podkreśleń pod sobą. Pełny akcent (stan
   wyjściowy) zbyt krzykliwy.
-- **Aktywny = `--surface-hover`, track = `--surface-2`** — „uniesiony" segment
-  czytelny w ciemnym (domyślnym) motywie; w jasnym degraduje subtelnie (delikatny
-  szary na szarym). Bez koloru akcentu — akcent rezerwujemy dla stanów ważniejszych.
+- **Aktywny WYRAŹNIE jaśniejszy od tracku (`--surface-2`)** — w ciemnym motywie
+  `oklch(0.39 0.02 250)` wprost (brak tokenu w tej okolicy; `--surface-hover` 0.30
+  okazał się za blisko tracku 0.27 — za mały kontrast); w jasnym biały „thumb"
+  (`--surface`) na szarym tracku. Bez koloru akcentu — akcent rezerwujemy dla
+  stanów ważniejszych.
 - **Tylko CSS, wspólny markup** — `#lineupTabs` jest ten sam we wszystkich wariantach
   single, więc jeden arkusz (`match-single.css`) obejmuje skrót, live i zapowiedź.
 
