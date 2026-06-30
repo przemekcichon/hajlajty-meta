@@ -1144,6 +1144,56 @@ Decyzje do rozstrzygnięcia w sesji wykonawczej (po ground-truth):
   redesign jest globalny (spójnie wszystkie single), czy zakresowany modyfikatorem
   na ns/live. Zakres tej poprawki wg zlecenia: zapowiedź + live.
 
+### P-b — Live: zamiana kolumn Oś czasu ↔ Statystyki (desktop), nagłówki w miejscu
+
+Kontekst: na single LIVE (`single-live.php`), w układzie dwukolumnowym desktopu
+(`.watch__grid:has(.watch__aside)`, ≥1220px), telebim (`.board`) gra rolę
+„placeholdera wideo" w kolumnie głównej (`.watch__main`). Dziś:
+- **Oś czasu** żyje w kolumnie GŁÓWNEJ, pod telebimem (render przez
+  `live-fragment.php`, `part => 'timeline'`, nagłówek `.panel__title` „Oś czasu",
+  wewnątrz `.panels`).
+- **Statystyki** żyją w prawym ASIDE, na prawo od telebimu (render
+  `part => 'stats'`, nagłówek `.aside-sec__title` „Statystyki").
+
+Zmiana (desktop): zamiana TREŚCI obu sekcji między kolumnami — Oś czasu wędruje
+do prawego aside (na prawo od telebimu), Statystyki do kolumny głównej pod telebimem.
+
+Zmiana (mobile): na mobile kolumny stackują się pionowo, więc liczy się KOLEJNOŚĆ.
+Oś czasu ma być PIERWSZA po telebimie (placeholderze wideo) — czyli PRZED składami
+(`.panels` ze `.panel` „Składy"). Dziś w kolumnie głównej kolejność to telebim →
+składy → oś czasu; docelowo na mobile: telebim → oś czasu → składy. (Statystyki i
+„Inne mecze" z aside lądują dalej w stacku, bez zmian.)
+
+Krytyczne doprecyzowanie nagłówków (wg zlecenia, dosłownie): **ułożenie nagłówków
+zostaje jak teraz.** Nagłówek, jaki dziś mamy dla Statystyk na prawo od placeholdera
+wideo, ma POZOSTAĆ w tym miejscu — ale dla Osi czasu; i odwrotnie. Czyli każda
+POZYCJA nagłówka zachowuje swoją obecną oprawę/styl (prawy slot = chrome
+`.aside-sec__title`; lewy slot pod telebimem = chrome `.panel__title`/`.panels`);
+zamienia się TREŚĆ sekcji wpadająca pod dany nagłówek, a tekst nagłówka podąża za
+treścią (prawy slot → „Oś czasu", lewy slot → „Statystyki"). NIE przenosimy oprawy
+nagłówka razem z sekcją — przenosimy ciało, oprawa zostaje na pozycji.
+
+Decyzje do rozstrzygnięcia w sesji wykonawczej (po ground-truth):
+- **Mechanika auto-refreshu.** Oś czasu i Statystyki to sekcje ŻYWE renderowane
+  przez `live-fragment.php` (kotwice pollera `#hajlajty-live-timeline` /
+  `#hajlajty-live-stats`, `display: contents`). Ground-truth ma potwierdzić, że
+  zamiana kolumn (które `part` trafia do `watch__main` vs `watch__aside`) NIE psuje
+  podmiany pollerem — kotwice mają przetrwać przeniesienie.
+- **„Nagłówek na pozycji" vs „nagłówek z sekcją".** `live-fragment.php` renderuje
+  dziś własny nagłówek razem z każdym `part`. Realizacja wymogu „oprawa zostaje na
+  pozycji, treść się zamienia" może oznaczać rozdzielenie nagłówka od ciała w
+  fragmencie albo przekazanie wariantu nagłówka per pozycja — do rozstrzygnięcia po
+  zderzeniu z realnym markupem `live-fragment.php`.
+- **Napięcie desktop ↔ mobile (kolejność vs kolumna).** Desktop chce Osi czasu w
+  prawym aside; mobile chce jej PIERWSZEJ w głównym przepływie (przed składami). To
+  różne pozycje w DOM — do pogodzenia bez duplikowania markupu (np. kolejność źródłowa
+  + `order`/grid-placement per breakpoint, a nie dwie kopie sekcji). Rozstrzygnąć po
+  ground-truth, pilnując, że kotwice pollera live działają w obu układach.
+- **Zakres szablonów.** Dotyczy `single-live.php` (układ telebim + aside ze
+  statystykami). `single-ft.php` (SKRÓT) ma Oś czasu/Statystyki w ZAKŁADKACH jednej
+  kolumny (`.tabpanel`), nie w dwóch kolumnach — poza zakresem P-b, chyba że
+  zlecenie rozszerzy.
+
 ### P-c — Karta skrótu „rail" (pozioma) do sidebara „Inne skróty"
 
 Kontekst: aside „Inne skróty" na single SKRÓT (`single-ft.php`) renderuje dziś
