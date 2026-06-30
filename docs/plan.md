@@ -1324,6 +1324,37 @@ Zależność: niezależna (czysto prezentacyjny restyle, read-only z `match_data
 Zrealizowana w sesji P-d (theme PR #32) jako OSOBNY commit — korekta „rzutem na
 taśmę", nie wymagała osobnego brancha.
 
+### P-f — Live: usunięcie zdublowanych „faktów" pod telebimem + zwężenie odstępu
+
+Kontekst: na `single-live` blok `.match-facts` (w `.match-head--compact`) pokazywał
+DATĘ meczu („poniedziałek, 29 czerwca 2026") i linię „2. połowa, minuta". Obie
+informacje DUPLIKUJĄ telebim (placeholder wideo niesie już minutę + połowę), a pełna
+data nie jest istotna w trakcie trwającego meczu. Po wycięciu bloku `match-head`
+zostawał wizualnie pusty (tylko ukryty `h1`), a mimo to rozpychał stos zdublowanym
+`gap` (md+md) między przyciskiem fav a paskiem zakładek.
+
+Zmiana (TYLKO live, czysto frontowa):
+- **PHP (`single-live.php`)**: wycięty `.match-facts`; `match-head` zostaje WYŁĄCZNIE
+  z ukrytym `h1` (SEO/a11y — zostaje świadomie). Usunięte martwe obliczenia
+  (status-line + data z płaskiej meta `kickoff`) — żywiły tylko ten blok; telebim
+  (`live-fragment.php`) liczy minutę/połowę samodzielnie.
+- **CSS (`match-single.css`)**: `display:contents` na `.watch__grid--live .match-head`
+  (znika pusty box nagłówka; `h1` sr-only zostaje w DOM i dla AT) → brak zdublowanego
+  `gap`. `.watch__grid--live .tabs { margin-top: calc(xs - md) }` domyka odstęp fav →
+  zakładki do `--space-xs` (zamiast `--space-md`). Spójne we flexie (desktop) i
+  gridzie (mobile, gdzie w pasku jest też Oś czasu).
+
+Decyzje podjęte:
+- **`display:contents`, nie ujemne marginesy na pustym elemencie** — w gridzie
+  (mobile) ujemne marginesy na 0-wysokościowym itemie zachowują się nieprzewidywalnie;
+  `display:contents` + jeden ujemny `margin-top` na zakładkach jest zdefiniowane tak
+  samo we flexie i gridzie.
+- **`h1` zostaje (sr-only)** — `display:none` wyrzuciłby go z drzewa a11y; `display:
+  contents` na rodzicu usuwa tylko box, dziecko-`h1` renderuje się normalnie (off-screen).
+
+Zależność: niezależna (read-only, tylko prezentacja live). Theme PR #33, osobny
+branch `feature/p-f-live-metadane`.
+
 ---
 
 ## Faza 5 — „później" (poza MVP)
