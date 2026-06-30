@@ -1144,6 +1144,56 @@ Decyzje do rozstrzygnięcia w sesji wykonawczej (po ground-truth):
   redesign jest globalny (spójnie wszystkie single), czy zakresowany modyfikatorem
   na ns/live. Zakres tej poprawki wg zlecenia: zapowiedź + live.
 
+### P-c — Karta skrótu „rail" (pozioma) do sidebara „Inne skróty"
+
+Kontekst: aside „Inne skróty" na single SKRÓT (`single-ft.php`) renderuje dziś
+PIONOWĄ kartę `.vcard` (wspólny partial `features/match-lists/partials/card-skrot.php`,
+MVP-h): miniatura NA GÓRZE, pod nią symetryczny blok meczowy (flaga nad nazwą,
+wynik w środku). Design `design/Hajlajty - Skrót Meczu -2.html` wprowadza
+ALTERNATYWNĄ kartę `.rvideo` — POZIOMĄ (miniatura po lewej ~168px, treść po
+prawej), zaprojektowaną pod wąską kolumnę sidebara: gęstszy rytm pionowy, więcej
+kart naraz, plus przygaszenie przegranej drużyny. To czysto FRONTOWA korekta
+prezentacji (read-only z `match_data` + taksonomie), bez zmian modelu danych.
+
+Struktura `.rvideo` (z designu, sekcja `.watch__aside`):
+- `.thumb` (miniatura YT + `.thumb__dur` + `.thumb__play`) — chrome WSPÓLNY,
+  już istnieje w motywie (reużywany przez `.vcard`).
+- `.rvideo__body`:
+  - `.rvideo__meta` — `.rvideo__comp` (rozgrywki) · `.dot-sep` · faza · „skrót".
+  - `.rvideo__match` (`grid` 2 kolumny, `.rvideo__row { display: contents }`) —
+    dwa wiersze drużyna+wynik; `.rvideo__row--lose` przygasza przegranego.
+
+Mapowanie danych = TO SAMO co `card-skrot.php`: miniatura/duration z
+`skrot_url`/`skrot_duration` (+ YouTube poster), drużyny z rozwiązanych termów,
+wynik z `match_data.goals`, rozgrywki/faza z taksonomii + `round`→PL. Różnica jest
+WYŁĄCZNIE w układzie (poziomy) i przygaszeniu przegranej — zero nowych źródeł.
+
+Zmiany (zakres do potwierdzenia po ground-truth):
+- Nowy partial sidebarowej karty skrótu (`.rvideo`) w `features/match-lists/`
+  (właściciel kart skrótu — vertical slice), reużywający resolucji danych z
+  `card-skrot.php` (kanał/poster/termy/wynik/round) bez duplikacji.
+- Port reguł `.rvideo*` z designu do arkusza kart motywu (`match-lists.css` lub
+  `card-highlight.css`); `.thumb*`/`.dot-sep`/`.country-flag` już są.
+- Podmiana karty w aside „Inne skróty" (`single-ft.php`) z `.vcard` na `.rvideo`.
+
+Decyzje podjęte (P-c ZREALIZOWANE — PR hajlajty-theme#30, zaakceptowane wizualnie):
+- **Nowy partial, NIE modyfikator.** `features/match-lists/partials/card-skrot-rail.php`
+  (markup `.rvideo`). Resolucja danych ŚWIADOMIE zduplikowana z `card-skrot.php`
+  (dwóch konsumentów → bez helpera „na zapas", #8); stary `.vcard` NIETKNIĘTY
+  (zero regresji).
+- **Współistnieją (NIE zastępuje).** `.vcard` zostaje kartą list/gridów/home
+  (szeroki kontekst); `.rvideo` jest WYŁĄCZNIE kartą sidebara.
+- **Reguła `--lose`.** Przygaszenie tylko gdy ZNAMY oba wyniki i jeden jest ściśle
+  mniejszy; remis ORAZ brak/niepełny wynik → bez przygaszenia.
+- **Zakres = sidebar.** Wpięte w aside „Inne skróty" (`single-ft.php`) — jedyny
+  dziś sidebarowy listing skrótów. „Polecane dla Ciebie" przyjdzie z Fazą 4
+  (`hajlajty-user`) i reużyje TEN SAM partial. Profil reprezentacji używa
+  `card-skrot` (`.vcard`) w SZEROKIM gridzie (nie sidebar) — bez zmian. Live
+  „Inne mecze" używa `.mini-match` (nadchodzące, bez wideo) — nie dotyczy.
+
+Zależność: niezależna od P-a/P-b (inny obszar — partial karty skrótu i aside
+single-ft, nie układ kolumn single-live).
+
 ---
 
 ## Faza 5 — „później" (poza MVP)
