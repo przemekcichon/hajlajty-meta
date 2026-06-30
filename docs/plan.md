@@ -1194,6 +1194,55 @@ Decyzje podjęte (P-c ZREALIZOWANE — PR hajlajty-theme#30, zaakceptowane wizua
 Zależność: niezależna od P-a/P-b (inny obszar — partial karty skrótu i aside
 single-ft, nie układ kolumn single-live).
 
+### P-d — Live: oś czasu jako przewijalny panel + składy/statystyki w zakładkach (jak skrót)
+
+Kontekst: po P-b single LIVE (`single-live.php`) ma dwie kolumny — telebim +
+składy + statystyki w głównej, oś czasu w prawej (sekcje żywe renderuje
+`live-fragment.php`, kotwice pollera `#hajlajty-live-*`). Podgląd realnego stanu
+(mecz z dogrywką/karnymi, ~30+ zdarzeń) pokazał, że układ trzeba dopracować:
+oś czasu jest bardzo długa, a sekcje warto ujednolicić z zakładkami znanymi ze
+skrótu (`single-ft.php`: `.tabs`/`.tabpanels`, JS w `match-display.js`, CSS w
+`match-single.css`). Czysto frontowe (read-only z `match_data`), bez zmian danych.
+
+Zmiany (do realizacji wieczorem):
+1. **Overlaye zdarzeń na telebimie (`.ev--goal` „GOOOL!", `.ev--sub` „Zmiana") —
+   WERYFIKACJA, prawdopodobnie artefakt symulacji.** W podglądzie były widoczne, bo
+   `live-effects.css` (chowa `.ev` do `.is-active`) ładuje się TYLKO gdy płaska meta
+   `status` ∈ kody live (`match-display.php`), a symulacja trzymała `status=FT` (żeby
+   cron nie cofał meczu). W realnym live overlaye są ukryte. Potwierdzić pod
+   wiernym/realnym live; jeśli MIMO to widoczne → realny bug do naprawy.
+2. **Desktop: oś czasu = przewijalny panel o wysokości telebimu.** `max-height` =
+   wysokość `.board`, `overflow-y: auto`; najnowsze zdarzenia u góry (już tak jest —
+   `live-fragment` robi `array_reverse`), więc nowe widać od razu bez przewijania.
+3. **Nagłówek osi czasu w stylu `.panel__title`** (jak DZIŚ mają Składy/Statystyki),
+   zamiast `.aside-sec__title` z P-b — prawa kolumna to teraz samodzielny panel.
+4. **Desktop: Składy + Statystyki w ZAKŁADKACH** (jak skrót), w kolumnie głównej pod
+   telebimem (2 zakładki: Składy | Statystyki). Reużycie komponentu `.tabs`.
+5. **Mobile: Oś czasu + Składy + Statystyki w ZAKŁADKACH** (3 zakładki, jak skrót) —
+   na telefonie oś czasu wpada do tego samego zestawu co składy/statystyki (nie osobny
+   przewijalny panel jak na desktopie).
+6. **Wspólny, BARDZIEJ KOMPAKTOWY pasek zakładek na mobile — ten sam markup live i
+   skrót.** `single-ft` i `single-live` są w tym samym slice (`match-display`), więc
+   pasek (`.tabs` + JS + CSS) wydzielić do współdzielonego komponentu/partiala i
+   zagęścić na telefonie w OBU widokach (jedno źródło markupu).
+
+Decyzje do rozstrzygnięcia w sesji wykonawczej (po ground-truth):
+- **Responsywna rozbieżność osi czasu.** Desktop: oś = osobny przewijalny panel (poza
+  zakładkami); mobile: oś = zakładka razem ze składami/statystykami. Pogodzić w JEDNYM
+  markupie (bez duplikatu sekcji), pilnując kotwic pollera (`display:contents`) — to to
+  samo napięcie desktop↔mobile co w P-b.
+- **Kontrakt zakładek a auto-refresh.** `live-fragment.php` renderuje oś/statystyki jako
+  sekcje podmieniane pollerem po `id`; ukrywanie `.tabpanel` NIE może psuć podmiany ani
+  kotwic (poller działa na ukrytej zakładce).
+- **Zakres dotknięcia skrótu.** Punkt 6 dotyka też `single-ft.php` (wspólny komponent) —
+  potwierdzić, że kompaktowy pasek jest pożądany globalnie (skrót + live).
+- **Składy/Statystyki — zapowiedź zmiany.** Właściciel sygnalizuje OSOBNĄ korektę tych
+  dwóch w kolejnym kroku; P-d tylko wkłada je w zakładki, wewnętrzny układ może się
+  jeszcze zmienić (nie przesądzamy).
+
+Zależność: NA P-b (#29, theme) — P-d przerabia układ `single-live.php` z P-b. Mergować
+P-b przed implementacją P-d (albo budować P-d na gałęzi P-b).
+
 ---
 
 ## Faza 5 — „później" (poza MVP)
