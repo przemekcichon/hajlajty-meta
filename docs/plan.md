@@ -1176,20 +1176,20 @@ Zmiany (zakres do potwierdzenia po ground-truth):
   `card-highlight.css`); `.thumb*`/`.dot-sep`/`.country-flag` już są.
 - Podmiana karty w aside „Inne skróty" (`single-ft.php`) z `.vcard` na `.rvideo`.
 
-Decyzje do rozstrzygnięcia w sesji wykonawczej (po ground-truth):
-- **Nowy partial vs modyfikator `.vcard`.** Markup i klasy różnią się istotnie
-  (poziomy grid, `.rvideo__*`, przygaszenie), więc DOMYŚLNIE nowy partial — ale
-  resolucja danych jest identyczna jak w `card-skrot.php`. Rozstrzygnąć: czy
-  wyciągnąć wspólną resolucję do helpera (jedno źródło), czy świadomie duplikować.
-- **Reguła `--lose`.** Przegrany = ściśle mniej goli; remis = oba bez przygaszenia;
-  brak/niepełny wynik → bez przygaszenia. Potwierdzić.
-- **Zakres użycia.** Pewny: aside „Inne skróty" na `single-ft.php`. „Polecane dla
-  Ciebie" z designu = personalizacja → Faza 4 (`hajlajty-user`), POZA P-c. Live
-  „Inne mecze" (`single-live.php`) używa `.mini-match` (nadchodzące, BEZ wideo) —
-  inny komponent, nie dotyczy P-c.
-- **Zastępuje `.vcard` w sidebarze czy współistnieje.** Domyślnie `.rvideo`
-  ZASTĘPUJE `.vcard` w sidebarze; `.vcard` zostaje kartą list/gridów/home (szeroki
-  kontekst, gdzie pionowy układ jest właściwy). Potwierdzić.
+Decyzje podjęte (P-c ZREALIZOWANE — PR hajlajty-theme#30, zaakceptowane wizualnie):
+- **Nowy partial, NIE modyfikator.** `features/match-lists/partials/card-skrot-rail.php`
+  (markup `.rvideo`). Resolucja danych ŚWIADOMIE zduplikowana z `card-skrot.php`
+  (dwóch konsumentów → bez helpera „na zapas", #8); stary `.vcard` NIETKNIĘTY
+  (zero regresji).
+- **Współistnieją (NIE zastępuje).** `.vcard` zostaje kartą list/gridów/home
+  (szeroki kontekst); `.rvideo` jest WYŁĄCZNIE kartą sidebara.
+- **Reguła `--lose`.** Przygaszenie tylko gdy ZNAMY oba wyniki i jeden jest ściśle
+  mniejszy; remis ORAZ brak/niepełny wynik → bez przygaszenia.
+- **Zakres = sidebar.** Wpięte w aside „Inne skróty" (`single-ft.php`) — jedyny
+  dziś sidebarowy listing skrótów. „Polecane dla Ciebie" przyjdzie z Fazą 4
+  (`hajlajty-user`) i reużyje TEN SAM partial. Profil reprezentacji używa
+  `card-skrot` (`.vcard`) w SZEROKIM gridzie (nie sidebar) — bez zmian. Live
+  „Inne mecze" używa `.mini-match` (nadchodzące, bez wideo) — nie dotyczy.
 
 Zależność: niezależna od P-a/P-b (inny obszar — partial karty skrótu i aside
 single-ft, nie układ kolumn single-live).
