@@ -1488,6 +1488,75 @@ P-h (hajlajty-theme PR #35) wyszły dwie rzeczy, poprawione osobnym hotfixem
 
 ---
 
+### P-i — Skrót (single FT): wzbogacony obszar wideo jak w zapowiedzi/live
+
+Kontekst: widok skrótu (`single-ft.php`, stan ZAKONCZONY) ma dziś UBOGI obszar
+placeholdera wideo (`.player16`, 16:9): fasada YouTube z etykietą „Oficjalny
+skrót", przyciskiem play i czasem trwania, a nazwy drużyn / wynik / źródło siedzą
+DOPIERO w belce `.ibar` POD playerem. Zapowiedź (`single-ns.php`, `.preview`) i
+live (`single-live.php` + `.board` z `live-fragment.php`) mają bogaty „telebim":
+drużyny + wynik na ŚRODKU placeholdera, metadane w rogach/na górze, fakty pod
+spodem, etap nad placeholderem. Chcemy zrównać skrót z tym wzorcem. Czysto
+frontowe (PHP szablon + CSS); ZERO zmian modelu danych — wszystkie dane już są
+(`$data['goals']`, płaska meta `kickoff`, taks. `kanal`, ACF `skrot_duration`,
+`skrot_url` → `hajlajty_youtube_id`).
+
+Zmiany (mapowanie na obszar placeholdera `.player16` — nakładki na fasadę
+`.player16__facade` ORAZ na stan pusty `.player16__empty`):
+1. **Nazwy drużyn — ŚRODEK placeholdera**, wzorem `.board__score`/`.preview__match`.
+2. **Ikony (flagi) drużyn — ŚRODEK**, przez `hajlajty_flag_url` (jak wszędzie).
+3. **Zdobyte gole — ŚRODEK** (między drużynami), z `$data['goals']` (null → „–").
+   → Środek = home flaga+nazwa | wynik | away flaga+nazwa (klon `.board__score`).
+4. **Status „Oficjalny skrót" + kropka/ikonka w odpowiednim kolorze — LEWY GÓRNY
+   róg** (wzorem `.board__live .dot` / `.preview__badge`). Kolor kropki = sygnał
+   „skrót dostępny" (np. zielony/akcent).
+5. **Data i godzina BEZ dnia tygodnia — PRAWY GÓRNY róg** (maska `wp_date` do
+   ustalenia, np. `j.m.Y · H:i`; NIE `l`).
+6. **Nazwa kanału YouTube (taks. `kanal`) — LEWY DOLNY róg** — TYLKO gdy skrót jest
+   (yt_id != ''); dziś w `.ibar__source`.
+7. **Czas trwania skrótu (`skrot_duration`) — PRAWY DOLNY róg** — TYLKO gdy skrót jest.
+8. **Gdy skrótu NIE ma — „Skrót wideo pojawi się wkrótce" w PRAWYM DOLNYM rogu**
+   (zamiast czasu trwania; dziś ten komunikat to `.player16__empty` na środku).
+9. **Fakty POD placeholderem: data, dzień tygodnia, miesiąc, rok + status meczu**
+   — wzorem `.match-head`/`.match-facts` zapowiedzi (`wp_date('l, j F Y')` + status).
+10. **Etap rozgrywki NA PRAWO od „Wróć", NAD placeholderem** — zamień obecny
+    `.crumb` („Skróty · {round}") na `.match-phase` (⚽ {round}) jak w NS/live.
+
+H1: dziś `single-ft.php` NIE MA `<h1>` (luka SEO/a11y — NS i live mają
+`.match-title`). Dodać `<h1>` niosący punkty 1–3 w formie TEKSTU: nazwy drużyn +
+wynik, np. „Polska 2–1 Anglia" (flagi to dekoracja, w h1 tekstem tylko nazwy+wynik).
+
+Ground-truth / decyzje do podjęcia w sesji wykonawczej:
+- **Środek vs przycisk play.** Nakładka „telebim" (drużyny+wynik na środku) musi
+  współistnieć z `.player16__play`. Rozstrzygnąć: scoreboard jako plakat fasady +
+  play jako mniejszy/rogowy element, czy play centralnie a scoreboard wokół. Po
+  kliknięciu play iframe YouTube ZASTĘPUJE fasadę → nakładki żyją TYLKO na
+  fasadzie/stanie pustym, nie na grającym iframe.
+- **Los `.ibar`.** Jej treść (etap→pkt 10, źródło→pkt 6, drużyny/wynik→pkt 1–3,
+  „KONIEC"→pkt 4/9) rozchodzi się do placeholdera i faktów. Prawdopodobnie `.ibar`
+  znika w całości, zastąpiona rzędem faktów (pkt 9) — zdecydować i posprzątać CSS.
+- **Status bez wideo (pkt 4 vs 8).** Gdy brak skrótu: lewy górny — jaki label i
+  kolor kropki (np. neutralny/szary „Po meczu"), skoro „Oficjalny skrót" dotyczy
+  przypadku z wideo; prawy dolny — „…wkrótce".
+- **Formaty daty spójne z NS.** Prawy górny (bez dnia) vs fakty pod spodem (z dniem
+  tygodnia) — ustalić maski `wp_date` (strefa+locale serwisu, jak w single-ns.php).
+- **a11y/kontrast nakładek** na miniaturze YT: ciemna gradientowa podkładka pod
+  tekstem w rogach; sprawdzić oba motywy (jasny/ciemny).
+
+Weryfikacja: na single skrótu (ZAKONCZONY) — środek placeholdera pokazuje
+drużyny+flagi+wynik; rogi: L-górny status+kropka, P-górny data/godz BEZ dnia,
+L-dolny kanał (gdy skrót), P-dolny czas trwania (gdy skrót) LUB „…wkrótce" (gdy
+brak); pod placeholderem fakty (pełna data+dzień tygodnia+status); etap na prawo
+od „Wróć"; `<h1>` = „{home} {gh}–{ga} {away}". Klik play uruchamia YouTube
+(nakładki znikają). Sprawdzić OBA przypadki (ze skrótem i bez) oraz oba motywy.
+
+Zależność: niezależna (slice match-display + motyw). Czysto frontowa
+(`single-ft.php` + `match-single.css`, sekcja player16/ibar); bez zmian modelu
+danych. Duplikacja markupu „telebim" z `.board`/`.preview` DOZWOLONA (DRY wolno
+łamać per-slice, VSA nie — jak zaznaczono w single-ns.php).
+
+---
+
 ## Faza 5 — „później" (poza MVP)
 
 Branch(e) osobne, gdy ruszymy. Cel: zebrać tu wszystko odłożone, żeby nie
