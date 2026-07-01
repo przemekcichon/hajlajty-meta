@@ -1488,6 +1488,96 @@ P-h (hajlajty-theme PR #35) wyszły dwie rzeczy, poprawione osobnym hotfixem
 
 ---
 
+### P-i — Skrót (single FT): wzbogacony obszar wideo jak w zapowiedzi/live
+
+Kontekst: widok skrótu (`single-ft.php`, stan ZAKONCZONY) ma dziś UBOGI obszar
+placeholdera wideo (`.player16`, 16:9): fasada YouTube z etykietą „Oficjalny
+skrót", przyciskiem play i czasem trwania, a nazwy drużyn / wynik / źródło siedzą
+DOPIERO w belce `.ibar` POD playerem. Zapowiedź (`single-ns.php`, `.preview`) i
+live (`single-live.php` + `.board` z `live-fragment.php`) mają bogaty „telebim":
+drużyny + wynik na ŚRODKU placeholdera, metadane w rogach/na górze, fakty pod
+spodem, etap nad placeholderem. Chcemy zrównać skrót z tym wzorcem. Czysto
+frontowe (PHP szablon + CSS); ZERO zmian modelu danych — wszystkie dane już są
+(`$data['goals']`, płaska meta `kickoff`, taks. `kanal`, ACF `skrot_duration`,
+`skrot_url` → `hajlajty_youtube_id`).
+
+Zmiany (mapowanie na obszar placeholdera `.player16` — nakładki na fasadę
+`.player16__facade` ORAZ na stan pusty `.player16__empty`):
+1. **Nazwy drużyn — ŚRODEK placeholdera**, wzorem `.board__score`/`.preview__match`.
+2. **Ikony (flagi) drużyn — ŚRODEK**, przez `hajlajty_flag_url` (jak wszędzie).
+3. **Zdobyte gole — ŚRODEK** (między drużynami), z `$data['goals']` (null → „–").
+   → Środek = home flaga+nazwa | wynik | away flaga+nazwa (klon `.board__score`).
+4. **Status „Oficjalny skrót" + kropka/ikonka w odpowiednim kolorze — LEWY GÓRNY
+   róg** (wzorem `.board__live .dot` / `.preview__badge`). Kolor kropki = sygnał
+   „skrót dostępny" (np. zielony/akcent).
+5. **Data i godzina BEZ dnia tygodnia — PRAWY GÓRNY róg** (maska `wp_date` do
+   ustalenia, np. `j.m.Y · H:i`; NIE `l`).
+6. **Nazwa kanału YouTube (taks. `kanal`) — LEWY DOLNY róg** — TYLKO gdy skrót jest
+   (yt_id != ''); dziś w `.ibar__source`.
+7. **Czas trwania skrótu (`skrot_duration`) — PRAWY DOLNY róg** — TYLKO gdy skrót jest.
+8. **Gdy skrótu NIE ma — „Skrót wideo pojawi się wkrótce" w PRAWYM DOLNYM rogu**
+   (zamiast czasu trwania; dziś ten komunikat to `.player16__empty` na środku).
+9. **Fakty POD placeholderem: data, dzień tygodnia, miesiąc, rok + status meczu**
+   — wzorem `.match-head`/`.match-facts` zapowiedzi (`wp_date('l, j F Y')` + status).
+10. **Etap rozgrywki NA PRAWO od „Wróć", NAD placeholderem** — zamień obecny
+    `.crumb` („Skróty · {round}") na `.match-phase` (⚽ {round}) jak w NS/live.
+
+H1: dziś `single-ft.php` NIE MA `<h1>` (luka SEO/a11y — NS i live mają
+`.match-title`). Dodać `<h1>` niosący punkty 1–3 w formie TEKSTU: nazwy drużyn +
+wynik, np. „Polska 2–1 Anglia" (flagi to dekoracja, w h1 tekstem tylko nazwy+wynik).
+
+Decyzje USTALONE z właścicielem (kompozycja środka i parytet stanów):
+- **Środek + play.** Przycisk play (`.player16__play`) zostaje w GEOMETRYCZNYM
+  środku placeholdera jako punkt centralny/CTA. Drużyny (flaga+nazwa, jak
+  `.team-slot` z zapowiedzi) flankują play w wyśrodkowanym KLASTRZE (home lewo /
+  away prawo) — bliżej stylu ZAPOWIEDZI (przestronne team-sloty) niż „bold slab"
+  wyniku z live. Wynik = zwięzłe, STONOWANE „{gh} – {ga}" na osi centralnej TUŻ
+  NAD przyciskiem play (mały caption, nie dominujący blok). Pion środka: [wynik]
+  nad [▶], nazwy+flagi po bokach na wysokości ▶; numery neutralne (równa odległość
+  od obu drużyn, jak centralne „VS" zapowiedzi), nie krzyczą. Po kliknięciu play
+  iframe YouTube ZASTĘPUJE fasadę → nakładki (środek + rogi) żyją TYLKO na
+  fasadzie/stanie pustym, nie na grającym iframe. Mobile: na wąskim 16:9
+  dopilnować, by klaster się nie tłoczył (ew. mniejsze flagi/nazwy — do dopięcia
+  w CSS).
+- **`.ibar` — usuwamy w całości.** Jej treść rozchodzi się: etap→pkt 10,
+  źródło→pkt 6, drużyny/wynik→pkt 1–3, status/„KONIEC"→pkt 4/9. Belka `.ibar` i jej
+  reguły w `match-single.css` znikają; miejsce zajmuje rząd faktów pod
+  placeholderem (pkt 9). Posprzątać martwy CSS `.ibar*`.
+- **Parytet stanów (ze skrótem / bez).** Oba stany mają IDENTYCZNY szkielet;
+  różnią się TYLKO trzema elementami:
+  • lewy górny badge: ze skrótem → zielona/akcentowa kropka + „Oficjalny skrót"
+    (pkt 4); bez skrótu → stonowana/bursztynowa kropka + „Po meczu" (status meczu;
+    parytet z „LIVE"/„Zapowiedź" z live/zapowiedzi).
+  • środek: ze skrótem → przycisk play (▶); bez skrótu → wyszarzony glif „wideo w
+    drodze" (ikona filmu/klatki) w TYM SAMYM miejscu co play — brak CTA. Wynik +
+    drużyny widoczne w OBU (mecz rozegrany, wynik znany).
+  • prawy dolny: ze skrótem → czas trwania (pkt 7); bez skrótu → „Skrót wideo
+    pojawi się wkrótce" (pkt 8).
+  Reszta bez różnic (data P-górny, kanał L-dolny tylko ze skrótem, fakty pod
+  spodem, etap nad). Kropki statyczne: zielony=gotowy, bursztyn/szary=oczekuje
+  (live ma pulsującą czerwoną — tu spokojniej).
+
+Decyzje do dopięcia w sesji wykonawczej (drobne):
+- **Formaty daty spójne z NS.** Prawy górny (bez dnia, np. `j.m.Y · H:i`) vs fakty
+  pod spodem (z dniem tygodnia, `l, j F Y`) — maski `wp_date` (strefa+locale
+  serwisu, jak w single-ns.php).
+- **a11y/kontrast nakładek** na miniaturze YT: ciemna gradientowa podkładka pod
+  tekstem w rogach i pod wynikiem; sprawdzić oba motywy (jasny/ciemny).
+
+Weryfikacja: na single skrótu (ZAKONCZONY) — środek placeholdera pokazuje
+drużyny+flagi+wynik; rogi: L-górny status+kropka, P-górny data/godz BEZ dnia,
+L-dolny kanał (gdy skrót), P-dolny czas trwania (gdy skrót) LUB „…wkrótce" (gdy
+brak); pod placeholderem fakty (pełna data+dzień tygodnia+status); etap na prawo
+od „Wróć"; `<h1>` = „{home} {gh}–{ga} {away}". Klik play uruchamia YouTube
+(nakładki znikają). Sprawdzić OBA przypadki (ze skrótem i bez) oraz oba motywy.
+
+Zależność: niezależna (slice match-display + motyw). Czysto frontowa
+(`single-ft.php` + `match-single.css`, sekcja player16/ibar); bez zmian modelu
+danych. Duplikacja markupu „telebim" z `.board`/`.preview` DOZWOLONA (DRY wolno
+łamać per-slice, VSA nie — jak zaznaczono w single-ns.php).
+
+---
+
 ## Faza 5 — „później" (poza MVP)
 
 Branch(e) osobne, gdy ruszymy. Cel: zebrać tu wszystko odłożone, żeby nie
