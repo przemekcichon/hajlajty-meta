@@ -1355,6 +1355,45 @@ Decyzje podjęte:
 Zależność: niezależna (read-only, tylko prezentacja live). Theme PR #33, osobny
 branch `feature/p-f-live-metadane`.
 
+### P-g — Ciemny „błysk" (FOUC) przy zmianie strony w motywie jasnym
+
+(Zgłoszone jako „P-e", ale P-e i P-f są już zajęte — kolejny wolny to P-g.)
+
+Objaw: po przełączeniu na motyw JASNY, przy KAŻDYM załadowaniu nowej strony przez
+ułamek sekundy widać ciemne tło, zanim widok „przeskoczy" na jasny. Wygląda to tak,
+jakby motyw ustawiał się dopiero po doładowaniu JS-a (klasyczny FOUC — flash of
+unstyled/wrong theme).
+
+Hipoteza (do potwierdzenia ground-truthem): domyślny stan dokumentu to ciemny
+(`data-theme="dark"` albo brak atrybutu = tokeny ciemne), a wybór użytkownika
+(motyw jasny) zapisany jest w `localStorage` i APLIKOWANY dopiero przez skrypt
+motywu URUCHAMIANY PO pierwszym renderze (np. `defer`/na końcu `<body>`). Efekt:
+każda nawigacja rysuje najpierw ciemne tło, a potem JS przełącza na jasne.
+
+Kierunki rozwiązania (decyzja w sesji wykonawczej, po ground-truth toggle'a):
+- **Serwerowo (preferowane, headless-safe później):** zapis wyboru motywu w
+  CIASTKU (nie tylko `localStorage`), a PHP wypisuje `data-theme` na `<html>` już
+  w markупie (przed pierwszym paintem). Zero zależności od JS przy pierwszym
+  renderze → brak błysku. Ciastko czytelne też dla ewentualnego SSR w Next.js.
+- **Blokujący skrypt inline w `<head>` (fallback / uzupełnienie):** malutki
+  SYNCHRONICZNY skrypt na samym początku `<head>`, który czyta preferencję i ustawia
+  `data-theme` na `<html>` ZANIM przeglądarka wyrenderuje `<body>`. Klasyczny wzorzec
+  anty-FOUC; działa też bez ciastka, ale wymaga, by skrypt NIE był `defer`/`async`.
+- Rozważyć `color-scheme` / `prefers-color-scheme` jako sensowny stan początkowy,
+  gdy użytkownik nie ma jeszcze zapisanej preferencji (żeby domyślny paint zgadzał
+  się z ustawieniem systemu, a nie zawsze był ciemny).
+
+Ground-truth do zrobienia NAJPIERW: jak dziś działa przełącznik motywu (gdzie jest
+skrypt, jak/gdzie zapisuje wybór, gdzie ustawiany jest `data-theme`, czy skrypt jest
+`defer`). Dopiero wtedy wybór wariantu.
+
+Weryfikacja: po ustawieniu motywu jasnego i nawigacji między stronami BRAK ciemnego
+błysku przy pierwszym paincie (sprawdź też twardy refresh i wolne łącze / throttling
+CPU w DevTools, gdzie FOUC jest najlepiej widoczny).
+
+Zależność: niezależna (warstwa powłoki/motywu, slice `layout`). Czysto frontowo-
+-serwerowa; bez zmian modelu danych.
+
 ---
 
 ## Faza 5 — „później" (poza MVP)
