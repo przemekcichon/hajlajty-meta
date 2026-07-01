@@ -1394,6 +1394,69 @@ CPU w DevTools, gdzie FOUC jest najlepiej widoczny).
 Zależność: niezależna (warstwa powłoki/motywu, slice `layout`). Czysto frontowo-
 -serwerowa; bez zmian modelu danych.
 
+### P-h — Sidebar: logo bliżej hamburgera, ikony przy krawędzi, zwijanie „jak YouTube"
+
+Kontekst: trzy drobne, czysto frontowe korekty powłoki sidebara na widokach z
+TRWAŁYM menu (home, archiwa list, terminarz, tabele grup, faza pucharowa,
+reprezentacje — patrz `layout.css` sekcja „WIDOKI Z TRWAŁYM MENU", ≥1100px).
+Single „mecz" (drawer off-canvas) BEZ zmian.
+
+Zmiany:
+1. **Logo bliżej hamburgera (wyrównanie do linków sidebara).** Dziś
+   `.topbar__left { gap: var(--space-sm) }` (`layout.css:32`) rozsuwa hamburger i
+   logo. Zredukować/wyzerować ten gap → logo dosuwa się do hamburgera i licuje w
+   pionie z tekstem linków `.nav-link` w kolumnie menu (logo wpada w tę samą oś
+   startu co etykiety linków). Ground-truth do potwierdzenia: realna oś startu
+   tekstu `.nav-link` (jego `padding-inline` = `--space-sm`) vs. lewa krawędź logo
+   po zmianie gap — dobrać tak, żeby się pokrywały, nie „na oko".
+
+2. **Ikony menu bliżej krawędzi ekranu.** Zmienić padding `.sidebar` (dziś
+   `var(--space-sm) var(--space-sm) var(--space-lg)`, `layout.css:94`) na
+   `var(--space-sm) var(--space-sm) var(--space-lg) var(--space-2xs)` — lewy padding
+   maleje z `--space-sm` (16px) do `--space-2xs` (8px), więc ikony linków siadają
+   bliżej lewej krawędzi. Konsekwencja: hamburger w topbarze trzeba dosunąć tak,
+   by jego ikona licowała się PIONOWO z ikonami linków sidebara (dziś hamburger ma
+   korektę `margin-left:-11px` tylko na ≤768px; trwałe menu ≥1100px wymaga własnego
+   wyrównania). Ground-truth: policzyć oś ikon `.nav-link svg` po zmianie paddingu
+   i dosunąć `.topbar__left > .icon-btn:first-child` do tej samej osi.
+
+3. **Zwijanie sidebara zostawia ikony (efekt „jak YouTube"), nie chowa
+   wszystkiego.** Dziś `body.nav-collapsed` na widokach z trwałym menu zwija kolumnę
+   do `0` i wygasza sidebar (`grid-template-columns: 0 …` + `.sidebar { opacity:0;
+   pointer-events:none }`, `layout.css:228–239`) — znika CAŁE menu. Chcemy: stan
+   zwinięty = wąska SZYNA (rail) z samymi IKONAMI linków; kryją się etykiety
+   tekstowe linków, nagłówki sekcji (`.sidebar__label`) i teaser „wkrótce"
+   (coming-soon). Klikalne ikony zostają — nawigacja działa w trybie zwiniętym.
+   Dotyczy TYLKO widoków z trwałym menu; single (drawer) nadal chowa się w całości.
+   Ground-truth / decyzje do podjęcia w sesji wykonawczej:
+   - **Szerokość szyny** — nowy rozmiar kolumny zwiniętej (np. szerokość
+     ikony/`.icon-btn` + padding) zamiast `0`; transition `grid-template-columns`
+     już jest, więc rail dostaje wartość zamiast zera.
+   - **Ukrycie etykiet bez gubienia ikon** — tekst linku to GOŁY węzeł tekstowy w
+     `.nav-link` (bez `<span>`), a `svg` ma stałe wymiary. Do rozstrzygnięcia: trik
+     CSS (np. zerowanie fontu na linku w trybie rail, ikona zostaje bo ma explicit
+     width/height; `.badge-live` też trzeba schować) vs. mikro-zmiana markupu
+     (owinięcie etykiety w `<span class="nav-link__label">` w `sidebar.php`,
+     czystsze do sterowania). Preferować prostsze i pewniejsze — decyzja po
+     ground-truth.
+   - **a11y w trybie rail** — rozważyć `title`/`aria-label` na zwiniętym linku, żeby
+     miał dostępną nazwę po zniknięciu tekstu.
+   - **Trwałość stanu** — dziś `nav-collapsed` NIE jest zapamiętywany (przełącznik
+     per-sesja). Zapamiętywanie (jak YouTube) NIE jest w zakresie P-h, chyba że
+     osobno zdecydujemy; domyślnie zostaje per-sesja.
+
+Weryfikacja: przy ≥1100px na widokach z trwałym menu — (1) logo dosunięte do
+hamburgera i wyrównane z tekstem linków, (2) ikony linków i hamburger na jednej osi
+bliżej krawędzi, (3) klik w hamburger zwija menu do szyny z samymi ikonami
+(etykiety/sekcje/teaser znikają), ikony klikalne i nawigują; rozwinięcie przywraca
+pełne menu. Single „mecz" bez zmian (drawer chowa się w całości). Sprawdzić oba
+motywy (jasny/ciemny).
+
+Zależność: niezależna (warstwa powłoki, slice `layout` w motywie). Czysto frontowa
+(CSS + ewentualna mikro-zmiana markupu `sidebar.php`); bez zmian modelu danych.
+Punkty 1–2 to drobny CSS; punkt 3 jest większy (przeprojektowanie stanu zwiniętego)
+— w tej samej sesji/branchu, ale świadomie jako osobne commity.
+
 ---
 
 ## Faza 5 — „później" (poza MVP)
