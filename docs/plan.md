@@ -1441,9 +1441,16 @@ Zmiany:
      ground-truth.
    - **a11y w trybie rail** — rozważyć `title`/`aria-label` na zwiniętym linku, żeby
      miał dostępną nazwę po zniknięciu tekstu.
-   - **Trwałość stanu** — dziś `nav-collapsed` NIE jest zapamiętywany (przełącznik
-     per-sesja). Zapamiętywanie (jak YouTube) NIE jest w zakresie P-h, chyba że
-     osobno zdecydujemy; domyślnie zostaje per-sesja.
+   - **Trwałość stanu** — ZDECYDOWANE (dopisane w trakcie realizacji): stan
+     zwinięcia (rail vs pełne) jest ZAPAMIĘTYWANY między wejściami, dokładnie tak
+     jak preferencja motywu (jasny/ciemny). To ta sama klasa preferencji
+     per-użytkownik po stronie klienta (localStorage), więc mechanizm jest
+     lustrzany wobec motywu: jedno źródło klucza (`hajlajty_nav_store_key()` obok
+     `hajlajty_theme_store_key()`), odtworzenie stanu PRZED pierwszym paintem
+     (skrypt tuż po `<body>` — anti-FOUC dla powłoki), zapis przy przełączaniu,
+     `wp_localize_script` spina czytelnika (skrypt) z zapisującym (toggle). Bez
+     bazy, cache-safe. Dotyczy tylko widoków z trwałym menu (≥1100px); na
+     mobile/single klasa jest nieszkodliwa (CSS ją bramkuje).
 
 Weryfikacja: przy ≥1100px na widokach z trwałym menu — (1) logo dosunięte do
 hamburgera i wyrównane z tekstem linków, (2) ikony linków i hamburger na jednej osi
