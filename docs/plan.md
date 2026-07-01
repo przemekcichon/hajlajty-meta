@@ -1526,22 +1526,43 @@ H1: dziś `single-ft.php` NIE MA `<h1>` (luka SEO/a11y — NS i live mają
 `.match-title`). Dodać `<h1>` niosący punkty 1–3 w formie TEKSTU: nazwy drużyn +
 wynik, np. „Polska 2–1 Anglia" (flagi to dekoracja, w h1 tekstem tylko nazwy+wynik).
 
-Ground-truth / decyzje do podjęcia w sesji wykonawczej:
-- **Środek vs przycisk play.** Nakładka „telebim" (drużyny+wynik na środku) musi
-  współistnieć z `.player16__play`. Rozstrzygnąć: scoreboard jako plakat fasady +
-  play jako mniejszy/rogowy element, czy play centralnie a scoreboard wokół. Po
-  kliknięciu play iframe YouTube ZASTĘPUJE fasadę → nakładki żyją TYLKO na
-  fasadzie/stanie pustym, nie na grającym iframe.
-- **Los `.ibar`.** Jej treść (etap→pkt 10, źródło→pkt 6, drużyny/wynik→pkt 1–3,
-  „KONIEC"→pkt 4/9) rozchodzi się do placeholdera i faktów. Prawdopodobnie `.ibar`
-  znika w całości, zastąpiona rzędem faktów (pkt 9) — zdecydować i posprzątać CSS.
-- **Status bez wideo (pkt 4 vs 8).** Gdy brak skrótu: lewy górny — jaki label i
-  kolor kropki (np. neutralny/szary „Po meczu"), skoro „Oficjalny skrót" dotyczy
-  przypadku z wideo; prawy dolny — „…wkrótce".
-- **Formaty daty spójne z NS.** Prawy górny (bez dnia) vs fakty pod spodem (z dniem
-  tygodnia) — ustalić maski `wp_date` (strefa+locale serwisu, jak w single-ns.php).
+Decyzje USTALONE z właścicielem (kompozycja środka i parytet stanów):
+- **Środek + play.** Przycisk play (`.player16__play`) zostaje w GEOMETRYCZNYM
+  środku placeholdera jako punkt centralny/CTA. Drużyny (flaga+nazwa, jak
+  `.team-slot` z zapowiedzi) flankują play w wyśrodkowanym KLASTRZE (home lewo /
+  away prawo) — bliżej stylu ZAPOWIEDZI (przestronne team-sloty) niż „bold slab"
+  wyniku z live. Wynik = zwięzłe, STONOWANE „{gh} – {ga}" na osi centralnej TUŻ
+  NAD przyciskiem play (mały caption, nie dominujący blok). Pion środka: [wynik]
+  nad [▶], nazwy+flagi po bokach na wysokości ▶; numery neutralne (równa odległość
+  od obu drużyn, jak centralne „VS" zapowiedzi), nie krzyczą. Po kliknięciu play
+  iframe YouTube ZASTĘPUJE fasadę → nakładki (środek + rogi) żyją TYLKO na
+  fasadzie/stanie pustym, nie na grającym iframe. Mobile: na wąskim 16:9
+  dopilnować, by klaster się nie tłoczył (ew. mniejsze flagi/nazwy — do dopięcia
+  w CSS).
+- **`.ibar` — usuwamy w całości.** Jej treść rozchodzi się: etap→pkt 10,
+  źródło→pkt 6, drużyny/wynik→pkt 1–3, status/„KONIEC"→pkt 4/9. Belka `.ibar` i jej
+  reguły w `match-single.css` znikają; miejsce zajmuje rząd faktów pod
+  placeholderem (pkt 9). Posprzątać martwy CSS `.ibar*`.
+- **Parytet stanów (ze skrótem / bez).** Oba stany mają IDENTYCZNY szkielet;
+  różnią się TYLKO trzema elementami:
+  • lewy górny badge: ze skrótem → zielona/akcentowa kropka + „Oficjalny skrót"
+    (pkt 4); bez skrótu → stonowana/bursztynowa kropka + „Po meczu" (status meczu;
+    parytet z „LIVE"/„Zapowiedź" z live/zapowiedzi).
+  • środek: ze skrótem → przycisk play (▶); bez skrótu → wyszarzony glif „wideo w
+    drodze" (ikona filmu/klatki) w TYM SAMYM miejscu co play — brak CTA. Wynik +
+    drużyny widoczne w OBU (mecz rozegrany, wynik znany).
+  • prawy dolny: ze skrótem → czas trwania (pkt 7); bez skrótu → „Skrót wideo
+    pojawi się wkrótce" (pkt 8).
+  Reszta bez różnic (data P-górny, kanał L-dolny tylko ze skrótem, fakty pod
+  spodem, etap nad). Kropki statyczne: zielony=gotowy, bursztyn/szary=oczekuje
+  (live ma pulsującą czerwoną — tu spokojniej).
+
+Decyzje do dopięcia w sesji wykonawczej (drobne):
+- **Formaty daty spójne z NS.** Prawy górny (bez dnia, np. `j.m.Y · H:i`) vs fakty
+  pod spodem (z dniem tygodnia, `l, j F Y`) — maski `wp_date` (strefa+locale
+  serwisu, jak w single-ns.php).
 - **a11y/kontrast nakładek** na miniaturze YT: ciemna gradientowa podkładka pod
-  tekstem w rogach; sprawdzić oba motywy (jasny/ciemny).
+  tekstem w rogach i pod wynikiem; sprawdzić oba motywy (jasny/ciemny).
 
 Weryfikacja: na single skrótu (ZAKONCZONY) — środek placeholdera pokazuje
 drużyny+flagi+wynik; rogi: L-górny status+kropka, P-górny data/godz BEZ dnia,
