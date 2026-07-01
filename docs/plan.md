@@ -1464,6 +1464,28 @@ Zależność: niezależna (warstwa powłoki, slice `layout` w motywie). Czysto f
 Punkty 1–2 to drobny CSS; punkt 3 jest większy (przeprojektowanie stanu zwiniętego)
 — w tej samej sesji/branchu, ale świadomie jako osobne commity.
 
+**Hotfix po merge (dopisane — nadpisuje część założeń wyżej).** Po zmergowaniu
+P-h (hajlajty-theme PR #35) wyszły dwie rzeczy, poprawione osobnym hotfixem
+(hajlajty-theme PR #36):
+- **Rail „zjadał" tekst w drawerze na single.** Trwałość stanu (skrypt anti-FOUC)
+  odtwarza `body.nav-collapsed` na KAŻDEJ stronie, więc na single ≥1100px reguły
+  rail (`font-size:0` itd.) chowały etykiety w otwartym drawerze. Fix: `layout.js`
+  zdejmuje `nav-collapsed` na stronach spoza trwałego menu (`isPersistentNavPage`,
+  wg typu strony, nie szerokości) — przywraca inwariant „nav-collapsed tylko na
+  trwałym menu"; preferencja w localStorage zostaje.
+- **Zniesiona zasada „single BEZ zmian" — dla ODSTĘPÓW shellu.** Decyzja
+  użytkownika: single ma wyglądać jak archiwa. Wybrany wariant: topbar single
+  ZOSTAJE zawężony do pasma watch (hamburger wyrównany z treścią, nie z fizyczną
+  krawędzią ekranu), ale dostaje ten sam ciasny klaster (logo tuż przy hamburgerze)
+  i ikony drawera bliżej krawędzi. Realizacja: ciasny klaster (topbar__left gap 0,
+  hamburger -3, logo padding `--space-3xs`) przeniesiony do ogólnego bloku ≥1100
+  (wspólny single + trwałe menu); lewy padding sidebara 16→8 przeniesiony do
+  BAZOWEGO `.sidebar` (drawer single/mobile + rail) — czyli pierwotna, literalna
+  instrukcja punktu 2. Widoki z trwałym menu renderują się identycznie jak przed
+  hotfixem. Uwaga: to koryguje zdania „single BEZ zmian" z nagłówka i Weryfikacji
+  powyżej — ZMIANA dotyczy odstępów/wyrównania shellu, nie zachowania drawera
+  (single nadal chowa menu w całości, nie ma railu).
+
 ---
 
 ## Faza 5 — „później" (poza MVP)
