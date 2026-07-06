@@ -32,6 +32,23 @@ To jest jednorazowa konfiguracja serwera, nie zmiana w kodzie.
 - Czyli systemowy cron bije co minutę „na sucho", a do API dzwoni tylko w oknach
   wokół meczów. Budżet API jest pod kontrolą niezależnie od częstotliwości bicia.
 
+### Inne eventy na tym samym biciu (bez dodatkowej konfiguracji)
+
+`wp cron event run --due-now` (krok 3) wykonuje WSZYSTKIE zaległe zadania, więc
+ten sam systemowy cron obsługuje też pozostałe eventy hajlajty-core — nie trzeba
+dla nich osobnych wpisów w crontabie:
+
+- `hajlajty_standings_import_tick` — `hourly`, odświeża zaimportowane tabele grup.
+- `hajlajty_team_stats_import_tick` — `daily`, odświeża zaimportowane statystyki drużyn.
+- `hajlajty_fixtures_import_tick` — `daily` (P-k), PEŁNY import fixtures dla par
+  (liga, sezon), które mają już zaimportowane mecze. To on odświeża AUTOMATYCZNIE
+  obsadę boxów drabinki „Faza pucharowa" (drużyny wchodzą do fixture'ów po
+  rozstrzygnięciu grup/rund), zastępując codzienne ręczne `wp hajlajty import`.
+  Bramka budżetowa jak reszta: brak zaimportowanych par = zero zapytań do API.
+
+Wszystkie mają bramkę budżetową (odświeżają tylko to, co już raz zaimportowano),
+więc dodatkowe bicie nie generuje kosztu na świeżej instalacji.
+
 ## Kroki na produkcji
 
 Zakładamy root WordPressa: `/home/www/public_html` (podmień na swój).
