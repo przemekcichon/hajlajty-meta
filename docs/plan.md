@@ -1578,6 +1578,29 @@ danych. Duplikacja markupu „telebim" z `.board`/`.preview` DOZWOLONA (DRY woln
 
 ---
 
+### P-j — Zakładki: zmniejszy odstęp nad paskiem `.tabs`
+
+Kontekst: pasek zakładek (oś czasu / składy / statystyki) ma dziś nad sobą
+`margin-top: var(--space-xl)` (`match-single.css`, selektor `.tabs`) — za duża
+przerwa między obszarem nad zakładkami a samym paskiem. Zmniejszamy do
+`var(--space-md)`.
+
+Zmiana: w selektorze `.tabs` ustawić `margin-top: var(--space-md)` (zamiast
+`var(--space-xl)`). Jeden wiersz CSS, bez zmian markupu.
+
+Uwaga (ground-truth przed edycją): dotyczy widoku SKRÓTU (single-ft) — na LIVE
+`.tabs` ma własny override w kontekście `.watch__grid--live` (margin zerowany
+`order`-blokiem + `calc(var(--space-xs) - var(--space-md))`), więc live jest
+niezależny od tej wartości. Zapowiedź nie używa `.tabs`.
+
+Weryfikacja: na single skrótu odstęp nad paskiem zakładek jest ciaśniejszy
+(md, nie xl); live bez zmian (nadal własny override). Sprawdzić oba motywy.
+
+Zależność: niezależna. Czysto frontowa (`match-single.css`, selektor `.tabs`);
+bez zmian markupu ani modelu danych.
+
+---
+
 ## Faza 5 — „później" (poza MVP)
 
 Branch(e) osobne, gdy ruszymy. Cel: zebrać tu wszystko odłożone, żeby nie
