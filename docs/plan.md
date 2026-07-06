@@ -1601,6 +1601,68 @@ bez zmian markupu ani modelu danych.
 
 ---
 
+### P-k — Faza pucharowa: obsada boxów nie odświeża się automatycznie
+
+**To NIE jest drobny CSS — to poprawka backendu (harmonogram/import).** Realizacja
+w OSOBNEJ SESJI, pełnym torem: ground-truth NAJPIERW (`docs/ground-truth.md`) →
+implementacja → recenzja (`docs/code-review-workflow.md`). Ten wpis opisuje TYLKO
+problem i obszary do zbadania — NIE przesądza rozwiązania (diagnozę robi sesja
+wykonawcza na realnym kodzie).
+
+Objaw (zgłoszenie właściciela): podstrona „Faza pucharowa" (drabinka) nie
+wypełnia boxów z zespołami sama z siebie. Co rano trzeba ręcznie odpalić
+`wp hajlajty import`, żeby obsada par pucharowych się pojawiła/zaktualizowała.
+To łamie zasadę „mecze i ich dane pochodzą z automatu" (CLAUDE.md #10) — dziś
+aktualność drabinki zależy od codziennego ręcznego CLI.
+
+Cel: obsada drabinki odświeża się AUTOMATYCZNIE (bez codziennego ręcznego
+`wp hajlajty import`), przy zachowaniu budżetu API (bez ślepego pollingu 24/7).
+
+Ground-truth do wykonania w sesji (czytać kod na dysku, nie pamięć — hipotezy
+poniżej SĄ DO WERYFIKACJI, nie do przyjęcia na wiarę):
+- **Skąd drabinka bierze obsadę** — `features/match-lists/knockout.php`,
+  `bracket.php`, `partials/faza-pucharowa.php`, `data/knockout-schedule.php`
+  (motyw). Zgodnie z notatką runtime: obsada boxów pochodzi ze standings
+  `description` + fixture'ów; głębsze rundy przychodzą jako TBD. Ustalić DOKŁADNIE,
+  które źródło (fixtures / standings / seed) zasila boxy, które właściciel widzi
+  jako „puste do rana".
+- **Co robią crony vs `wp hajlajty import`** (hajlajty-core):
+  - `features/match-import/cron.php` — live-polling TYLKO w oknach meczowych
+    (±kickoff) + stale-FT; woła `hajlajty_import_live_run()` (odświeża mecze
+    LIVE/świeżo-FT). Hipoteza: NIE robi ogólnego importu fixture'ów, więc nowe
+    pary pucharowe i ich obsada tu nie wpadają.
+  - `features/standings-import/cron.php` — `hourly`, bramka budżetowa (odświeża
+    tylko istniejące `standings_<sezon>`).
+  - `features/match-import/cli.php` — `wp hajlajty import` → `hajlajty_import_
+    collect_fixtures` + `hajlajty_import_run_batch` (pełny import fixture'ów lig/
+    sezonów). To ta ręczna komenda, którą właściciel odpala co rano.
+  - Hipoteza wiodąca (DO POTWIERDZENIA): brak zaplanowanego odpowiednika PEŁNEGO
+    importu fixture'ów — żaden cron nie wykonuje okresowo tego, co robi ręczny
+    `wp hajlajty import`, więc obsada nowych par pucharowych pojawia się dopiero
+    po ręcznym przebiegu.
+- **Decyzja kadencyjna** (należy do sesji + ew. stratega): jeśli brakuje
+  zaplanowanego importu fixture'ów — dodać go wzorem `standings-import/cron.php`
+  (wbudowany `hourly`/`daily` + bramka budżetowa, gating na śledzone ligi/sezony),
+  a NIE własny sub-minutowy interwał na zapas (#8 „bez abstrakcji na przyszłość").
+  Sprząc z odłożonymi follow-upami crona w „Fazie 5 — /standings" (zamrażanie
+  zakończonych turniejów, kadencja).
+
+Realia środowiska (CLAUDE.md): agent pisze KOD + instrukcje; RUNTIME (WP-CLI,
+`wp cron event run`, weryfikacja na żywej stronie) wykonuje CZŁOWIEK i wkleja
+wynik. Kroki testowe projektować jako „oto komenda, uruchom i wklej output".
+
+Weryfikacja (do zaprojektowania w sesji, wykonuje człowiek): po zmianie boxy
+Fazy pucharowej wypełniają/aktualizują się BEZ ręcznego `wp hajlajty import`
+(np. po zaplanowanym tiku / `wp cron event run --due-now`); zużycie API w
+granicach budżetu; brak regresji importu live i standings.
+
+Zależność: głównie hajlajty-core (slice `match-import`, właściciel crona/importu);
+prawdopodobnie ZERO zmian w motywie (drabinka tylko renderuje to, co jest w
+danych) — do potwierdzenia w ground-truth. Granica artefaktów (core vs motyw)
+nadrzędna wobec slice'ów.
+
+---
+
 ## Faza 5 — „później" (poza MVP)
 
 Branch(e) osobne, gdy ruszymy. Cel: zebrać tu wszystko odłożone, żeby nie
