@@ -1728,10 +1728,14 @@ Decyzje UX (ROZSTRZYGNIĘTE przez właściciela):
   `bracket-cell.php` przechodzi z osobnej noty „karne h:a" na ten sam format
   `H(Hp):A(Ap)` co single/karty (gole już są pod flagami jako `bracket-cell__g` —
   nawias dochodzi przy nich). Że box jest CIASNY, jest częścią decyzji: boxy
-  drabinki POSZERZAMY, żeby nawias się mieścił bez ściśnięcia (CSS drabinki —
-  do ustalenia w ground-truth którego pliku, np. style `.bracket-cell`; sprawdzić
-  wpływ na układ dwustronny i linie łączące `bracket.js`). Nota „po dogrywce" (AET)
-  w drabince zostaje tekstowa jak dziś.
+  drabinki POSZERZAMY — konkretnie `.bracket__col` w `assets/styles/bracket.css`
+  z `width: 120px` na `130px` (baza desktop). Uwagi ground-truth przy tej zmianie:
+  kolumna środkowa `.bracket__col--center` ma osobne `184px` (i komentarz „nie
+  mieści się w 120px" — nieszkodliwy, ale odnotować), a override mobilny
+  `@media (max-width:768px) .bracket__col { width: 112px }` zostaje bez zmian, o ile
+  sesja nie stwierdzi ciasnoty również na mobile; sprawdzić wpływ na układ
+  dwustronny i linie łączące `bracket.js`. Nota „po dogrywce" (AET) w drabince
+  zostaje tekstowa jak dziś.
 
 Realia środowiska (CLAUDE.md): agent pisze KOD; RUNTIME (weryfikacja na żywej
 stronie) wykonuje CZŁOWIEK. Kroki testowe: „oto co otwórz i co powinno być widać".
