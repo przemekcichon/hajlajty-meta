@@ -1667,9 +1667,10 @@ nadrzędna wobec slice'ów.
 
 Realizacja pełnym torem: ground-truth NAJPIERW (`docs/ground-truth.md`) →
 implementacja → recenzja (`docs/code-review-workflow.md`). Ten wpis opisuje problem
-i obszary do zbadania; decyzje UX (format noty, AET vs PEN, zakres LIVE) są już
-ROZSTRZYGNIĘTE przez właściciela (sekcja „Decyzje UX" niżej) — sesji zostaje
-ground-truth, umiejscowienie w markupie i granica slice'ów.
+i obszary do zbadania; decyzje UX (format noty, AET vs PEN, zakres LIVE,
+ujednolicenie + poszerzenie drabinki) są już ROZSTRZYGNIĘTE przez właściciela
+(sekcja „Decyzje UX" niżej) — sesji zostaje ground-truth, umiejscowienie w markupie,
+dobór pliku CSS i granica slice'ów.
 
 Objaw (zgłoszenie właściciela): mecz fazy pucharowej, który po regulaminowym czasie
 ORAZ dogrywce kończy się remisem i rozstrzyga się w karnych, na STRONIE meczu
@@ -1723,20 +1724,24 @@ Decyzje UX (ROZSTRZYGNIĘTE przez właściciela):
   karnych, nie wynik serii, więc wymaga własnego ground-truth. P-l obejmuje single
   ZAKOŃCZONY + karty (zgodnie z objawem); LIVE zostaje na później.
 
-Do rozstrzygnięcia w sesji (umiejscowienie, nie UX): czy ujednolicić DRABINKĘ do
-tego samego zapisu w nawiasie (dziś `bracket-cell.php` ma osobną notę „karne h:a")
-— spójność jest sensem P-l, a miejsce w boxie to udźwignie (gole już są pod flagami
-jako `bracket-cell__g`). Domyślnie: TAK, ujednolicić; ostateczna decyzja po obejrzeniu
-ciasnoty boxu.
+- **DRABINKA ujednolicona do tego samego zapisu w nawiasie + POSZERZENIE boxu.**
+  `bracket-cell.php` przechodzi z osobnej noty „karne h:a" na ten sam format
+  `H(Hp):A(Ap)` co single/karty (gole już są pod flagami jako `bracket-cell__g` —
+  nawias dochodzi przy nich). Że box jest CIASNY, jest częścią decyzji: boxy
+  drabinki POSZERZAMY, żeby nawias się mieścił bez ściśnięcia (CSS drabinki —
+  do ustalenia w ground-truth którego pliku, np. style `.bracket-cell`; sprawdzić
+  wpływ na układ dwustronny i linie łączące `bracket.js`). Nota „po dogrywce" (AET)
+  w drabince zostaje tekstowa jak dziś.
 
 Realia środowiska (CLAUDE.md): agent pisze KOD; RUNTIME (weryfikacja na żywej
 stronie) wykonuje CZŁOWIEK. Kroki testowe: „oto co otwórz i co powinno być widać".
 
 Weryfikacja (wykonuje człowiek): na realnym meczu PEN (WŚ takie ma) single i karta
 pokazują wynik w formacie `H(Hp):A(Ap)` (np. `1(3):1(4)`) + notę „po karnych",
-spójnie z boxem drabinki; mecz AET (bez karnych) pokazuje notę „po dogrywce" BEZ
-nawiasu (gole niosą zwycięzcę); zwykły FT bez zmian; zapowiedź bez regresji; LIVE
-NIEZMIENIONY (poza zakresem P-l).
+spójnie z boxem drabinki, który pokazuje ten sam zapis `H(Hp):A(Ap)` w POSZERZONYM
+boxie bez ściśnięcia (i bez rozjazdu linii łączących); mecz AET (bez karnych)
+pokazuje notę „po dogrywce" BEZ nawiasu (gole niosą zwycięzcę); zwykły FT bez zmian;
+zapowiedź bez regresji; LIVE NIEZMIENIONY (poza zakresem P-l).
 
 Zależność: WYŁĄCZNIE motyw (slice'y `match-display` + `match-lists`); ZERO zmian w
 imporcie/modelu (dane już są — potwierdzić na realnym meczu PEN). Render READ-ONLY
