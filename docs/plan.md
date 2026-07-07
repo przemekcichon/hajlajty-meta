@@ -1838,12 +1838,11 @@ Ground-truth (potwierdzone w `features/filters/assets/filters.js`):
   init-seed i `resetAll()`; `apply()`/`syncControls()` NIE synchronizują pola do
   `state.q`, więc po `load()` pole nie nadąża za stanem.
 
-Decyzja UX (rekomendacja — do potwierdzenia właściciela): filtr jest lepki celowo,
-więc naprawiamy TRANSPARENTNOŚĆ, nie kasujemy stanu — po `load()` PRZYWRÓCIĆ tekst do
-pola (pole pokazuje „niem"), spójnie z widocznym „×" i aktywnym filtrem. Alternatywa
-(jeśli właściciel uzna, że tekst NIE ma być lepki): przy starcie nie przywracać/nie
-persistować `q` (pole puste, „×" ukryty, brak filtra tekstowego) — ale chipy zostają
-lepkie, więc byłoby niespójne z zamysłem „lepkiego filtra". DOMYŚLNIE: przywracać tekst.
+Decyzja UX (ROZSTRZYGNIĘTA przez właściciela): PRZYWRACAMY TEKST. Filtr jest lepki
+celowo, więc naprawiamy TRANSPARENTNOŚĆ, nie kasujemy stanu — po `load()` przywrócić
+tekst do pola (pole pokazuje „niem"), spójnie z widocznym „×" i aktywnym filtrem.
+Odrzucona alternatywa (nie przywracać/nie persistować `q` przy starcie): chipy zostają
+lepkie, więc puste pole byłoby niespójne z zamysłem „lepkiego filtra".
 
 Kierunek fixa (sesja dobierze wariant): najprościej wczytać stan PRZED seedem pola
 (przenieść `load()` przed pętlę seedującą inputy albo zseedować pole z `state.q` już
