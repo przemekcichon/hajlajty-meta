@@ -1663,6 +1663,71 @@ nadrzędna wobec slice'ów.
 
 ---
 
+### P-l — Faza pucharowa: rozstrzygnięcie w karnych niewidoczne na single i kartach (tylko w drabince)
+
+Realizacja pełnym torem: ground-truth NAJPIERW (`docs/ground-truth.md`) →
+implementacja → recenzja (`docs/code-review-workflow.md`). Ten wpis opisuje problem
+i obszary do zbadania — UX (dokładne słownictwo/umiejscowienie, oznaczenie zwycięzcy)
+i granice zakresu (LIVE?) rozstrzyga sesja wykonawcza + właściciel.
+
+Objaw (zgłoszenie właściciela): mecz fazy pucharowej, który po regulaminowym czasie
+ORAZ dogrywce kończy się remisem i rozstrzyga się w karnych, na STRONIE meczu
+(single) i na KARCIE meczu pokazuje tylko wynik regulaminowy (np. „1 – 1") z etykietą
+„Po meczu" — bez śladu, że o awansie zdecydowały karne (ani kto wygrał). JEDYNE
+miejsce, gdzie to widać, to box drabinki „Faza pucharowa": wynik karnych pod flagami.
+
+Cel: informacja o rozstrzygnięciu w karnych (i o dogrywce) jest widoczna także na
+single ZAKOŃCZONYM i na kartach wyniku/skrótu — spójnie z tym, co już robi drabinka.
+
+Ground-truth do wykonania w sesji (czytać kod na dysku — poniższe SĄ do potwierdzenia):
+- **Dane już są w `match_data`** (render-only, ZERO zmian modelu/importu — #3, #10):
+  - `status.short` niesie `AET` (po dogrywce) / `PEN` (po karnych) — mapa status→stan
+    PL w `lookups.php` sprowadza oba do stanu `ZAKONCZONY` (patrz api-mapping.md,
+    „Mapowanie statusu"); rozróżnienie AET/PEN gubi się po drodze na single/kartach.
+  - `score.penalty.{home,away}` — wynik serii karnych; zachowany przez import
+    (`match-import/transform.php`, klucz `score.penalty`). `score.extratime.*` dla
+    dogrywki. `goals.{home,away}` pozostaje AUTORYTATYWNYM wynikiem po 90'+dogrywce
+    (remis) — zwycięzca serii = wyższy `score.penalty`, NIE jest zapisany osobno
+    (pochodna renderu, nie nowe pole).
+- **Wzorzec do REUŻYCIA (nie wymyślać od nowa)** — `features/match-lists/partials/
+  bracket-cell.php` już to renderuje: `AET`→„po dogrywce", `PEN`→„karne {h}:{a}"
+  ze `score.penalty` (komentarz w kodzie: „Rozstrzygnięcie po 90' — NOWY odczyt").
+  Sesja ma powielić TĘ logikę na single/kartach, a nie budować drugą.
+- **Gdzie renderu BRAKUJE** (potwierdzone grepem — te pliki nie znają `penalty`/
+  `AET`/`PEN`):
+  - single: `features/match-display/partials/single-ft.php` — nakładka „telebim"
+    pokazuje `goals.*` + `status_pl = 'Po meczu'`, bez noty o karnych/dogrywce;
+  - karty: `features/match-lists/partials/card-wynik.php`, `card-skrot.php`
+    (i ew. `card-skrot-rail.php`) — pokazują tylko `goals.*`.
+- **Granica slice'ów** (do rozstrzygnięcia w sesji): `bracket-cell` żyje w slice
+  `match-lists`, `single-ft` w `match-display`. Jeśli logika „nota rozstrzygnięcia"
+  ma być współdzielona, kandydatem jest mały lookup/helper — ale bez tworzenia
+  `shared/` na zapas (VSA, #8): najpierw sprawdzić, czy powielenie kilku linii nie
+  jest prostsze niż współdzielony byt między slice'ami.
+
+Decyzje dla sesji + właściciela (UX, nie przesądzam):
+- dokładne słownictwo i miejsce noty („po karnych 4:3" / „po dogrywce"; przy wyniku
+  czy pod nim); czy i jak oznaczyć ZWYCIĘZCĘ serii (pogrubienie/strzałka), skoro
+  `goals` to remis;
+- czy mecz rozstrzygnięty w samej DOGRYWCE (AET, bez karnych) też dostaje notę
+  „po dogrywce" na single/kartach (drabinka już go rozróżnia);
+- ZAKRES LIVE: seria karnych trwa też na żywo (`live-fragment.php` zna zdarzenia
+  karnych, ale nie wynik serii). Czy P-l obejmuje wariant LIVE, czy zostaje przy
+  single ZAKOŃCZONYM + kartach (zgodnie z objawem), a LIVE to osobny follow-up.
+
+Realia środowiska (CLAUDE.md): agent pisze KOD; RUNTIME (weryfikacja na żywej
+stronie) wykonuje CZŁOWIEK. Kroki testowe: „oto co otwórz i co powinno być widać".
+
+Weryfikacja (wykonuje człowiek): na realnym meczu PEN (WŚ takie ma) single i karta
+pokazują wynik karnych + notę „po karnych" spójną z boxem drabinki; mecz AET (bez
+karnych) pokazuje „po dogrywce"; zwykły FT bez zmian; zapowiedź/live bez regresji.
+
+Zależność: WYŁĄCZNIE motyw (slice'y `match-display` + `match-lists`); ZERO zmian w
+imporcie/modelu (dane już są — potwierdzić na realnym meczu PEN). Render READ-ONLY
+z `match_data` (#3).
+
+---
+
 ## Faza 5 — „później" (poza MVP)
 
 Branch(e) osobne, gdy ruszymy. Cel: zebrać tu wszystko odłożone, żeby nie
