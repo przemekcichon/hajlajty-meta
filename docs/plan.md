@@ -1663,6 +1663,207 @@ nadrzędna wobec slice'ów.
 
 ---
 
+### P-l — Faza pucharowa: rozstrzygnięcie w karnych niewidoczne na single i kartach (tylko w drabince)
+
+Realizacja pełnym torem: ground-truth NAJPIERW (`docs/ground-truth.md`) →
+implementacja → recenzja (`docs/code-review-workflow.md`). Ten wpis opisuje problem
+i obszary do zbadania; decyzje UX (format noty, AET vs PEN, zakres LIVE,
+ujednolicenie + poszerzenie drabinki) są już ROZSTRZYGNIĘTE przez właściciela
+(sekcja „Decyzje UX" niżej) — sesji zostaje ground-truth, umiejscowienie w markupie,
+dobór pliku CSS i granica slice'ów.
+
+Objaw (zgłoszenie właściciela): mecz fazy pucharowej, który po regulaminowym czasie
+ORAZ dogrywce kończy się remisem i rozstrzyga się w karnych, na STRONIE meczu
+(single) i na KARCIE meczu pokazuje tylko wynik regulaminowy (np. „1 – 1") z etykietą
+„Po meczu" — bez śladu, że o awansie zdecydowały karne (ani kto wygrał). JEDYNE
+miejsce, gdzie to widać, to box drabinki „Faza pucharowa": wynik karnych pod flagami.
+
+Cel: informacja o rozstrzygnięciu w karnych (i o dogrywce) jest widoczna także na
+single ZAKOŃCZONYM i na kartach wyniku/skrótu — spójnie z tym, co już robi drabinka.
+
+Ground-truth do wykonania w sesji (czytać kod na dysku — poniższe SĄ do potwierdzenia):
+- **Dane już są w `match_data`** (render-only, ZERO zmian modelu/importu — #3, #10):
+  - `status.short` niesie `AET` (po dogrywce) / `PEN` (po karnych) — mapa status→stan
+    PL w `lookups.php` sprowadza oba do stanu `ZAKONCZONY` (patrz api-mapping.md,
+    „Mapowanie statusu"); rozróżnienie AET/PEN gubi się po drodze na single/kartach.
+  - `score.penalty.{home,away}` — wynik serii karnych; zachowany przez import
+    (`match-import/transform.php`, klucz `score.penalty`). `score.extratime.*` dla
+    dogrywki. `goals.{home,away}` pozostaje AUTORYTATYWNYM wynikiem po 90'+dogrywce
+    (remis) — zwycięzca serii = wyższy `score.penalty`, NIE jest zapisany osobno
+    (pochodna renderu, nie nowe pole).
+- **Wzorzec do REUŻYCIA (nie wymyślać od nowa)** — `features/match-lists/partials/
+  bracket-cell.php` już to renderuje: `AET`→„po dogrywce", `PEN`→„karne {h}:{a}"
+  ze `score.penalty` (komentarz w kodzie: „Rozstrzygnięcie po 90' — NOWY odczyt").
+  Sesja ma powielić TĘ logikę na single/kartach, a nie budować drugą.
+- **Gdzie renderu BRAKUJE** (potwierdzone grepem — te pliki nie znają `penalty`/
+  `AET`/`PEN`):
+  - single: `features/match-display/partials/single-ft.php` — nakładka „telebim"
+    pokazuje `goals.*` + `status_pl = 'Po meczu'`, bez noty o karnych/dogrywce;
+  - karty: `features/match-lists/partials/card-wynik.php`, `card-skrot.php`
+    (i ew. `card-skrot-rail.php`) — pokazują tylko `goals.*`.
+- **Granica slice'ów** (do rozstrzygnięcia w sesji): `bracket-cell` żyje w slice
+  `match-lists`, `single-ft` w `match-display`. Jeśli logika „nota rozstrzygnięcia"
+  ma być współdzielona, kandydatem jest mały lookup/helper — ale bez tworzenia
+  `shared/` na zapas (VSA, #8): najpierw sprawdzić, czy powielenie kilku linii nie
+  jest prostsze niż współdzielony byt między slice'ami.
+
+Decyzje UX (ROZSTRZYGNIĘTE przez właściciela):
+- **Format wyniku karnych = w nawiasie przy standardowym wyniku, per strona.**
+  Wynik regulaminowy (remis) zostaje, a wynik serii karnych dochodzi w nawiasie
+  przy liczbie goli KAŻDEJ drużyny: `H(Hp):A(Ap)`. Przykład: regulaminowe 1:1,
+  karne 3:4 → `1(3):1(4)`. Na single (telebim: gole POD każdą flagą osobno) ten
+  sam zapis per strona — `1(3)` pod gospodarzem, `1(4)` pod gościem. Nawias jest
+  TYLKO dla PEN (dogrywka bez karnych nie ma serii → bez nawiasu).
+- **Nota tekstowa wg statusu:** `PEN` → „po karnych"; `AET` (rozstrzygnięcie w samej
+  dogrywce, bez karnych) → „po dogrywce". Nota jest niezależna od nawiasu: PEN dostaje
+  I nawias `H(Hp):A(Ap)`, I notę „po karnych"; AET dostaje samą notę „po dogrywce"
+  (gole już pokazują zwycięzcę dogrywki, np. 2:1 — bez nawiasu). Osobne oznaczanie
+  zwycięzcy (pogrubienie/strzałka) NIE jest wymagane — nawias + gole to niosą.
+- **ZAKRES LIVE — POZA P-l (osobny follow-up → P-m).** Na żywo ma być „bardzo
+  podobnie" (seria karnych w toku), ale to osobna sesja: `live-fragment.php` zna
+  zdarzenia karnych, nie wynik serii, więc wymaga własnego ground-truth. P-l obejmuje
+  single ZAKOŃCZONY + karty (zgodnie z objawem); LIVE realizuje P-m.
+
+- **DRABINKA ujednolicona do tego samego zapisu w nawiasie + POSZERZENIE boxu.**
+  `bracket-cell.php` przechodzi z osobnej noty „karne h:a" na ten sam format
+  `H(Hp):A(Ap)` co single/karty (gole już są pod flagami jako `bracket-cell__g` —
+  nawias dochodzi przy nich). Że box jest CIASNY, jest częścią decyzji: boxy
+  drabinki POSZERZAMY — konkretnie `.bracket__col` w `assets/styles/bracket.css`
+  z `width: 120px` na `130px` (baza desktop). Uwagi ground-truth przy tej zmianie:
+  kolumna środkowa `.bracket__col--center` ma osobne `184px` (i komentarz „nie
+  mieści się w 120px" — nieszkodliwy, ale odnotować), a override mobilny
+  `@media (max-width:768px) .bracket__col { width: 112px }` zostaje bez zmian, o ile
+  sesja nie stwierdzi ciasnoty również na mobile; sprawdzić wpływ na układ
+  dwustronny i linie łączące `bracket.js`. Nota „po dogrywce" (AET) w drabince
+  zostaje tekstowa jak dziś.
+
+Realia środowiska (CLAUDE.md): agent pisze KOD; RUNTIME (weryfikacja na żywej
+stronie) wykonuje CZŁOWIEK. Kroki testowe: „oto co otwórz i co powinno być widać".
+
+Weryfikacja (wykonuje człowiek): na realnym meczu PEN (WŚ takie ma) single i karta
+pokazują wynik w formacie `H(Hp):A(Ap)` (np. `1(3):1(4)`) + notę „po karnych",
+spójnie z boxem drabinki, który pokazuje ten sam zapis `H(Hp):A(Ap)` w POSZERZONYM
+boxie bez ściśnięcia (i bez rozjazdu linii łączących); mecz AET (bez karnych)
+pokazuje notę „po dogrywce" BEZ nawiasu (gole niosą zwycięzcę); zwykły FT bez zmian;
+zapowiedź bez regresji; LIVE NIEZMIENIONY (poza zakresem P-l).
+
+Zależność: WYŁĄCZNIE motyw (slice'y `match-display` + `match-lists`); ZERO zmian w
+imporcie/modelu (dane już są — potwierdzić na realnym meczu PEN). Render READ-ONLY
+z `match_data` (#3).
+
+---
+
+### P-m — Live: dogrywka/karne w telebimie na żywo + rzuty serii na osi czasu
+
+Follow-up P-l, świadomie z niego wyłączony (LIVE). Realizacja pełnym torem:
+ground-truth NAJPIERW (`docs/ground-truth.md`) → implementacja → recenzja. Ten wpis
+opisuje problem i obszary do zbadania; UX dziedziczy z P-l (ten sam format nawiasu),
+a jedno pytanie jest OTWARTE i zależy od API (rzuty serii na osi — patrz niżej).
+
+Objaw / cel: gdy mecz pucharowy na żywo wchodzi w dogrywkę i karne, telebim LIVE
+(`live-fragment.php`, sekcja board) pokazuje tylko wynik regulaminowy (`goals.*`) i
+etykietę — BEZ bieżącego wyniku serii karnych. Cel: na żywo pokazać bieżący wynik
+serii w formacie P-l `H(Hp):A(Ap)` (spójnie ze skrótem/kartami/drabinką), a rzuty
+serii karnych — O ILE API je dostarcza — nanieść też na oś czasu.
+
+Ground-truth do wykonania w sesji (czytać kod — poniższe DO POTWIERDZENIA):
+- **Status live już rozróżniony, brakuje renderu wyniku serii.** `lookups.php`
+  (`hajlajty_status_map`): `P` → stan LIVE, `live_label = 'Karne'`; `ET` → LIVE,
+  `show_minute=true`; `BT` → LIVE, `'Przerwa'`. Board (`live-fragment.php`) pokazuje
+  `board__half` „Dogrywka" dla `ET` i `live_label` „Karne" dla `P`, ale w
+  `board__nums` renderuje wyłącznie `goals.{home,away}` — `score.penalty` NIE jest
+  pokazywany na żywo. Dołożyć nawias P-l `H(Hp):A(Ap)` w telebimie (i single-live).
+- **Dane live niosą serię (render-only, jak P-l).** `score.penalty.{home,away}`
+  aktualizuje się w trakcie serii i jest mapowany przez import (`transform.php`,
+  klucz `score.penalty`); live-import (`process_fixture`) zapisuje go do `match_data`,
+  a poller 3e-iii odświeża board z `match_data` co N s → bieżący wynik serii pojawi
+  się bez zmian mechanizmu, sam render go dziś pomija.
+- **Oś czasu — rzuty SERII karnych: ZALEŻY OD API (kluczowe do zweryfikowania).**
+  Oś live/skrótu budowana z `events[]` (`hajlajty_build_timeline`). Gole z DOGRYWKI
+  to zwykłe eventy `Goal` (minuta >90) — już się nanoszą. Otwarte: czy
+  `fixtures/events` zwraca RZUTY serii karnych (i w jakim kształcie — `type`/`detail`/
+  `comments`; api-football często oznacza je `Penalty Shootout`). SPRAWDZIĆ na realnym
+  meczu PEN i w `api-samples/`. Jeśli API je daje: zmapować w `lookups.php`
+  (`hajlajty_lookup_event`) na osobny klucz + ikonę (⚽ trafiony / ❌ nietrafiony w
+  serii), spójnie z istniejącymi kluczami `penalty_goal`/`missed_penalty` (uważać, by
+  NIE zliczać ich do narastającego wyniku osi w `derive.php` — seria nie zmienia
+  `goals`). Jeśli API ich NIE daje: DEGRADACJA — sam telebim niesie wynik serii
+  (nawias), oś bez rzutów serii; NIE wymyślamy zdarzeń (#8, spójnie z regułą „nie
+  wymyślamy par" z drabinki).
+
+Decyzje (dziedziczone z P-l + właściciel):
+- format nawiasu `H(Hp):A(Ap)` identyczny jak P-l; w trakcie `P` etykieta „Karne"
+  zostaje (już jest) i dochodzi nawias z bieżącym wynikiem serii;
+- „po dogrywce"/„po karnych" jako nota końcowa dotyczy stanu ZAKOŃCZONEGO (P-l) —
+  po gwizdku poller dostaje `status ∈ {AET,PEN}` (`data-live="0"`) i milknie, a single
+  przechodzi w wariant FT (P-l). P-m dotyczy fazy W TOKU (`ET`/`BT`/`P`);
+- rzuty serii na osi = zakres WARUNKOWY (tylko jeśli API je zwraca — patrz wyżej).
+
+Realia środowiska (CLAUDE.md): agent pisze KOD; RUNTIME wykonuje człowiek. Trudność:
+test wymaga meczu w serii karnych na żywo — realnie weryfikować na PRÓBCE (odtworzyć
+`match_data` ze `status.short='P'` + rosnącym `score.penalty`, ew. z eventami serii)
+i/lub na najbliższym realnym meczu PEN.
+
+Zależność: motyw (`match-display`) + poller 3e-iii (już na `main`) + live-import
+core (musi biec w oknie meczu — cron 3e-iv-a / ręczny `import-live`, inaczej brak
+świeżego `score.penalty`). Render READ-ONLY z `match_data` (#3); zero zmian modelu.
+Warunkowa część (oś) zależy od kształtu `fixtures/events` — do rozstrzygnięcia w
+ground-truth, nie z góry.
+
+---
+
+### P-n — Hotfix: wyszukiwarka — po zmianie listy tekst znika, ale filtr + „×" zostają (rozjazd stanu)
+
+Hotfix frontu (mały, jeden plik JS). Ground-truth NAJPIERW, ale zakres jasny.
+
+Objaw (właściciel): wpisuję np. „niem" → lista zawęża się do Niemiec. Przechodzę na
+inną listę → pole wyszukiwarki jest PUSTE (tekst „niem" zniknął), ale przycisk „×"
+(czyść) zostaje widoczny, a filtr DALEJ działa w tle (karty wciąż zawężone). Bo tekst
+się wyczyścił, nie widać DLACZEGO lista jest przefiltrowana — filtr działa
+„niewidzialnie".
+
+Ground-truth (potwierdzone w `features/filters/assets/filters.js`):
+- **Stan jest LEPKI z założenia** (nie błąd): `state.q` + `state.tax` trwają w
+  `sessionStorage` pod `hajlajty:filters`, świadomie „aż odznaczysz" (komentarz na
+  górze pliku, `TAXES`/`load()`/`persist()`).
+- **Błąd KOLEJNOŚCI startu (sedno):** seed pola `inputs.forEach(function(inp){ inp.value
+  = state.q; ... })` wykonuje się ZANIM `load()` wczyta `state.q` z sessionStorage
+  (`load()` woła się dopiero w bloku START na końcu pliku, po podpięciu inputów). W
+  chwili seeda `state.q === ""`, więc pole ustawia się na PUSTE. Potem `load()` ustawia
+  `state.q = "niem"`, a `apply()` → `syncControls()` pokazuje „×" (`clearTextBtns.hidden
+  = state.q === ""` → false) i `applyFilter()` zawęża karty (`cardMatches` czyta
+  `state.q`) — ale ŻADNA ścieżka renderu nie zapisuje `state.q` z powrotem do pola.
+  Efekt: pole puste, „×" widoczne, filtr aktywny.
+- **Brak jednego źródła prawdy „stan→pole":** wartość pola piszą TYLKO `setQuery()`,
+  init-seed i `resetAll()`; `apply()`/`syncControls()` NIE synchronizują pola do
+  `state.q`, więc po `load()` pole nie nadąża za stanem.
+
+Decyzja UX (ROZSTRZYGNIĘTA przez właściciela): PRZYWRACAMY TEKST. Filtr jest lepki
+celowo, więc naprawiamy TRANSPARENTNOŚĆ, nie kasujemy stanu — po `load()` przywrócić
+tekst do pola (pole pokazuje „niem"), spójnie z widocznym „×" i aktywnym filtrem.
+Odrzucona alternatywa (nie przywracać/nie persistować `q` przy starcie): chipy zostają
+lepkie, więc puste pole byłoby niespójne z zamysłem „lepkiego filtra".
+
+Kierunek fixa (sesja dobierze wariant): najprościej wczytać stan PRZED seedem pola
+(przenieść `load()` przed pętlę seedującą inputy albo zseedować pole z `state.q` już
+PO `load()`), ewentualnie dołożyć reconcile „stan→pole" w ścieżce renderu
+(`syncControls`/`apply`) z gardą `if (inp.value !== state.q)` (nie psuć karetki przy
+pisaniu). Objąć OBA pola (desktop w topbarze + modal mobilny) i stan „×".
+
+Zakres: WYŁĄCZNIE motyw, slice `features/filters/` (`assets/filters.js`); ZERO zmian
+danych/PHP. Niezależny od P-l/P-m (inny slice/temat) — spójne z odłożoną kwestią
+filtra „chip vs tekst" w Fazie 5 (to inny objaw tego samego pliku; NIE łączyć).
+
+Weryfikacja (człowiek): wpisz „niem" na liście A → przejdź na listę B → pole pokazuje
+„niem", „×" widoczny, karty zawężone do Niemiec (spójnie); klik „×" czyści tekst I
+filtr; „Wyczyść filtry" resetuje całość; działa dla pola desktop i modala mobilnego;
+brak zapamiętanego filtra → pole puste i „×" ukryty (bez fałszywego „×").
+
+Zależność: niezależny hotfix front (slice `filters`). Render/JS kliencki, zero
+backendu.
+
+---
+
 ## Faza 5 — „później" (poza MVP)
 
 Branch(e) osobne, gdy ruszymy. Cel: zebrać tu wszystko odłożone, żeby nie
