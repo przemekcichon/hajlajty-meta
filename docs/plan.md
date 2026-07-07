@@ -1719,10 +1719,10 @@ Decyzje UX (ROZSTRZYGNIĘTE przez właściciela):
   I nawias `H(Hp):A(Ap)`, I notę „po karnych"; AET dostaje samą notę „po dogrywce"
   (gole już pokazują zwycięzcę dogrywki, np. 2:1 — bez nawiasu). Osobne oznaczanie
   zwycięzcy (pogrubienie/strzałka) NIE jest wymagane — nawias + gole to niosą.
-- **ZAKRES LIVE — POZA P-l (osobny follow-up).** Na żywo ma być „bardzo podobnie"
-  (seria karnych w toku), ale to osobna sesja: `live-fragment.php` zna zdarzenia
-  karnych, nie wynik serii, więc wymaga własnego ground-truth. P-l obejmuje single
-  ZAKOŃCZONY + karty (zgodnie z objawem); LIVE zostaje na później.
+- **ZAKRES LIVE — POZA P-l (osobny follow-up → P-m).** Na żywo ma być „bardzo
+  podobnie" (seria karnych w toku), ale to osobna sesja: `live-fragment.php` zna
+  zdarzenia karnych, nie wynik serii, więc wymaga własnego ground-truth. P-l obejmuje
+  single ZAKOŃCZONY + karty (zgodnie z objawem); LIVE realizuje P-m.
 
 - **DRABINKA ujednolicona do tego samego zapisu w nawiasie + POSZERZENIE boxu.**
   `bracket-cell.php` przechodzi z osobnej noty „karne h:a" na ten sam format
@@ -1750,6 +1750,65 @@ zapowiedź bez regresji; LIVE NIEZMIENIONY (poza zakresem P-l).
 Zależność: WYŁĄCZNIE motyw (slice'y `match-display` + `match-lists`); ZERO zmian w
 imporcie/modelu (dane już są — potwierdzić na realnym meczu PEN). Render READ-ONLY
 z `match_data` (#3).
+
+---
+
+### P-m — Live: dogrywka/karne w telebimie na żywo + rzuty serii na osi czasu
+
+Follow-up P-l, świadomie z niego wyłączony (LIVE). Realizacja pełnym torem:
+ground-truth NAJPIERW (`docs/ground-truth.md`) → implementacja → recenzja. Ten wpis
+opisuje problem i obszary do zbadania; UX dziedziczy z P-l (ten sam format nawiasu),
+a jedno pytanie jest OTWARTE i zależy od API (rzuty serii na osi — patrz niżej).
+
+Objaw / cel: gdy mecz pucharowy na żywo wchodzi w dogrywkę i karne, telebim LIVE
+(`live-fragment.php`, sekcja board) pokazuje tylko wynik regulaminowy (`goals.*`) i
+etykietę — BEZ bieżącego wyniku serii karnych. Cel: na żywo pokazać bieżący wynik
+serii w formacie P-l `H(Hp):A(Ap)` (spójnie ze skrótem/kartami/drabinką), a rzuty
+serii karnych — O ILE API je dostarcza — nanieść też na oś czasu.
+
+Ground-truth do wykonania w sesji (czytać kod — poniższe DO POTWIERDZENIA):
+- **Status live już rozróżniony, brakuje renderu wyniku serii.** `lookups.php`
+  (`hajlajty_status_map`): `P` → stan LIVE, `live_label = 'Karne'`; `ET` → LIVE,
+  `show_minute=true`; `BT` → LIVE, `'Przerwa'`. Board (`live-fragment.php`) pokazuje
+  `board__half` „Dogrywka" dla `ET` i `live_label` „Karne" dla `P`, ale w
+  `board__nums` renderuje wyłącznie `goals.{home,away}` — `score.penalty` NIE jest
+  pokazywany na żywo. Dołożyć nawias P-l `H(Hp):A(Ap)` w telebimie (i single-live).
+- **Dane live niosą serię (render-only, jak P-l).** `score.penalty.{home,away}`
+  aktualizuje się w trakcie serii i jest mapowany przez import (`transform.php`,
+  klucz `score.penalty`); live-import (`process_fixture`) zapisuje go do `match_data`,
+  a poller 3e-iii odświeża board z `match_data` co N s → bieżący wynik serii pojawi
+  się bez zmian mechanizmu, sam render go dziś pomija.
+- **Oś czasu — rzuty SERII karnych: ZALEŻY OD API (kluczowe do zweryfikowania).**
+  Oś live/skrótu budowana z `events[]` (`hajlajty_build_timeline`). Gole z DOGRYWKI
+  to zwykłe eventy `Goal` (minuta >90) — już się nanoszą. Otwarte: czy
+  `fixtures/events` zwraca RZUTY serii karnych (i w jakim kształcie — `type`/`detail`/
+  `comments`; api-football często oznacza je `Penalty Shootout`). SPRAWDZIĆ na realnym
+  meczu PEN i w `api-samples/`. Jeśli API je daje: zmapować w `lookups.php`
+  (`hajlajty_lookup_event`) na osobny klucz + ikonę (⚽ trafiony / ❌ nietrafiony w
+  serii), spójnie z istniejącymi kluczami `penalty_goal`/`missed_penalty` (uważać, by
+  NIE zliczać ich do narastającego wyniku osi w `derive.php` — seria nie zmienia
+  `goals`). Jeśli API ich NIE daje: DEGRADACJA — sam telebim niesie wynik serii
+  (nawias), oś bez rzutów serii; NIE wymyślamy zdarzeń (#8, spójnie z regułą „nie
+  wymyślamy par" z drabinki).
+
+Decyzje (dziedziczone z P-l + właściciel):
+- format nawiasu `H(Hp):A(Ap)` identyczny jak P-l; w trakcie `P` etykieta „Karne"
+  zostaje (już jest) i dochodzi nawias z bieżącym wynikiem serii;
+- „po dogrywce"/„po karnych" jako nota końcowa dotyczy stanu ZAKOŃCZONEGO (P-l) —
+  po gwizdku poller dostaje `status ∈ {AET,PEN}` (`data-live="0"`) i milknie, a single
+  przechodzi w wariant FT (P-l). P-m dotyczy fazy W TOKU (`ET`/`BT`/`P`);
+- rzuty serii na osi = zakres WARUNKOWY (tylko jeśli API je zwraca — patrz wyżej).
+
+Realia środowiska (CLAUDE.md): agent pisze KOD; RUNTIME wykonuje człowiek. Trudność:
+test wymaga meczu w serii karnych na żywo — realnie weryfikować na PRÓBCE (odtworzyć
+`match_data` ze `status.short='P'` + rosnącym `score.penalty`, ew. z eventami serii)
+i/lub na najbliższym realnym meczu PEN.
+
+Zależność: motyw (`match-display`) + poller 3e-iii (już na `main`) + live-import
+core (musi biec w oknie meczu — cron 3e-iv-a / ręczny `import-live`, inaczej brak
+świeżego `score.penalty`). Render READ-ONLY z `match_data` (#3); zero zmian modelu.
+Warunkowa część (oś) zależy od kształtu `fixtures/events` — do rozstrzygnięcia w
+ground-truth, nie z góry.
 
 ---
 
