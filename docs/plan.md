@@ -1667,8 +1667,9 @@ nadrzędna wobec slice'ów.
 
 Realizacja pełnym torem: ground-truth NAJPIERW (`docs/ground-truth.md`) →
 implementacja → recenzja (`docs/code-review-workflow.md`). Ten wpis opisuje problem
-i obszary do zbadania — UX (dokładne słownictwo/umiejscowienie, oznaczenie zwycięzcy)
-i granice zakresu (LIVE?) rozstrzyga sesja wykonawcza + właściciel.
+i obszary do zbadania; decyzje UX (format noty, AET vs PEN, zakres LIVE) są już
+ROZSTRZYGNIĘTE przez właściciela (sekcja „Decyzje UX" niżej) — sesji zostaje
+ground-truth, umiejscowienie w markupie i granica slice'ów.
 
 Objaw (zgłoszenie właściciela): mecz fazy pucharowej, który po regulaminowym czasie
 ORAZ dogrywce kończy się remisem i rozstrzyga się w karnych, na STRONIE meczu
@@ -1705,22 +1706,37 @@ Ground-truth do wykonania w sesji (czytać kod na dysku — poniższe SĄ do pot
   `shared/` na zapas (VSA, #8): najpierw sprawdzić, czy powielenie kilku linii nie
   jest prostsze niż współdzielony byt między slice'ami.
 
-Decyzje dla sesji + właściciela (UX, nie przesądzam):
-- dokładne słownictwo i miejsce noty („po karnych 4:3" / „po dogrywce"; przy wyniku
-  czy pod nim); czy i jak oznaczyć ZWYCIĘZCĘ serii (pogrubienie/strzałka), skoro
-  `goals` to remis;
-- czy mecz rozstrzygnięty w samej DOGRYWCE (AET, bez karnych) też dostaje notę
-  „po dogrywce" na single/kartach (drabinka już go rozróżnia);
-- ZAKRES LIVE: seria karnych trwa też na żywo (`live-fragment.php` zna zdarzenia
-  karnych, ale nie wynik serii). Czy P-l obejmuje wariant LIVE, czy zostaje przy
-  single ZAKOŃCZONYM + kartach (zgodnie z objawem), a LIVE to osobny follow-up.
+Decyzje UX (ROZSTRZYGNIĘTE przez właściciela):
+- **Format wyniku karnych = w nawiasie przy standardowym wyniku, per strona.**
+  Wynik regulaminowy (remis) zostaje, a wynik serii karnych dochodzi w nawiasie
+  przy liczbie goli KAŻDEJ drużyny: `H(Hp):A(Ap)`. Przykład: regulaminowe 1:1,
+  karne 3:4 → `1(3):1(4)`. Na single (telebim: gole POD każdą flagą osobno) ten
+  sam zapis per strona — `1(3)` pod gospodarzem, `1(4)` pod gościem. Nawias jest
+  TYLKO dla PEN (dogrywka bez karnych nie ma serii → bez nawiasu).
+- **Nota tekstowa wg statusu:** `PEN` → „po karnych"; `AET` (rozstrzygnięcie w samej
+  dogrywce, bez karnych) → „po dogrywce". Nota jest niezależna od nawiasu: PEN dostaje
+  I nawias `H(Hp):A(Ap)`, I notę „po karnych"; AET dostaje samą notę „po dogrywce"
+  (gole już pokazują zwycięzcę dogrywki, np. 2:1 — bez nawiasu). Osobne oznaczanie
+  zwycięzcy (pogrubienie/strzałka) NIE jest wymagane — nawias + gole to niosą.
+- **ZAKRES LIVE — POZA P-l (osobny follow-up).** Na żywo ma być „bardzo podobnie"
+  (seria karnych w toku), ale to osobna sesja: `live-fragment.php` zna zdarzenia
+  karnych, nie wynik serii, więc wymaga własnego ground-truth. P-l obejmuje single
+  ZAKOŃCZONY + karty (zgodnie z objawem); LIVE zostaje na później.
+
+Do rozstrzygnięcia w sesji (umiejscowienie, nie UX): czy ujednolicić DRABINKĘ do
+tego samego zapisu w nawiasie (dziś `bracket-cell.php` ma osobną notę „karne h:a")
+— spójność jest sensem P-l, a miejsce w boxie to udźwignie (gole już są pod flagami
+jako `bracket-cell__g`). Domyślnie: TAK, ujednolicić; ostateczna decyzja po obejrzeniu
+ciasnoty boxu.
 
 Realia środowiska (CLAUDE.md): agent pisze KOD; RUNTIME (weryfikacja na żywej
 stronie) wykonuje CZŁOWIEK. Kroki testowe: „oto co otwórz i co powinno być widać".
 
 Weryfikacja (wykonuje człowiek): na realnym meczu PEN (WŚ takie ma) single i karta
-pokazują wynik karnych + notę „po karnych" spójną z boxem drabinki; mecz AET (bez
-karnych) pokazuje „po dogrywce"; zwykły FT bez zmian; zapowiedź/live bez regresji.
+pokazują wynik w formacie `H(Hp):A(Ap)` (np. `1(3):1(4)`) + notę „po karnych",
+spójnie z boxem drabinki; mecz AET (bez karnych) pokazuje notę „po dogrywce" BEZ
+nawiasu (gole niosą zwycięzcę); zwykły FT bez zmian; zapowiedź bez regresji; LIVE
+NIEZMIENIONY (poza zakresem P-l).
 
 Zależność: WYŁĄCZNIE motyw (slice'y `match-display` + `match-lists`); ZERO zmian w
 imporcie/modelu (dane już są — potwierdzić na realnym meczu PEN). Render READ-ONLY
