@@ -1812,6 +1812,59 @@ ground-truth, nie z góry.
 
 ---
 
+### P-n — Hotfix: wyszukiwarka — po zmianie listy tekst znika, ale filtr + „×" zostają (rozjazd stanu)
+
+Hotfix frontu (mały, jeden plik JS). Ground-truth NAJPIERW, ale zakres jasny.
+
+Objaw (właściciel): wpisuję np. „niem" → lista zawęża się do Niemiec. Przechodzę na
+inną listę → pole wyszukiwarki jest PUSTE (tekst „niem" zniknął), ale przycisk „×"
+(czyść) zostaje widoczny, a filtr DALEJ działa w tle (karty wciąż zawężone). Bo tekst
+się wyczyścił, nie widać DLACZEGO lista jest przefiltrowana — filtr działa
+„niewidzialnie".
+
+Ground-truth (potwierdzone w `features/filters/assets/filters.js`):
+- **Stan jest LEPKI z założenia** (nie błąd): `state.q` + `state.tax` trwają w
+  `sessionStorage` pod `hajlajty:filters`, świadomie „aż odznaczysz" (komentarz na
+  górze pliku, `TAXES`/`load()`/`persist()`).
+- **Błąd KOLEJNOŚCI startu (sedno):** seed pola `inputs.forEach(function(inp){ inp.value
+  = state.q; ... })` wykonuje się ZANIM `load()` wczyta `state.q` z sessionStorage
+  (`load()` woła się dopiero w bloku START na końcu pliku, po podpięciu inputów). W
+  chwili seeda `state.q === ""`, więc pole ustawia się na PUSTE. Potem `load()` ustawia
+  `state.q = "niem"`, a `apply()` → `syncControls()` pokazuje „×" (`clearTextBtns.hidden
+  = state.q === ""` → false) i `applyFilter()` zawęża karty (`cardMatches` czyta
+  `state.q`) — ale ŻADNA ścieżka renderu nie zapisuje `state.q` z powrotem do pola.
+  Efekt: pole puste, „×" widoczne, filtr aktywny.
+- **Brak jednego źródła prawdy „stan→pole":** wartość pola piszą TYLKO `setQuery()`,
+  init-seed i `resetAll()`; `apply()`/`syncControls()` NIE synchronizują pola do
+  `state.q`, więc po `load()` pole nie nadąża za stanem.
+
+Decyzja UX (rekomendacja — do potwierdzenia właściciela): filtr jest lepki celowo,
+więc naprawiamy TRANSPARENTNOŚĆ, nie kasujemy stanu — po `load()` PRZYWRÓCIĆ tekst do
+pola (pole pokazuje „niem"), spójnie z widocznym „×" i aktywnym filtrem. Alternatywa
+(jeśli właściciel uzna, że tekst NIE ma być lepki): przy starcie nie przywracać/nie
+persistować `q` (pole puste, „×" ukryty, brak filtra tekstowego) — ale chipy zostają
+lepkie, więc byłoby niespójne z zamysłem „lepkiego filtra". DOMYŚLNIE: przywracać tekst.
+
+Kierunek fixa (sesja dobierze wariant): najprościej wczytać stan PRZED seedem pola
+(przenieść `load()` przed pętlę seedującą inputy albo zseedować pole z `state.q` już
+PO `load()`), ewentualnie dołożyć reconcile „stan→pole" w ścieżce renderu
+(`syncControls`/`apply`) z gardą `if (inp.value !== state.q)` (nie psuć karetki przy
+pisaniu). Objąć OBA pola (desktop w topbarze + modal mobilny) i stan „×".
+
+Zakres: WYŁĄCZNIE motyw, slice `features/filters/` (`assets/filters.js`); ZERO zmian
+danych/PHP. Niezależny od P-l/P-m (inny slice/temat) — spójne z odłożoną kwestią
+filtra „chip vs tekst" w Fazie 5 (to inny objaw tego samego pliku; NIE łączyć).
+
+Weryfikacja (człowiek): wpisz „niem" na liście A → przejdź na listę B → pole pokazuje
+„niem", „×" widoczny, karty zawężone do Niemiec (spójnie); klik „×" czyści tekst I
+filtr; „Wyczyść filtry" resetuje całość; działa dla pola desktop i modala mobilnego;
+brak zapamiętanego filtra → pole puste i „×" ukryty (bez fałszywego „×").
+
+Zależność: niezależny hotfix front (slice `filters`). Render/JS kliencki, zero
+backendu.
+
+---
+
 ## Faza 5 — „później" (poza MVP)
 
 Branch(e) osobne, gdy ruszymy. Cel: zebrać tu wszystko odłożone, żeby nie
