@@ -1874,6 +1874,26 @@ Niemiec, pigułka „Niemcy" (chip lepki); na jednej liście wpisanie tekstu wci
 żywo, „×" czyści tekst, „Wyczyść filtry" resetuje całość; działa dla pola desktop i
 modala mobilnego.
 
+Rozszerzenie (dograne w tej samej sesji P-n) — SORTOWANIE zaznaczonych chipów na
+przód po przeładowaniu. Cel spójny z decyzją wyżej: skoro lepki jest tylko CHIP (nie
+tekst), zaznaczenie ma być po reloadzie od razu widoczne — bez przewijania paska w
+poszukiwaniu, który chip jest aktywny. Zachowanie:
+- KLIK chipa NIE zmienia jego pozycji — chip zostaje tam, gdzie był (bez „skakania"
+  pod kursorem/palcem w trakcie wybierania).
+- PO PRZEŁADOWANIU strony zaznaczone chipy lądują na POCZĄTKU listy, w kolejności
+  ALFABETYCZNEJ wśród zaznaczonych; niezaznaczone zostają w swojej dotychczasowej
+  (alfabetycznej) kolejności za nimi. Efekt: dwie grupy alfabetyczne — [zaznaczone],
+  potem [reszta].
+Zakres techniczny: reorder DOM przy starcie (po `load()`, niezależnie od `apply()`),
+w OBU kontenerach chipów (`[data-filter-chips]`: pasek desktop `.chips-scroll` +
+siatka modalu `.search-overlay__grid`; strzałki są POZA tym kontenerem, więc ich nie
+rusza). Sortowanie po widocznej etykiecie (`label(chip)` + `localeCompare(…, "pl")`).
+NIE wołane z handlera kliku (stąd „klik nie rusza, reload układa"). Zero zmian
+PHP/danych — czysty JS w `filters.js`.
+Weryfikacja (człowiek): zaznacz 2–3 chipy w losowych miejscach paska → przeładuj
+stronę → zaznaczone są na przodzie i alfabetycznie; sam klik nie przesuwa chipa aż
+do reloadu; działa na pasku desktop i w siatce modalu.
+
 Zależność: niezależny hotfix front (slice `filters`). Render/JS kliencki, zero
 backendu.
 
