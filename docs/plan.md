@@ -1838,26 +1838,41 @@ Ground-truth (potwierdzone w `features/filters/assets/filters.js`):
   init-seed i `resetAll()`; `apply()`/`syncControls()` NIE synchronizują pola do
   `state.q`, więc po `load()` pole nie nadąża za stanem.
 
-Decyzja UX (ROZSTRZYGNIĘTA przez właściciela): PRZYWRACAMY TEKST. Filtr jest lepki
-celowo, więc naprawiamy TRANSPARENTNOŚĆ, nie kasujemy stanu — po `load()` przywrócić
-tekst do pola (pole pokazuje „niem"), spójnie z widocznym „×" i aktywnym filtrem.
-Odrzucona alternatywa (nie przywracać/nie persistować `q` przy starcie): chipy zostają
-lepkie, więc puste pole byłoby niespójne z zamysłem „lepkiego filtra".
+Decyzja UX (ROZSTRZYGNIĘTA przez właściciela — ZMIENIONA po teście, patrz niżej):
+TEKST NIE JEST LEPKI. Przejście między listami czyści pole tekstowe I jego zawężenie;
+lepki zostaje TYLKO wybór zabezpieczony klikiem (chip). Bo tak jest intuicyjniej:
+kliknięty chip to jawny, widoczny wybór „to zostaje", a wpisany tekst to doraźne
+szukanie na bieżącej liście. Uzasadnienie mobilne (rozstrzygające): na komórce pole
+tekstowe tkwi w pełnoekranowym MODALU za lupą, więc po nawigacji nie jest od razu
+widoczne — lepki tekst wracał jako „niewidzialny" filtr (karty zawężone, a powodu nie
+widać), dokładnie ten sam objaw, który mieliśmy naprawić. Chip jest zawsze widoczny na
+pasku/pigułce, więc jego lepkość jest czytelna.
 
-Kierunek fixa (sesja dobierze wariant): najprościej wczytać stan PRZED seedem pola
-(przenieść `load()` przed pętlę seedującą inputy albo zseedować pole z `state.q` już
-PO `load()`), ewentualnie dołożyć reconcile „stan→pole" w ścieżce renderu
-(`syncControls`/`apply`) z gardą `if (inp.value !== state.q)` (nie psuć karetki przy
-pisaniu). Objąć OBA pola (desktop w topbarze + modal mobilny) i stan „×".
+Rozważona i ODRZUCONA alternatywa — „PRZYWRACAMY TEKST" (pierwotna decyzja tego P-n):
+po `load()` reconcile „stan→pole" w ścieżce renderu (`syncControls`) z gardą
+`if (inp.value !== state.q)`, tak by pole pokazywało przywrócone „niem" spójnie z „×".
+Została ZAIMPLEMENTOWANA i PRZETESTOWANA (branch `fix/p-n-search-input-restore`, PR
+hajlajty-theme#40, iteracja 1) — w praktyce mało intuicyjna, zwłaszcza na mobile
+(argument wyżej). Dlatego cofnięta na rzecz wersji „tekst efemeryczny". (Wcześniej ten
+sam wariant „nie persistować q" był odrzucany z obawy o niespójność z lepkimi chipami —
+test pokazał, że jest ODWROTNIE: to lepki tekst był niespójny/mylący, chipy nie.)
+
+Kierunek fixa (zrealizowany): `load()` NIE przywraca `state.q` (tekst startuje pusty na
+każdej liście; seed pola `inp.value = state.q` daje puste pole — poprawnie); `persist()`
+NIE zapisuje `q` do `sessionStorage` (lepkie są tylko chipy). Bez reconcile/abstrakcji —
+net-diff to wyłącznie „nie persistuj q" + komentarze. Obejmuje OBA pola (desktop + modal)
+z natury (jeden `state.q` dla obu).
 
 Zakres: WYŁĄCZNIE motyw, slice `features/filters/` (`assets/filters.js`); ZERO zmian
 danych/PHP. Niezależny od P-l/P-m (inny slice/temat) — spójne z odłożoną kwestią
 filtra „chip vs tekst" w Fazie 5 (to inny objaw tego samego pliku; NIE łączyć).
 
-Weryfikacja (człowiek): wpisz „niem" na liście A → przejdź na listę B → pole pokazuje
-„niem", „×" widoczny, karty zawężone do Niemiec (spójnie); klik „×" czyści tekst I
-filtr; „Wyczyść filtry" resetuje całość; działa dla pola desktop i modala mobilnego;
-brak zapamiętanego filtra → pole puste i „×" ukryty (bez fałszywego „×").
+Weryfikacja (człowiek): wpisz „niem" na liście A → przejdź na listę B → pole PUSTE, „×"
+ukryty, brak zawężenia tekstowego (karty pełne, o ile żaden chip nie jest aktywny);
+kliknij chip „Niemcy" na A → przejdź na B → chip DALEJ aktywny, karty zawężone do
+Niemiec, pigułka „Niemcy" (chip lepki); na jednej liście wpisanie tekstu wciąż zawęża na
+żywo, „×" czyści tekst, „Wyczyść filtry" resetuje całość; działa dla pola desktop i
+modala mobilnego.
 
 Zależność: niezależny hotfix front (slice `filters`). Render/JS kliencki, zero
 backendu.
