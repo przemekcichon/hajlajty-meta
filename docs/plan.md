@@ -1987,6 +1987,42 @@ YouTube) rozstrzyga A vs B i jest blokerem projektu/implementacji. Osobny branch
 
 ---
 
+### P-p — Mobile: focus w polu wyszukiwarki (modal) powiększa cały layout (iOS auto-zoom)
+
+Hotfix frontu (CSS, mobile). Ground-truth potwierdza przyczynę.
+
+Objaw (właściciel): na urządzeniu mobilnym otwieram modal wyszukiwarki, a gdy ustawiam
+kursor (focus) w polu wyszukiwania — WSZYSTKO odrobinę się powiększa, pojawia się
+poziomy scroll, hamburger chowa się częściowo po lewej, a przyciski wyjeżdżają poza
+viewport ekranu. Przy ustawianiu kursora w polu rozmiar wszystkiego powinien pozostać
+ten sam.
+
+Ground-truth / przyczyna (potwierdzone w `features/filters/assets/filters.css`):
+`.filters-search__input { font-size: 15px }` (ok. linia 101). iOS Safari AUTOMATYCZNIE
+zoomuje stronę przy focusie pola formularza o `font-size < 16px` — stąd „powiększenie",
+poziomy scroll i elementy poza viewportem. Viewport meta to `width=device-width,
+initial-scale=1.0` (`features/layout/partials/header.php`) — świadomie BEZ
+`maximum-scale`/`user-scalable=no` (nie wyłączamy zoomu ze względu na dostępność).
+
+Kierunek fixa: podnieść `font-size` pola do ≥ 16px (typowo dokładnie 16px) — co najmniej
+na mobile (input w modalu to fokusowany element). To standardowe lekarstwo na iOS
+auto-zoom; NIE ruszamy viewport meta (zoom zostaje w rękach usera). Objąć oba wystąpienia
+`.filters-search__input` (pole desktop w topbarze + pole w modalu); jeśli 16px zaburzy
+proporcje desktopu — zawęzić bump do `@media (max-width: 768px)`. Reszta kontrolek
+(`.search-overlay__apply` itd.) nie wyzwala zoomu — znaczenie ma TYLKO `<input>`.
+
+Zakres: WYŁĄCZNIE motyw, slice `features/filters` (`assets/filters.css`); zero zmian
+HTML/JS/danych. Mały, jeden plik CSS.
+
+Weryfikacja (człowiek — na REALNYM iOS/Safari; emulacja desktop tego nie odtworzy):
+otwórz modal wyszukiwarki na telefonie → ustaw kursor w polu → strona NIE zoomuje, brak
+poziomego scrolla, hamburger i przyciski zostają na miejscu; wpisywanie działa jak dziś;
+sanity na Androidzie (bez regresji).
+
+Zależność: niezależny hotfix CSS (slice `filters`). Zero backendu.
+
+---
+
 ## Faza 5 — „później" (poza MVP)
 
 Branch(e) osobne, gdy ruszymy. Cel: zebrać tu wszystko odłożone, żeby nie
