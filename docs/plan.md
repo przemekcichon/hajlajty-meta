@@ -2023,6 +2023,49 @@ Zależność: niezależny hotfix CSS (slice `filters`). Zero backendu.
 
 ---
 
+### P-r — Mobile: przy otwarciu sidebara hamburger i logo przeskakują w prawo względem headera
+
+Hotfix frontu (CSS, mobile). Ground-truth wskazuje rozjazd geometrii poziomej.
+
+Objaw (właściciel): na urządzeniu mobilnym po wywołaniu sidebar-menu hamburger i logo są
+w trochę INNYM miejscu niż w headerze strony — oba przeskakują w prawo. Menu nakłada się
+na header, więc przeskok jest widoczny; powinny zostać w tym samym miejscu. To wymaga
+zmiany pozycji hamburgera i logo w sidebarze, co WYMUSI też przesunięcie (trochę w lewo)
+ikon i tekstów pozycji menu.
+
+Ground-truth (potwierdzone w `assets/styles/layout.css` + `features/layout/partials/{header,sidebar}.php`):
+- TOPBAR (≤768px): `.topbar__inner { padding-inline: var(--gutter) }`; hamburger to
+  `.topbar__left > .icon-btn:first-child { margin-left: -11px }` — glif hamburgera
+  dosunięty w lewo o 11px (kasuje wewnętrzny padding `.icon-btn`), więc siada blisko
+  krawędzi guttera.
+- SIDEBAR (drawer): `.sidebar` ma lewy padding `var(--space-2xs)` (8px);
+  `.sidebar__head { padding-inline: 0 }` i BEZ ujemnego `margin-left` na swoim
+  `.icon-btn`. Efekt: hamburger+logo w drawerze startują od `--space-2xs` bez korekty
+  -11px → siedzą DALEJ w prawo niż w topbarze. (Komentarz przy `.sidebar__head` adresuje
+  tylko PION — wysokość/`margin-top` i offset paska admina — nie poziom.)
+
+Kierunek fixa: zrównać poziomą pozycję hamburgera i logo w `.sidebar__head` z pozycją w
+`.topbar__left` na mobile (ta sama efektywna lewa krawędź glifu — spójny ujemny inset /
+lewy padding), żeby przy nakładaniu menu na header nic nie „skakało". Konsekwencja (jak
+zauważył właściciel): po dosunięciu headu w lewo `.nav-link` trzeba analogicznie przesunąć
+w lewo (spójny lewy inset ikon i tekstów pod hamburgerem+logo). Uważać na: `.admin-bar`
+(offset PIONOWY już obsłużony — nie regresować) oraz tryb stałego menu ≥1100px (inny
+kontekst pozycjonowania — nie zepsuć).
+
+Zakres: motyw, slice `features/layout` (`assets/styles/layout.css`; ewentualny drobiazg w
+`partials/sidebar.php`, jeśli markup tego wymaga). Zero zmian danych/logiki JS. Mały
+hotfix CSS pozycjonowania.
+
+Weryfikacja (człowiek, mobile): otwórz stronę na telefonie → zapamiętaj pozycję hamburgera
+i logo w headerze → otwórz sidebar → hamburger i logo są DOKŁADNIE w tym samym miejscu
+(bez przeskoku w prawo); ikony i teksty pozycji menu wyrównane w lewo spójnie z headem;
+sprawdź jako zalogowany (pasek admina) i wylogowany; potwierdź, że tryb ≥1100px (stałe
+menu) nie zregresował; oba motywy.
+
+Zależność: niezależny hotfix CSS (slice `layout`). Zero backendu.
+
+---
+
 ## Faza 5 — „później" (poza MVP)
 
 Branch(e) osobne, gdy ruszymy. Cel: zebrać tu wszystko odłożone, żeby nie
