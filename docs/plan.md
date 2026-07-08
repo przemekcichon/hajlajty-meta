@@ -1899,6 +1899,94 @@ backendu.
 
 ---
 
+### P-o — Skróty nieosadzalne (YouTube „wyłączył odtwarzanie na innych stronach"): flaga + osobny stan skrótu
+
+Front/render + ewentualny prefetch. WERYFIKACJA TECHNICZNA (krok 1) NAJPIERW —
+dopiero ona rozstrzyga wariant danych i całą resztę.
+
+Objaw (właściciel): większość (może wszystkie) skrótów przy próbie odtworzenia w
+osadzonym playerze zwraca błąd YouTube:
+> Film niedostępny
+> Właściciel filmu wyłączył możliwość odtwarzania na innych stronach
+> [Obejrzyj na YouTube]
+
+Prawdopodobna przyczyna: FIFA (właściciel kanału) zastrzega osadzanie. Skutek: user
+klika „play" na naszym telebimie i dostaje brzydki błąd YT zamiast wideo — zła
+pierwsza sekunda kontaktu ze skrótem.
+
+Cel: zamiast pozwolić userowi trafić na błąd YT, WIEDZIEĆ z góry, że dany skrót jest
+nieosadzalny, i pokazać od razu czytelny stan: miniatura + widoczny przycisk „Obejrzyj
+na YouTube" (bez „play" w środku, bo osadzenie i tak nie zadziała) + znak „?" z
+tooltipem tłumaczącym DLACZEGO (w brzmieniu błędu YT). „Informacja od razu dostępna" =
+zapisana/wyliczona PRZED renderem, nie odkrywana dopiero po kliknięciu.
+
+KROK 1 (PRIORYTET — przed projektem i implementacją): czy „nieosadzalność" da się
+WYKRYĆ AUTOMATYCZNIE.
+- Zbadać wiarygodny sygnał programistyczny dla „owner disabled playback on other
+  websites". Kandydat główny: YouTube Data API v3 `videos.list?part=status` → pole
+  `status.embeddable` (bool) — to dokładnie ten przełącznik po stronie właściciela.
+  Kandydat pomocniczy/podejrzany: oEmbed/noembed (często zwraca 200 mimo blokady
+  osadzania → prawdopodobnie NIEwiarygodny dla tego przypadku; potwierdzić empirycznie).
+- Test empiryczny (podział agent/człowiek wg CLAUDE.md „Środowisko dev"): wziąć realne
+  ID kilku skrótów FIFA dających błąd w playerze i sprawdzić, co zwraca
+  `status.embeddable`. `false` skorelowane z blokadą → sygnał wiarygodny.
+- Koszty/sekrety: YouTube Data API wymaga KLUCZA (nowy sekret → wp-config/.env, NIGDY
+  repo; reguła #7 + „Wyszukiwanie i filtry") i ma limit kwotowy. Osobne źródło od
+  api-football.
+
+WARIANT A — sygnał wiarygodny (prefetch + zapis do bazy):
+- Przy zapisie/edycji skrótu (redaktor wkleja `skrot_url`) LUB w osobnym kroku
+  odświeżania: odpytać YouTube o `status.embeddable` i ZAPISAĆ wynik jako flagę
+  per-mecz (bool „nieosadzalny"). Odczyt przy renderze → od razu wiadomo, czy pokazać
+  stan „tylko YouTube".
+- MIEJSCE DANYCH (reguła trzech grup, #3): flaga dotyczy LINKU YT (domena skrótu/
+  redaktora), NIE danych api-football → NIE trafia do `match_data` (payload importu,
+  #3/#10). Front po niej nie filtruje/sortuje w SQL → NIE taksonomia, NIE „kluczowe"
+  płaskie meta. Domyślnie: osobne pole OBOK `skrot_url` (meta/ACF skrótu, jak
+  `skrot_duration`). Dokładne miejsce dobrać ground-truthem, ale granica jest twarda:
+  to pole SKRÓTU, nie meczu.
+
+WARIANT B — sygnał NIEwiarygodny (fallback redakcyjny, ręczny):
+- Redaktor RĘCZNIE flaguje skrót jako nieosadzalny — nowe pole ACF przy `skrot_url`
+  (checkbox „Tylko YouTube / nie osadzaj"). Spójne z #10 („redaktor wzbogaca skrót:
+  `skrot_url` + `kanal`") i filozofią „najpierw ręcznie, potem z AI". Zero API, zero
+  sekretu. (Hybryda auto-podpowiedź + nadpisanie redaktora — rozważyć TYLKO jeśli krok 1
+  da częściowo wiarygodny sygnał; nie projektować na zapas.)
+
+Render/UX (wspólny dla A i B — różni się tylko ŹRÓDŁO flagi):
+- Gdy flaga = nieosadzalny: NIE renderować ścieżki „facade → iframe" (dziś `player16`
+  z `data-yt`, klik `#playBtn` → wstrzyknięcie iframe w `assets/js/match-display.js`).
+  Zamiast tego stan STATYCZNY: miniatura BEZ przycisku play w środku (`player16__mid`
+  bez `.player16__play`), a w to miejsce/obok widoczny przycisk-link „Obejrzyj na
+  YouTube" (`target="_blank" rel="noopener"`) + ikona „?".
+- Tooltip (brzmienie WPROST z błędu YT): „Właściciel filmu wyłączył możliwość
+  odtwarzania na innych stronach" (nagłówek „Film niedostępny" opcjonalnie jako tytuł).
+  Musi być odkrywalny też DOTYKIEM i KLAWIATURĄ — samo `title=` na hover nie wystarczy
+  (mobile go nie pokaże).
+- Skróty osadzalne (jeśli takie są) zostają przy dzisiejszym playerze.
+
+Projekt graficzny (część tego punktu, PRZED implementacją frontu): zaprojektować stan
+„nieosadzalny" jako TRZECI stan telebimu (obok „ze skrótem" i „skrót wkrótce",
+`player16` overlay, parytet szkieletu): brak play w środku, CTA „Obejrzyj na YouTube",
+dyskretny ale odkrywalny „?" + tooltip. Warianty: motyw jasny/ciemny, desktop/mobile.
+
+Zakres: motyw slice `match-display` (`partials/single-ft.php`, `assets/js/match-display.js`,
+CSS) + pole flagi (ACF/meta skrótu). WARIANT A dokłada mały krok prefetchu YouTube
+(osobny od importu api-football; własny sekret). ZERO zmian `match_data` i danych
+meczowych. Sprawdzić, czy stan dotyka też kart list (dziś karty linkują do single, więc
+błąd pojawia się dopiero w playerze — prawdopodobnie karty bez zmian; potwierdzić).
+
+Weryfikacja (człowiek): otwórz mecz ze skrótem FIFA (nieosadzalny) → zamiast błędu YT
+widać miniaturę + „Obejrzyj na YouTube" + „?" z tooltipem w podanym brzmieniu; klik CTA
+otwiera film na YouTube (nowa karta); „?" pokazuje tooltip też na mobile (tap) i z
+klawiatury; dla skrótu osadzalnego (jeśli jest) player działa jak dziś; oba motywy.
+
+Zależność: front render skrótu (`match-display`) + model pola flagi. KROK 1 (weryfikacja
+YouTube) rozstrzyga A vs B i jest blokerem projektu/implementacji. Osobny branch + PR
+(oraz osobny projekt graficzny) wg workflow.
+
+---
+
 ## Faza 5 — „później" (poza MVP)
 
 Branch(e) osobne, gdy ruszymy. Cel: zebrać tu wszystko odłożone, żeby nie
